@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خطوة - متجر الأحذية الفاخرة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f5f0;
+    --gray-dark: #1a1a1a;
+    --gray-mid: #2d2d2d;
+    --gray-light: #888;
+    --accent: #f5f5f0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--white);
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 99999;
+    transition: transform 0.1s;
+    mix-blend-mode: difference;
+  }
+  .cursor-follower {
+    position: fixed;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(245,245,240,0.5);
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 99998;
+    transition: all 0.15s ease;
+  }
+  .cursor.active { transform: scale(3); }
+  .cursor-follower.active { transform: scale(1.5); opacity: 0.5; }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* 3D Card Effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  .card-3d:hover {
+    box-shadow: 20px 20px 0px rgba(245,245,240,0.08), 0 0 40px rgba(0,0,0,0.8);
+  }
+
+  /* Glitch text effect */
+  @keyframes glitch {
+    0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); transform: translate(-2px); }
+    10% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); transform: translate(2px); }
+    20% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); transform: translate(-2px); }
+    30% { clip-path: polygon(0 1%, 100% 1%, 100% 2%, 0 2%); transform: translate(2px); }
+    40% { clip-path: polygon(0 33%, 100% 33%, 100% 33%, 0 33%); transform: none; }
+    50% { clip-path: polygon(0 44%, 100% 44%, 100% 44%, 0 44%); transform: translate(2px); }
+    60% { clip-path: polygon(0 50%, 100% 50%, 100% 60%, 0 60%); transform: translate(-2px); }
+    70% { clip-path: polygon(0 70%, 100% 70%, 100% 70%, 0 70%); transform: translate(2px); }
+    80% { clip-path: polygon(0 80%, 100% 80%, 100% 88%, 0 88%); transform: none; }
+    90% { clip-path: polygon(0 60%, 100% 60%, 100% 65%, 0 65%); transform: translate(-2px); }
+    100% { clip-path: polygon(0 0%, 100% 0%, 100% 0%, 0 0%); transform: none; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--white); }
+
+  /* Navbar */
+  .navbar {
+    position: fixed;
+    top: 0; right: 0; left: 0;
+    z-index: 1000;
+    background: rgba(10,10,10,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(245,245,240,0.08);
+  }
+
+  .nav-link {
+    position: relative;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; right: 0;
+    width: 0; height: 1px;
+    background: var(--white);
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover::after { width: 100%; }
+  .nav-link:hover { color: var(--white); }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--white);
+    color: var(--black);
+    font-family: 'Cairo', sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 14px 36px;
+    border: 2px solid var(--white);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--black);
+    transform: translateX(101%);
+    transition: transform 0.3s ease;
+  }
+  .btn-primary:hover { color: var(--white); }
+  .btn-primary:hover::before { transform: translateX(0); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--white);
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    padding: 12px 32px;
+    border: 1px solid rgba(245,245,240,0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-outline::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--white);
+    transform: translateY(101%);
+    transition: transform 0.3s ease;
+  }
+  .btn-outline:hover { color: var(--black); }
+  .btn-outline:hover::before { transform: translateY(0); }
+  .btn-outline span { position: relative; z-index: 1; }
+
+  /* Hero Slider */
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .hero-slide.active { opacity: 1; }
+
+  .slider-progress {
+    position: absolute;
+    bottom: 0;
+    height: 2px;
+    background: var(--white);
+    animation: progress 5s linear infinite;
+  }
+  @keyframes progress {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  /* Product Card */
+  .product-card {
+    border: 1px solid rgba(245,245,240,0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    background: var(--gray-dark);
+  }
+  .product-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .product-card:hover {
+    border-color: rgba(245,245,240,0.3);
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .product-img-wrap {
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+  .product-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .product-card:hover .product-img-wrap img { transform: scale(1.08); }
+
+  .product-overlay {
+    position: absolute;
+    bottom: 0; right: 0; left: 0;
+    background: var(--black);
+    padding: 16px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    display: flex; gap: 8px;
+  }
+  .product-card:hover .product-overlay { transform: translateY(0); }
+
+  .badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--white);
+    color: var(--black);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    letter-spacing: 0.1em;
+    z-index: 2;
+  }
+
+  /* Category Card */
+  .cat-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(245,245,240,0.08);
+    transition: all 0.4s ease;
+    cursor: pointer;
+  }
+  .cat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+    transition: opacity 0.4s;
+  }
+  .cat-card:hover { border-color: rgba(245,245,240,0.4); }
+  .cat-card:hover img { transform: scale(1.1); }
+  .cat-card:hover::after { opacity: 0.7; }
+  .cat-card img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+    filter: grayscale(30%);
+  }
+  .cat-card:hover img { filter: grayscale(0%); }
+  .cat-name {
+    position: absolute;
+    bottom: 0; right: 0; left: 0;
+    z-index: 10;
+    padding: 20px;
+  }
+
+  /* 3D texture lines */
+  .texture-lines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 4px
+    );
+  }
+
+  /* Section divider */
+  .divider {
+    width: 60px; height: 2px;
+    background: var(--white);
+    margin-bottom: 16px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--gray-dark);
+    border: 1px solid rgba(245,245,240,0.15);
+    width: 90%;
+    max-width: 480px;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .modal-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Input */
+  .input-field {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(245,245,240,0.15);
+    color: var(--white);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.3s;
+    direction: rtl;
+  }
+  .input-field:focus { border-color: var(--white); }
+  .input-field::placeholder { color: rgba(245,245,240,0.3); }
+
+  /* Mystery Box Popup */
+  .mystery-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(15px);
+  }
+  .mystery-popup.show { display: flex; }
+  .mystery-box {
+    border: 1px solid rgba(245,245,240,0.2);
+    background: var(--black);
+    max-width: 560px;
+    width: 92%;
+    position: relative;
+    overflow: hidden;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.8) translateY(40px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .mystery-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255,255,255,0.015) 10px,
+      rgba(255,255,255,0.015) 11px
+    );
+  }
+
+  /* Search bar */
+  .search-bar {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(245,245,240,0.15);
+    color: var(--white);
+    font-family: 'Cairo', sans-serif;
+    padding: 14px 20px;
+    width: 100%;
+    font-size: 16px;
+    direction: rtl;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .search-bar:focus { border-color: rgba(245,245,240,0.5); }
+
+  /* Floating label */
+  .count-badge {
+    background: var(--white);
+    color: var(--black);
+    font-size: 10px;
+    font-weight: 900;
+    width: 18px; height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -4px; left: -4px;
+  }
+
+  /* Marquee */
+  .marquee-track {
+    display: flex;
+    animation: marquee 20s linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* Size selector */
+  .size-btn {
+    border: 1px solid rgba(245,245,240,0.2);
+    padding: 8px 16px;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    color: var(--gray-light);
+    transition: all 0.2s;
+    cursor: pointer;
+    background: transparent;
+  }
+  .size-btn:hover, .size-btn.active {
+    background: var(--white);
+    color: var(--black);
+    border-color: var(--white);
+  }
+
+  /* Footer */
+  .footer-link {
+    color: rgba(245,245,240,0.5);
+    transition: color 0.3s;
+    font-size: 14px;
+  }
+  .footer-link:hover { color: var(--white); }
+
+  .social-icon {
+    width: 42px; height: 42px;
+    border: 1px solid rgba(245,245,240,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: rgba(245,245,240,0.5);
+  }
+  .social-icon:hover {
+    background: var(--white);
+    color: var(--black);
+    border-color: var(--white);
+  }
+
+  /* Reveal animations */
+  .reveal { opacity: 0; transform: translateY(40px); }
+
+  /* Mobile menu */
+  .mobile-menu {
+    position: fixed;
+    top: 0; right: -100%;
+    width: 85%;
+    height: 100vh;
+    background: var(--black);
+    border-left: 1px solid rgba(245,245,240,0.1);
+    z-index: 2000;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 80px 32px 40px;
+  }
+  .mobile-menu.open { right: 0; }
+
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1999;
+    display: none;
+  }
+  .mobile-overlay.open { display: block; }
+
+  /* Slider dots */
+  .slider-dot {
+    width: 24px; height: 3px;
+    background: rgba(245,245,240,0.3);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .slider-dot.active {
+    background: var(--white);
+    width: 48px;
+  }
+
+  /* Variant color */
+  .color-dot {
+    width: 24px; height: 24px;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+  .color-dot.active, .color-dot:hover {
+    border-color: var(--white);
+  }
+
+  /* Star rating */
+  .stars { color: var(--white); }
+
+  @media (max-width: 768px) {
+    .hero-text h1 { font-size: 3rem; }
+    .desktop-nav { display: none; }
+    .mobile-btn { display: flex; }
+  }
+
+  .desktop-nav { display: flex; }
+  .mobile-btn { display: none; }
+
+  @media (min-width: 769px) {
+    .mobile-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-follower" id="cursorFollower"></div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar px-6 py-4">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <!-- Logo -->
+    <a href="index.html" class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-white flex items-center justify-center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M2 18L6 6L12 14L16 8L22 18H2Z" fill="#0a0a0a" stroke="#0a0a0a" stroke-width="0.5"/>
+        </svg>
+      </div>
+      <span class="text-xl font-black tracking-tight" style="letter-spacing:-0.02em">خطوة<span style="color:rgba(245,245,240,0.4)">.</span></span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="desktop-nav items-center gap-8">
+      <a href="index.html" class="nav-link text-sm" style="color:var(--white)">الرئيسية</a>
+      <a href="category.html" class="nav-link text-sm" style="color:var(--gray-light)">الأقسام</a>
+      <a href="search.html" class="nav-link text-sm" style="color:var(--gray-light)">المنتجات</a>
+      <a href="#" class="nav-link text-sm" style="color:var(--gray-light)">العروض</a>
+      <a href="#" class="nav-link text-sm" style="color:var(--gray-light)">تواصل معنا</a>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-4">
+      <!-- Search -->
+      <a href="search.html" class="text-sm hover:text-white transition-colors" style="color:var(--gray-light); cursor:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </a>
+      <!-- Cart -->
+      <button class="relative" style="color:var(--gray-light); cursor:none" onclick="">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="count-badge">3</span>
+      </button>
+      <!-- Login -->
+      <button onclick="openLoginModal()" class="btn-primary text-sm py-2 px-5" style="cursor:none">
+        <span>دخول</span>
+      </button>
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-btn items-center" onclick="toggleMobileMenu()" style="color:var(--white); cursor:none; display:none">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+<div class="mobile-menu" id="mobileMenu">
+  <button onclick="toggleMobileMenu()" style="position:absolute;top:20px;left:20px;color:var(--white)">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <div class="flex flex-col gap-6">
+    <a href="index.html" class="text-2xl font-bold">الرئيسية</a>
+    <a href="category.html" class="text-2xl font-bold" style="color:var(--gray-light)">الأقسام</a>
+    <a href="search.html" class="text-2xl font-bold" style="color:var(--gray-light)">المنتجات</a>
+    <a href="#" class="text-2xl font-bold" style="color:var(--gray-light)">العروض</a>
+    <a href="#" class="text-2xl font-bold" style="color:var(--gray-light)">تواصل معنا</a>
+    <div class="mt-8">
+      <button onclick="openLoginModal()" class="btn-primary w-full text-center">
+        <span>تسجيل الدخول</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HERO SLIDER ===== -->
+<section class="relative overflow-hidden" style="height:100vh; min-height:600px; margin-top:0; padding-top:72px">
+  <!-- Slide 1 -->
+  <div class="hero-slide active" id="slide-0">
+    <div class="absolute inset-0 texture-lines" style="background-color:#0a0a0a"></div>
+    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1600&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.25;filter:grayscale(80%)">
+    <div class="absolute inset-0" style="background:linear-gradient(to left, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3) 100%)"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="max-w-7xl mx-auto px-6 w-full">
+        <div class="max-w-2xl">
+          <div class="divider"></div>
+          <p class="text-sm font-semibold mb-4" style="color:var(--gray-light);letter-spacing:0.2em">كولكشن ٢٠٢٥</p>
+          <h1 class="font-black leading-none mb-6 hero-title" style="font-size:clamp(3rem,8vw,7rem);letter-spacing:-0.03em;line-height:0.9">
+            احذية<br><span style="color:rgba(245,245,240,0.15);-webkit-text-stroke:1px rgba(245,245,240,0.4)">تميّزك</span><br>عن الباقين
+          </h1>
+          <p class="mb-8 text-lg" style="color:var(--gray-light);max-width:400px">أفخر الأحذية العالمية بتصاميم حصرية تعكس شخصيتك وذوقك الرفيع</p>
+          <div class="flex gap-4 flex-wrap">
+            <a href="search.html" class="btn-primary"><span>تسوق الآن</span></a>
+            <a href="category.html" class="btn-outline"><span>استكشف الأقسام</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slider-progress" id="progress-0"></div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="hero-slide" id="slide-1">
+    <div class="absolute inset-0 texture-lines" style="background-color:#0f0f0f"></div>
+    <img src="https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=1600&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.25;filter:grayscale(80%)">
+    <div class="absolute inset-0" style="background:linear-gradient(to left, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3) 100%)"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="max-w-7xl mx-auto px-6 w-full">
+        <div class="max-w-2xl">
+          <div class="divider"></div>
+          <p class="text-sm font-semibold mb-4" style="color:var(--gray-light);letter-spacing:0.2em">عروض حصرية</p>
+          <h1 class="font-black leading-none mb-6" style="font-size:clamp(3rem,8vw,7rem);letter-spacing:-0.03em;line-height:0.9">
+            خصم<br><span style="color:rgba(245,245,240,0.15);-webkit-text-stroke:1px rgba(245,245,240,0.4)">يصل</span><br>لـ ٥٠٪
+          </h1>
+          <p class="mb-8 text-lg" style="color:var(--gray-light);max-width:400px">عروض لا تفوت على أرقى الماركات العالمية - لفترة محدودة فقط</p>
+          <div class="flex gap-4 flex-wrap">
+            <a href="search.html" class="btn-primary"><span>اشتري الآن</span></a>
+            <a href="#" class="btn-outline"><span>عرض التخفيضات</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="hero-slide" id="slide-2">
+    <div class="absolute inset-0 texture-lines" style="background-color:#080808"></div>
+    <img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=1600&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.25;filter:grayscale(80%)">
+    <div class="absolute inset-0" style="background:linear-gradient(to left, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3) 100%)"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="max-w-7xl mx-auto px-6 w-full">
+        <div class="max-w-2xl">
+          <div class="divider"></div>
+          <p class="text-sm font-semibold mb-4" style="color:var(--gray-light);letter-spacing:0.2em">الجديد والحصري</p>
+          <h1 class="font-black leading-none mb-6" style="font-size:clamp(3rem,8vw,7rem);letter-spacing:-0.03em;line-height:0.9">
+            رياضة<br><span style="color:rgba(245,245,240,0.15);-webkit-text-stroke:1px rgba(245,245,240,0.4)">بأناقة</span><br>لا مثيل لها
+          </h1>
+          <p class="mb-8 text-lg" style="color:var(--gray-light);max-width:400px">الراحة التامة مع الأناقة الفائقة - كولكشن الأحذية الرياضية الجديد</p>
+          <div class="flex gap-4 flex-wrap">
+            <a href="search.html" class="btn-primary"><span>اكتشف المجموعة</span></a>
+            <a href="category.html" class="btn-outline"><span>رياضية</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slider Controls -->
+  <div class="absolute bottom-12 left-1/2" style="transform:translateX(-50%);display:flex;gap:8px;z-index:10">
+    <div class="slider-dot active" onclick="goToSlide(0)"></div>
+    <div class="slider-dot" onclick="goToSlide(1)"></div>
+    <div class="slider-dot" onclick="goToSlide(2)"></div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 right-8" style="z-index:10">
+    <div style="writing-mode:vertical-rl;color:var(--gray-light);font-size:11px;letter-spacing:0.2em;display:flex;align-items:center;gap:8px">
+      <div style="width:1px;height:40px;background:rgba(245,245,240,0.2)"></div>
+      اسكرول
+    </div>
+  </div>
+</section>
+
+<!-- ===== MARQUEE ===== -->
+<div style="background:var(--white);padding:14px 0;overflow:hidden;border-top:1px solid rgba(245,245,240,0.1)">
+  <div class="marquee-track" style="gap:0">
+    <div style="display:flex;gap:0;min-width:max-content">
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">شحن مجاني فوق ٣٠٠ ريال</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">إرجاع مجاني خلال ٣٠ يوم</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">ضمان الجودة العالمية</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">أصالة مضمونة ١٠٠٪</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">شحن مجاني فوق ٣٠٠ ريال</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">إرجاع مجاني خلال ٣٠ يوم</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">ضمان الجودة العالمية</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+      <span style="color:var(--black);font-weight:900;font-size:13px;letter-spacing:0.2em;padding:0 40px">أصالة مضمونة ١٠٠٪</span>
+      <span style="color:rgba(10,10,10,0.3);padding:0 20px">✦</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="py-24 px-6" style="background:var(--black)">
+  <div class="max-w-7xl mx-auto">
+    <div class="reveal mb-16">
+      <div class="divider"></div>
+      <h2 class="text-4xl font-black mb-3" style="letter-spacing:-0.02em">تسوق حسب القسم</h2>
+      <p style="color:var(--gray-light)">اختر من مجموعاتنا المتنوعة</p>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <!-- Cat 1 -->
+      <a href="category.html?cat=رياضية" class="cat-card reveal" style="height:280px">
+        <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="رياضية">
+        <div class="cat-name">
+          <p class="font-black text-lg">رياضية</p>
+          <p class="text-xs" style="color:rgba(245,245,240,0.5)">٤٨ منتج</p>
+        </div>
+      </a>
+      <!-- Cat 2 -->
+      <a href="category.html?cat=كاجوال" class="cat-card reveal" style="height:280px">
+        <img src="https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=400&q=80" alt="كاجوال">
+        <div class="cat-name">
+          <p class="font-black text-lg">كاجوال</p>
+          <p class="text-xs" style="color:rgba(245,245,240,0.5)">٣٢ منتج</p>
+        </div>
+      </a>
+      <!-- Cat 3 -->
+      <a href="category.html?cat=رسمية" class="cat-card reveal" style="height:280px">
+        <img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&q=80" alt="رسمية">
+        <div class="cat-name">
+          <p class="font-black text-lg">رسمية</p>
+          <p class="text-xs" style="color:rgba(245,245,240,0.5)">٢١ منتج</p>
+        </div>
+      </a>
+      <!-- Cat 4 -->
+      <a href="category.html?cat=أطفال" class="cat-card reveal" style="height:280px">
+        <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&q=80" alt="أطفال">
+        <div class="cat-name">
+          <p class="font-black text-lg">أطفال</p>
+          <p class="text-xs" style="color:rgba(245,245,240,0.5)">١٥ منتج</p>
+        </div>
+      </a>
+      <!-- Cat 5 -->
+      <a href="category.html?cat=نسائية" class="cat-card reveal" style="height:280px">
+        <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&q=80" alt="نسائية">
+        <div class="cat-name">
+          <p class="font-black text-lg">نسائية</p>
+          <p class="text-xs" style="color:rgba(245,245,240,0.5)">٣٧ منتج</p>
+        </div>
+      </a>
+      <!-- Cat 6 -->
+      <a href="category.html?cat=سنيكرز" class="cat-card reveal" style="height:280px">
+        <img src="https://images.unsplash.com/photo-1584735175315-9d5df23be620?w=400&q=80" alt="سنيكرز">
+        <div class="cat-name">
+          <p class="font-black text-lg">سنيكرز</p>
+          <p class="text-xs" style="color:rgba(245,245,240,0.5)">٥٢ منتج</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURED PRODUCTS ===== -->
+<section class="py-24 px-6" style="background:var(--gray-dark)" id="featured">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-end justify-between mb-16">
+      <div class="reveal">
+        <div class="divider"></div>
+        <h2 class="text-4xl font-black mb-3" style="letter-spacing:-0.02em">الأكثر مبيعاً</h2>
+        <p style="color:var(--gray-light)">منتجات مختارة بعناية لك</p>
+      </div>
+      <a href="search.html" class="btn-outline reveal"><span>عرض الكل</span></a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <!-- Product 1 -->
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:260px">
+          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80" alt="Nike Air Max">
+          <span class="badge">الأكثر مبيعاً</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">NIKE</p>
+          <h3 class="font-bold text-base mb-2">Air Max 270</h3>
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1 stars text-xs">★★★★★</div>
+            <span class="text-xs" style="color:var(--gray-light)">(١٢٤)</span>
+          </div>
+          <div class="flex items-center justify-between mt-3">
+            <div>
+              <span class="font-black text-xl">٤٨٩ ر.س</span>
+            </div>
+            <div class="flex gap-2">
+              <div class="color-dot active" style="background:#222;border-color:white"></div>
+              <div class="color-dot" style="background:#c8a882"></div>
+              <div class="color-dot" style="background:#4a5568"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Product 2 -->
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:260px">
+          <img src="https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=500&q=80" alt="Adidas">
+          <span class="badge">جديد</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">ADIDAS</p>
+          <h3 class="font-bold text-base mb-2">Ultraboost 24</h3>
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1 stars text-xs">★★★★☆</div>
+            <span class="text-xs" style="color:var(--gray-light)">(٨٩)</span>
+          </div>
+          <div class="flex items-center justify-between mt-3">
+            <div>
+              <span class="font-black text-xl">٦٩٩ ر.س</span>
+              <span class="text-sm line-through mr-2" style="color:var(--gray-light)">٨٩٩ ر.س</span>
+            </div>
+            <div class="flex gap-2">
+              <div class="color-dot active" style="background:#fff;border-color:white"></div>
+              <div class="color-dot" style="background:#e53e3e"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Product 3 -->
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:260px">
+          <img src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=500&q=80" alt="Puma">
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">PUMA</p>
+          <h3 class="font-bold text-base mb-2">RS-X Puzzle</h3>
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1 stars text-xs">★★★★★</div>
+            <span class="text-xs" style="color:var(--gray-light)">(٤٥)</span>
+          </div>
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-black text-xl">٣٨٩ ر.س</span>
+            <div class="flex gap-2">
+              <div class="color-dot active" style="background:#2d3748;border-color:white"></div>
+              <div class="color-dot" style="background:#c8a882"></div>
+              <div class="color-dot" style="background:#e53e3e"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Product 4 -->
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:260px">
+          <img src="https://images.unsplash.com/photo-1584735175315-9d5df23be620?w=500&q=80" alt="New Balance">
+          <span class="badge">خصم ٣٠٪</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">NEW BALANCE</p>
+          <h3 class="font-bold text-base mb-2">990v5</h3>
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1 stars text-xs">★★★★☆</div>
+            <span class="text-xs" style="color:var(--gray-light)">(٢١١)</span>
+          </div>
+          <div class="flex items-center justify-between mt-3">
+            <div>
+              <span class="font-black text-xl">٥٤٩ ر.س</span>
+              <span class="text-sm line-through mr-2" style="color:var(--gray-light)">٧٩٩ ر.س</span>
+            </div>
+            <div class="flex gap-2">
+              <div class="color-dot active" style="background:#718096;border-color:white"></div>
+              <div class="color-dot" style="background:#1a1a1a"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SPLIT BANNER ===== -->
+<section class="py-0" style="background:var(--black)">
+  <div class="grid grid-cols-1 md:grid-cols-2" style="min-height:500px">
+    <div class="relative overflow-hidden" style="min-height:350px">
+      <img src="https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(60%);opacity:0.5">
+      <div class="absolute inset-0" style="background:rgba(10,10,10,0.7)"></div>
+      <div class="absolute inset-0 flex flex-col justify-end p-12">
+        <p class="text-xs mb-2 font-semibold" style="color:var(--gray-light);letter-spacing:0.2em">WOMEN</p>
+        <h3 class="text-4xl font-black mb-4">تشكيلة<br>نسائية</h3>
+        <a href="category.html?cat=نسائية" class="btn-outline inline-block"><span>تسوقي الآن</span></a>
+      </div>
+    </div>
+    <div class="relative overflow-hidden" style="min-height:350px">
+      <img src="https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=800&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(60%);opacity:0.5">
+      <div class="absolute inset-0" style="background:rgba(10,10,10,0.7)"></div>
+      <div class="absolute inset-0 flex flex-col justify-end p-12">
+        <p class="text-xs mb-2 font-semibold" style="color:var(--gray-light);letter-spacing:0.2em">KIDS</p>
+        <h3 class="text-4xl font-black mb-4">تشكيلة<br>الأطفال</h3>
+        <a href="category.html?cat=أطفال" class="btn-outline inline-block"><span>تسوق الآن</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEW ARRIVALS ===== -->
+<section class="py-24 px-6" style="background:var(--black)">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-end justify-between mb-16">
+      <div class="reveal">
+        <div class="divider"></div>
+        <h2 class="text-4xl font-black mb-3" style="letter-spacing:-0.02em">وصل حديثاً</h2>
+        <p style="color:var(--gray-light)">أحدث المنتجات في متجرنا</p>
+      </div>
+      <a href="search.html" class="btn-outline reveal"><span>عرض الكل</span></a>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:240px">
+          <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80" alt="">
+          <span class="badge">جديد</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">JORDAN</p>
+          <h3 class="font-bold text-base mb-2">Air Jordan 1 Retro</h3>
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-black text-xl">٨٩٩ ر.س</span>
+          </div>
+        </div>
+      </a>
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:240px">
+          <img src="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80" alt="">
+          <span class="badge">جديد</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">VANS</p>
+          <h3 class="font-bold text-base mb-2">Old Skool Pro</h3>
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-black text-xl">٢٧٩ ر.س</span>
+          </div>
+        </div>
+      </a>
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:240px">
+          <img src="https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500&q=80" alt="">
+          <span class="badge">جديد</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">REEBOK</p>
+          <h3 class="font-bold text-base mb-2">Classic Leather</h3>
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-black text-xl">٣٤٩ ر.س</span>
+          </div>
+        </div>
+      </a>
+      <a href="product.html" class="product-card card-3d reveal">
+        <div class="product-img-wrap" style="height:240px">
+          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500&q=80" alt="">
+          <span class="badge">جديد</span>
+          <div class="product-overlay">
+            <button class="btn-primary flex-1 text-sm py-2"><span>أضف للسلة</span></button>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="text-xs mb-1 font-semibold" style="color:var(--gray-light);letter-spacing:0.1em">CONVERSE</p>
+          <h3 class="font-bold text-base mb-2">Chuck Taylor All Star</h3>
+          <div class="flex items-center justify-between mt-2">
+            <span class="font-black text-xl">٢٢٩ ر.س</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BRANDS ===== -->
+<section class="py-16 px-6" style="background:var(--gray-dark);border-top:1px solid rgba(245,245,240,0.06)">
+  <div class="max-w-7xl mx-auto">
+    <p class="text-center text-sm mb-10 font-semibold" style="color:var(--gray-light);letter-spacing:0.2em">ماركات عالمية موثوقة</p>
+    <div class="flex flex-wrap justify-center items-center gap-12">
+      <span class="text-3xl font-black" style="color:rgba(245,245,240,0.15)">NIKE</span>
+      <span class="text-3xl font-black" style="color:rgba(245,245,240,0.15)">ADIDAS</span>
+      <span class="text-3xl font-black" style="color:rgba(245,245,240,0.15)">PUMA</span>
+      <span class="text-3xl font-black" style="color:rgba(245,245,240,0.15)">JORDAN</span>
+      <span class="text-3xl font-black" style="color:rgba(245,245,240,0.15)">VANS</span>
+      <span class="text-3xl font-black" style="color:rgba(245,245,240,0.15)">REEBOK</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer style="background:#050505;border-top:1px solid rgba(245,245,240,0.06)">
+  <div class="max-w-7xl mx-auto px-6 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+      <!-- Brand -->
+      <div class="md:col-span-1">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 bg-white flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 18L6 6L12 14L16 8L22 18H2Z" fill="#0a0a0a"/></svg>
+          </div>
+          <span class="text-xl font-black" style="letter-spacing:-0.02em">خطوة<span style="color:rgba(245,245,240,0.3)">.</span></span>
+        </div>
+        <p class="text-sm mb-6 leading-relaxed" style="color:var(--gray-light)">وجهتك الأولى لأحذية الماركات العالمية بأسعار تنافسية وجودة مضمونة.</p>
+        <!-- Social Links -->
+        <div class="flex gap-3">
+          <a href="#" class="social-icon" title="فيسبوك">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="#" class="social-icon" title="انستغرام">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="#" class="social-icon" title="تويتر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="#" class="social-icon" title="سناب شات">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.049-.09.445.03.82.279.868.658.06.42-.345.78-.904.975-.165.06-.375.045-.645.015-.3-.018-.668-.048-1.059.135-.19.09-.39.285-.404.54-.015.165.09.315.225.405 2.07 1.352 3.348 3.059 3.348 5.963 0 3.428-2.085 5.386-3.424 6.181-1.696.979-3.977 1.456-7.149 1.456-3.157 0-5.43-.479-7.124-1.458C2.085 22.762 0 20.804 0 17.376c0-2.904 1.278-4.611 3.348-5.963.135-.09.24-.24.225-.405-.014-.255-.215-.45-.404-.54-.39-.183-.759-.153-1.059-.135-.27.03-.48.045-.645-.015-.659-.195-1.065-.555-1.004-.975.048-.38.423-.628.868-.658.39-.03.749.074 1.049.09.218.015.364-.054.415-.095l-.009-.135c-.104-1.629-.239-3.656.291-4.849C4.659 1.061 8.017.793 9.004.793l.351-.003c.403 0 .544.003.851.003z"/></svg>
+          </a>
+          <a href="#" class="social-icon" title="تيك توك">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.2a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.69a8.2 8.2 0 0 0 4.79 1.52V6.76a4.85 4.85 0 0 1-1.03-.07z"/></svg>
+          </a>
+        </div>
+      </div>
+      <!-- Links -->
+      <div>
+        <h4 class="font-bold mb-6 text-sm" style="letter-spacing:0.15em">روابط سريعة</h4>
+        <div class="flex flex-col gap-3">
+          <a href="index.html" class="footer-link">الرئيسية</a>
+          <a href="category.html" class="footer-link">الأقسام</a>
+          <a href="search.html" class="footer-link">المنتجات</a>
+          <a href="#" class="footer-link">العروض</a>
+          <a href="#" class="footer-link">من نحن</a>
+        </div>
+      </div>
+      <!-- Help -->
+      <div>
+        <h4 class="font-bold mb-6 text-sm" style="letter-spacing:0.15em">مساعدة</h4>
+        <div class="flex flex-col gap-3">
+          <a href="#" class="footer-link">سياسة الإرجاع</a>
+          <a href="#" class="footer-link">الشحن والتوصيل</a>
+          <a href="#" class="footer-link">الأسئلة الشائعة</a>
+          <a href="#" class="footer-link">سياسة الخصوصية</a>
+          <a href="#" class="footer-link">الشروط والأحكام</a>
+        </div>
+      </div>
+      <!-- Contact -->
+      <div>
+        <h4 class="font-bold mb-6 text-sm" style="letter-spacing:0.15em">تواصل معنا</h4>
+        <div class="flex flex-col gap-4">
+          <div class="flex items-start gap-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gray-light);flex-shrink:0;margin-top:2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span class="footer-link text-sm leading-relaxed">الرياض، حي العليا<br>المملكة العربية السعودية</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gray-light)"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span class="footer-link">+966 50 000 0000</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gray-light)"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span class="footer-link">info@khatwa.sa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(245,245,240,0.06);padding-top:32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+      <p class="text-sm" style="color:rgba(245,245,240,0.3)">© ٢٠٢٥ خطوة. جميع الحقوق محفوظة.</p>
+      <div class="flex gap-4">
+        <svg width="40" height="25" viewBox="0 0 60 38" fill="none" style="opacity:0.3"><rect width="60" height="38" rx="4" fill="#fff"/><text x="12" y="25" font-size="14" font-weight="bold" fill="#1a1f71">VISA</text></svg>
+        <svg width="40" height="25" viewBox="0 0 60 38" fill="none" style="opacity:0.3"><rect width="60" height="38" rx="4" fill="#fff"/><circle cx="22" cy="19" r="11" fill="#eb001b"/><circle cx="38" cy="19" r="11" fill="#f79e1b"/><path d="M30 10.5a11 11 0 0 1 0 17 11 11 0 0 1 0-17z" fill="#ff5f00"/></svg>
+        <svg width="40" height="25" viewBox="0 0 60 38" fill="none" style="opacity:0.3"><rect width="60" height="38" rx="4" fill="#fff"/><text x="8" y="25" font-size="11" font-weight="bold" fill="#003087">Pay</text><text x="26" y="25" font-size="11" font-weight="bold" fill="#009cde">Pal</text></svg>
+        <svg width="40" height="25" viewBox="0 0 60 38" fill="none" style="opacity:0.3"><rect width="60" height="38" rx="4" fill="#fff"/><text x="8" y="25" font-size="10" font-weight="bold" fill="#1a9e3f">مدى</text></svg>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <div style="padding:40px">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-black mb-1">أهلاً بك</h2>
+          <p class="text-sm" style="color:var(--gray-light)">سجّل دخولك للمتابعة</p>
+        </div>
+        <button onclick="closeLoginModal()" style="color:var(--gray-light);cursor:none">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="text-xs font-bold mb-2 block" style="letter-spacing:0.1em;color:var(--gray-light)">البريد الإلكتروني</label>
+          <input type="email" class="input-field" placeholder="example@email.com">
+        </div>
+        <div>
+          <label class="text-xs font-bold mb-2 block" style="letter-spacing:0.1em;color:var(--gray-light)">كلمة المرور</label>
+          <input type="password" class="input-field" placeholder="••••••••">
+        </div>
+        <div class="flex justify-between items-center">
+          <label class="flex items-center gap-2 text-sm" style="color:var(--gray-light)">
+            <input type="checkbox" style="accent-color:white"> تذكّرني
+          </label>
+          <a href="#" class="text-sm" style="color:var(--white)">نسيت كلمة المرور؟</a>
+        </div>
+        <button class="btn-primary w-full mt-2">
+          <span>تسجيل الدخول</span>
+        </button>
+        <div style="border-top:1px solid rgba(245,245,240,0.1);padding-top:20px;text-align:center">
+          <p class="text-sm" style="color:var(--gray-light)">ليس لديك حساب؟ <a href="#" style="color:var(--white);font-weight:700">إنشاء حساب جديد</a></p>
+        </div>
+      </div>
+    </div>
+    <!-- Decorative -->
+    <div style="position:absolute;bottom:0;right:0;width:120px;height:120px;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.02),rgba(255,255,255,0.02) 2px,transparent 2px,transparent 8px);pointer-events:none"></div>
+  </div>
+</div>
+
+<!-- ===== MYSTERY BOX POPUP ===== -->
+<div class="mystery-popup" id="mysteryPopup">
+  <div class="mystery-box">
+    <!-- Close -->
+    <button onclick="closeMystery()" style="position:absolute;top:16px;left:16px;color:var(--gray-light);z-index:10;cursor:none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div style="padding:48px 40px;text-align:center;position:relative;z-index:1">
+      <!-- Mystery icon -->
+      <div style="width:80px;height:80px;background:var(--white);margin:0 auto 24px;display:flex;align-items:center;justify-content:center">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.5"><rect x="3" y="8" width="18" height="13" rx="0"/><path d="M19 8V5.5A2.5 2.5 0 0 0 14 5.5V8"/><path d="M5 8V5.5A2.5 2.5 0 0 1 10 5.5V8"/><line x1="12" y1="8" x2="12" y2="21"/><line x1="3" y1="13" x2="21" y2="13"/></svg>
+      </div>
+      <p class="text-xs font-bold mb-3" style="color:var(--gray-light);letter-spacing:0.3em">عرض حصري لك</p>
+      <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">صندوق المفاجأة<br><span style="color:rgba(245,245,240,0.2);-webkit-text-stroke:1px rgba(245,245,240,0.5)">الغامض!</span></h2>
+      <p class="mb-6 leading-relaxed" style="color:var(--gray-light);font-size:15px">احصل على حذاء مفاجأة من ماركة عالمية بخصم يصل لـ<br><strong style="color:var(--white);font-size:20px">٦٠٪</strong> على السعر الأصلي</p>
+      <div style="border:1px solid rgba(245,245,240,0.1);padding:20px;margin-bottom:24px;background:rgba(255,255,255,0.02)">
+        <p class="text-xs mb-2" style="color:var(--gray-light)">استخدم كود الخصم</p>
+        <p class="text-2xl font-black" style="letter-spacing:0.2em">MYSTERY60</p>
+      </div>
+      <button onclick="closeMystery()" class="btn-primary w-full">
+        <span>احصل على المفاجأة الآن</span>
+      </button>
+      <button onclick="closeMystery()" class="text-sm mt-4 block w-full" style="color:rgba(245,245,240,0.3)">لا شكراً، لاحقاً</button>
+    </div>
+    <!-- Animated corner decorations -->
+    <div style="position:absolute;top:0;right:0;width:80px;height:80px;border-top:2px solid rgba(245,245,240,0.15);border-right:2px solid rgba(245,245,240,0.15)"></div>
+    <div style="position:absolute;bottom:0;left:0;width:80px;height:80px;border-bottom:2px solid rgba(245,245,240,0.15);border-left:2px solid rgba(245,245,240,0.15)"></div>
+  </div>
+</div>
+
+<script>
+// ===== CURSOR =====
+const cursor = document.getElementById('cursor');
+const follower = document.getElementById('cursorFollower');
+let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX - 6 + 'px';
+  cursor.style.top = mouseY - 6 + 'px';
+});
+
+function animateFollower() {
+  followerX += (mouseX - followerX - 20) * 0.12;
+  followerY += (mouseY - followerY - 20) * 0.12;
+  follower.style.left = followerX + 'px';
+  follower.style.top = followerY + 'px';
+  requestAnimationFrame(animateFollower);
+}
+animateFollower();
+
+document.querySelectorAll('a, button, .cat-card, .product-card').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.classList.add('active'); follower.classList.add('active'); });
+  el.addEventListener('mouseleave', () => { cursor.classList.remove('active'); follower.classList.remove('active'); });
+});
+
+// ===== SLIDER =====
+let currentSlide = 0;
+const totalSlides = 3;
+let sliderInterval;
+
+function goToSlide(n) {
+  document.getElementById('slide-' + currentSlide).classList.remove('active');
+  document.querySelectorAll('.slider-dot')[currentSlide].classList.remove('active');
+  currentSlide = n;
+  document.getElementById('slide-' + currentSlide).classList.add('active');
+  document.querySelectorAll('.slider-dot')[currentSlide].classList.add('active');
+}
+
+function nextSlide() {
+  goToSlide((currentSlide + 1) % totalSlides);
+}
+
+sliderInterval = setInterval(nextSlide, 5000);
+
+// ===== MYSTERY POPUP =====
+setTimeout(() => {
+  document.getElementById('mysteryPopup').classList.add('show');
+}, 5000);
+
+function closeMystery() {
+  document.getElementById('mysteryPopup').classList.remove('show');
+}
+
+// ===== LOGIN MODAL =====
+function openLoginModal() {
+  document.getElementById('loginModal').classList.add('open');
+}
+function closeLoginModal() {
+  document.getElementById('loginModal').classList.remove('open');
+}
+document.getElementById('loginModal').addEventListener('click', function(e) {
+  if (e.target === this) closeLoginModal();
+});
+
+// ===== MOBILE MENU =====
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+  document.getElementById('mobileOverlay').classList.toggle('open');
+}
+
+// ===== SCROLL REVEAL =====
+gsap.registerPlugin(ScrollTrigger);
+
+document.querySelectorAll('.reveal').forEach((el, i) => {
+  gsap.fromTo(el,
+    { opacity: 0, y: 40 },
+    {
+      opacity: 1, y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 85%',
+        once: true
+      },
+      delay: (i % 4) * 0.1
+    }
+  );
+});
+
+// ===== NAVBAR SCROLL =====
+window.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  if (window.scrollY > 50) {
+    navbar.style.background = 'rgba(10,10,10,0.98)';
+  } else {
+    navbar.style.background = 'rgba(10,10,10,0.9)';
+  }
+});
+
+// ===== 3D CARD TILT =====
+document.querySelectorAll('.card-3d').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 20;
+    const rotateY = (centerX - x) / 20;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+  });
+});
+
+// Mobile menu button visibility
+function checkMobile() {
+  const mobileBtn = document.querySelector('.mobile-btn');
+  const desktopNav = document.querySelector('.desktop-nav');
+  if (window.innerWidth <= 768) {
+    mobileBtn.style.display = 'flex';
+    desktopNav.style.display = 'none';
+  } else {
+    mobileBtn.style.display = 'none';
+    desktopNav.style.display = 'flex';
+  }
+}
+checkMobile();
+window.addEventListener('resize', checkMobile);
+</script>
+</body>
+</html>
