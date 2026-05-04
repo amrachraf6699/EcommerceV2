@@ -34,6 +34,8 @@ class StoreSliderRequest extends FormRequest
             'text_color' => ['required', 'string', 'max:50'],
             'button_background_color' => ['required', 'string', 'max:50'],
             'button_text_color' => ['required', 'string', 'max:50'],
+            'overlay_opacity_start' => ['required', 'numeric', 'min:0', 'max:1'],
+            'overlay_opacity_end' => ['required', 'numeric', 'min:0', 'max:1'],
             'horizontal_align' => ['required', Rule::in(['left', 'center', 'right'])],
             'vertical_align' => ['required', Rule::in(['top', 'center', 'bottom'])],
             'is_active' => ['nullable', 'boolean'],

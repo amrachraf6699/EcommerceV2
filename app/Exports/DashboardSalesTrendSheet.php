@@ -14,7 +14,7 @@ class DashboardSalesTrendSheet implements FromArray, ShouldAutoSize, WithTitle
 
     public function array(): array
     {
-        $rows = [['Label', 'Orders', 'Revenue']];
+        $rows = [['??????', '???????', '?????????']];
 
         foreach ($this->report['sales_trend']['labels'] as $index => $label) {
             $rows[] = [
@@ -29,6 +29,6 @@ class DashboardSalesTrendSheet implements FromArray, ShouldAutoSize, WithTitle
 
     public function title(): string
     {
-        return 'Sales Trend';
+        return '????? ????????';
     }
 }

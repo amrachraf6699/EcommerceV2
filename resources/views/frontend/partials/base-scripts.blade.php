@@ -180,7 +180,9 @@ function renderPriceNode(root) {
   }
 
   const primaryNode = root.querySelector('[data-bhd-primary]');
+  const compareNode = root.querySelector('[data-bhd-compare]');
   const bhdAmount = Number(root.dataset.bhdAmount || 0);
+  const bhdCompareAmount = Number(root.dataset.bhdCompareAmount || 0);
   const bhdCurrency = root.dataset.bhdCurrency || 'BHD';
 
   if (!primaryNode || !Number.isFinite(bhdAmount)) {
@@ -191,13 +193,27 @@ function renderPriceNode(root) {
     root.dataset.basePriceLabel = primaryNode.textContent.trim();
   }
 
+  if (compareNode && !root.dataset.baseComparePriceLabel) {
+    root.dataset.baseComparePriceLabel = compareNode.textContent.trim();
+  }
+
   if (!frontendPricingContext.enabled || bhdCurrency !== 'BHD') {
     primaryNode.textContent = root.dataset.basePriceLabel || formatCurrencyAmount(bhdAmount, bhdCurrency);
+
+    if (compareNode) {
+      compareNode.textContent = root.dataset.baseComparePriceLabel || formatCurrencyAmount(bhdCompareAmount, bhdCurrency);
+    }
+
     return;
   }
 
   const convertedAmount = bhdAmount * frontendPricingContext.rate;
   primaryNode.textContent = formatCurrencyAmount(convertedAmount, frontendPricingContext.detected_currency);
+
+  if (compareNode && Number.isFinite(bhdCompareAmount)) {
+    const convertedCompareAmount = bhdCompareAmount * frontendPricingContext.rate;
+    compareNode.textContent = formatCurrencyAmount(convertedCompareAmount, frontendPricingContext.detected_currency);
+  }
 }
 
 function renderAllPriceNodes() {

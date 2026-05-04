@@ -33,12 +33,12 @@ class ProductVariantController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Variant added successfully.',
+                'message' => 'تمت إضافة النسخة بنجاح.',
                 'fragments' => ProductController::editorFragments($product->fresh()),
             ]);
         }
 
-        return back()->with('success', 'ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù†Ø³Ø®Ø©.');
+        return back()->with('success', 'تمت إضافة النسخة.');
     }
 
     public function update(UpdateProductVariantRequest $request, Product $product, ProductVariant $variant): RedirectResponse|JsonResponse
@@ -70,12 +70,12 @@ class ProductVariantController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Variant updated successfully.',
+                'message' => 'تم تحديث النسخة بنجاح.',
                 'fragments' => ProductController::editorFragments($product->fresh()),
             ]);
         }
 
-        return back()->with('success', 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù†Ø³Ø®Ø©.');
+        return back()->with('success', 'تم تحديث النسخة.');
     }
 
     public function destroy(Product $product, ProductVariant $variant): RedirectResponse|JsonResponse
@@ -90,12 +90,12 @@ class ProductVariantController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => 'Variant deleted successfully.',
+                'message' => 'تم حذف النسخة بنجاح.',
                 'fragments' => ProductController::editorFragments($product->fresh()),
             ]);
         }
 
-        return back()->with('success', 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ù†Ø³Ø®Ø©.');
+        return back()->with('success', 'تم حذف النسخة.');
     }
 
     private function ensureSingleDefaultVariant(Product $product, ?int $preferredVariantId = null): void

@@ -43,7 +43,7 @@ class PageController extends Controller
 
         return redirect()
             ->route('admin.pages.index')
-            ->with('success', 'Page created successfully.');
+            ->with('success', '?? ????? ?????? ?????.');
     }
 
     public function edit(Page $page): View
@@ -57,7 +57,7 @@ class PageController extends Controller
 
         return redirect()
             ->route('admin.pages.index')
-            ->with('success', 'Page updated successfully.');
+            ->with('success', '?? ????? ?????? ?????.');
     }
 
     public function destroy(Page $page): RedirectResponse
@@ -66,6 +66,6 @@ class PageController extends Controller
 
         return redirect()
             ->route('admin.pages.index')
-            ->with('success', 'Page deleted successfully.');
+            ->with('success', '?? ??? ?????? ?????.');
     }
 }

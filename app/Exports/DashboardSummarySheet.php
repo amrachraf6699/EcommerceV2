@@ -19,24 +19,24 @@ class DashboardSummarySheet implements FromArray, ShouldAutoSize, WithTitle
         $config = $this->report['analytics_config_status'];
 
         return [
-            ['Range', $this->report['range_label']],
-            ['Revenue', $kpis['revenue']],
-            ['Paid Orders', $kpis['paid_orders']],
-            ['Total Orders', $kpis['total_orders']],
-            ['Average Order Value', $kpis['average_order_value']],
-            ['New Customers', $kpis['new_customers']],
-            ['Active Carts', $kpis['active_carts']],
-            ['Cart to Order Conversion Rate', $kpis['cart_to_order_conversion_rate']],
-            ['Low Stock Variants', $kpis['low_stock_variants']],
-            ['Carts Created', $funnel['carts_created']],
-            ['Orders Created', $funnel['orders_created']],
-            ['Abandoned Carts', $funnel['abandoned_carts']],
-            ['Analytics Settings Configured', $config['configured_count'].' / '.$config['total_count']],
+            ['??????', $this->report['range_label']],
+            ['?????????', $kpis['revenue']],
+            ['??????? ????????', $kpis['paid_orders']],
+            ['?????? ???????', $kpis['total_orders']],
+            ['????? ???? ?????', $kpis['average_order_value']],
+            ['??????? ?????', $kpis['new_customers']],
+            ['?????? ??????', $kpis['active_carts']],
+            ['???? ????? ????? ??? ???', $kpis['cart_to_order_conversion_rate']],
+            ['??? ?????? ???????', $kpis['low_stock_variants']],
+            ['?????? ???????', $funnel['carts_created']],
+            ['??????? ???????', $funnel['orders_created']],
+            ['?????? ????????', $funnel['abandoned_carts']],
+            ['??????? ????????? ???????', $config['configured_count'].' / '.$config['total_count']],
         ];
     }
 
     public function title(): string
     {
-        return 'Summary';
+        return '??????';
     }
 }

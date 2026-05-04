@@ -1,5 +1,7 @@
 @php
     $title = ($frontendBrand['name'] ?? config('app.name')) . ' - ' . __('storefront.common.home');
+    $homeBrandsSectionBackgroundColor = setting('appearance.home_brands_section_background_color', '#000000');
+    $homeNewArrivalsSectionBackgroundColor = setting('appearance.home_new_arrivals_section_background_color', '#121212');
     $primaryCategory = $featuredCategories->first();
     $secondaryCategories = $featuredCategories->skip(1);
     $defaultHomeProductOption = $homeProductOptions->firstWhere('type', 'featured') ?? $homeProductOptions->first();
@@ -31,7 +33,7 @@
 
 @section('content')
 <section class="relative" style="padding-top:72px">
-  <div class="relative overflow-hidden" style="min-height:100vh">
+  <div class="relative overflow-hidden hero-slider" data-hero-slider style="min-height:100vh">
     @forelse ($heroSliders as $slider)
       @php
         $horizontalAlign = $slider->horizontal_align ?? 'center';
@@ -39,15 +41,17 @@
         $textColor = $slider->text_color ?: '#f5f5f0';
         $buttonBackgroundColor = $slider->button_background_color ?: '#111111';
         $buttonTextColor = $slider->button_text_color ?: '#ffffff';
+        $overlayOpacityStart = is_numeric($slider->overlay_opacity_start ?? null) ? number_format((float) $slider->overlay_opacity_start, 2, '.', '') : '0.90';
+        $overlayOpacityEnd = is_numeric($slider->overlay_opacity_end ?? null) ? number_format((float) $slider->overlay_opacity_end, 2, '.', '') : '0.55';
       @endphp
       <div class="hero-slide {{ $loop->first ? 'active' : '' }}" id="slide-{{ $loop->index }}">
         <div class="absolute inset-0">
           @if ($slider->image)
             <img src="{{ asset('storage/' . $slider->image) }}" alt="{{ $slider->title ?: $frontendBrand['name'] }}" class="w-full h-full object-cover opacity-60">
           @endif
-          <div class="absolute inset-0" style="background:linear-gradient(135deg,rgb(var(--overlay-rgb) / .9),rgb(var(--overlay-rgb) / .55))"></div>
+          <div class="absolute inset-0" style="background:linear-gradient(135deg,rgb(var(--overlay-rgb) / {{ $overlayOpacityStart }}),rgb(var(--overlay-rgb) / {{ $overlayOpacityEnd }}))"></div>
         </div>
-        <div class="relative max-w-7xl mx-auto px-6 min-h-screen flex flex-col {{ $sliderVerticalClasses[$verticalAlign] ?? $sliderVerticalClasses['center'] }}">
+        <div class="hero-slide__inner relative max-w-7xl mx-auto px-6 min-h-screen flex flex-col {{ $sliderVerticalClasses[$verticalAlign] ?? $sliderVerticalClasses['center'] }}">
           <div class="max-w-3xl w-full flex flex-col {{ $sliderHorizontalClasses[$horizontalAlign] ?? $sliderHorizontalClasses['center'] }}" style="color:{{ $textColor }}">
             @if ($slider->title)
               <div class="divider reveal" style="background:{{ $textColor }}"></div>
@@ -77,7 +81,7 @@
     @empty
       <div class="relative">
         <div class="absolute inset-0" style="background:linear-gradient(135deg,rgb(var(--overlay-rgb) / .95),rgb(var(--surface-alt-rgb) / .88))"></div>
-        <div class="relative max-w-7xl mx-auto px-6 min-h-screen flex items-center justify-center text-center">
+        <div class="hero-slide__inner relative max-w-7xl mx-auto px-6 min-h-screen flex items-center justify-center text-center">
           <div class="max-w-3xl">
             <div class="divider reveal"></div>
             <h1 class="text-5xl md:text-7xl font-black leading-none mb-6 reveal" style="letter-spacing:-0.04em">{{ $frontendBrand['name'] ?? config('app.name') }}</h1>
@@ -99,7 +103,7 @@
   </div>
 </section>
 
-<section class="py-16 px-6" style="background:var(--black)">
+<section class="py-16 px-6" style="background:{{ $homeBrandsSectionBackgroundColor }}">
   <div class="max-w-7xl mx-auto">
     <div class="flex items-end justify-between gap-6 mb-12">
       <div>
@@ -203,7 +207,7 @@
   </div>
 </section>
 
-<section class="py-20 px-6" style="background:var(--black)">
+<section class="py-20 px-6" style="background:{{ $homeNewArrivalsSectionBackgroundColor }}">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-14 reveal">
       <div class="divider" style="margin:0 auto 16px"></div>
@@ -230,8 +234,10 @@
 
 @push('styles')
 <style>
+  .hero-slider{touch-action:pan-y;}
   .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:0;transition:opacity .8s ease;}
   .hero-slide.active{opacity:1;position:relative;pointer-events:auto;z-index:1;}
+  .hero-slide__inner{min-height:100vh;}
   .hero-slide__cta{background:var(--hero-slide-button-bg);color:var(--hero-slide-button-text);border-color:var(--hero-slide-button-bg);}
   .hero-slide__cta::before{display:none;}
   .hero-slide__cta:hover{background:var(--hero-slide-button-bg);color:var(--hero-slide-button-text);transform:translateY(-2px);}
@@ -342,6 +348,11 @@
   }
   @keyframes home-products-spin{to{transform:rotate(360deg);}}
   @media (max-width: 767px){
+    .hero-slider{min-height:72vh !important;}
+    .hero-slide__inner{min-height:72vh !important;}
+    .hero-slide__inner.justify-start{padding-top:6.5rem !important;padding-bottom:2.5rem !important;}
+    .hero-slide__inner.justify-center{padding-top:4.5rem !important;padding-bottom:2.5rem !important;}
+    .hero-slide__inner.justify-end{padding-top:3rem !important;padding-bottom:4.5rem !important;}
     .home-products-filter{
       width:100%;
       max-width:none;
@@ -362,8 +373,10 @@
 @push('scripts')
 <script>
 let currentSlide = 0;
+let sliderIntervalId = null;
 const slides = Array.from(document.querySelectorAll('.hero-slide'));
 const dots = Array.from(document.querySelectorAll('.slider-dot'));
+const heroSlider = document.querySelector('[data-hero-slider]');
 
 function goToSlide(index) {
   if (!slides.length) return;
@@ -376,8 +389,108 @@ function goToSlide(index) {
   if (dots[currentSlide]) dots[currentSlide].style.background = 'var(--white)';
 }
 
+function goToNextSlide() {
+  goToSlide((currentSlide + 1) % slides.length);
+}
+
+function goToPreviousSlide() {
+  goToSlide((currentSlide - 1 + slides.length) % slides.length);
+}
+
+function startSliderAutoplay() {
+  if (slides.length <= 1) return;
+
+  window.clearInterval(sliderIntervalId);
+  sliderIntervalId = window.setInterval(goToNextSlide, 5000);
+}
+
 if (slides.length > 1) {
-  window.setInterval(() => goToSlide((currentSlide + 1) % slides.length), 5000);
+  startSliderAutoplay();
+}
+
+if (heroSlider && slides.length > 1) {
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerCurrentX = 0;
+  let isPointerActive = false;
+  const swipeThreshold = 50;
+  const verticalTolerance = 80;
+
+  const beginSwipe = (clientX, clientY) => {
+    pointerStartX = clientX;
+    pointerStartY = clientY;
+    pointerCurrentX = clientX;
+    isPointerActive = true;
+  };
+
+  const trackSwipe = (clientX) => {
+    if (!isPointerActive) return;
+    pointerCurrentX = clientX;
+  };
+
+  const endSwipe = (clientX, clientY) => {
+    if (!isPointerActive) return;
+
+    trackSwipe(clientX);
+
+    const deltaX = pointerCurrentX - pointerStartX;
+    const deltaY = clientY - pointerStartY;
+    isPointerActive = false;
+
+    if (Math.abs(deltaX) < swipeThreshold || Math.abs(deltaY) > verticalTolerance) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      goToNextSlide();
+    } else {
+      goToPreviousSlide();
+    }
+
+    startSliderAutoplay();
+  };
+
+  heroSlider.addEventListener('touchstart', (event) => {
+    const touch = event.touches[0];
+
+    if (!touch) return;
+
+    beginSwipe(touch.clientX, touch.clientY);
+  }, { passive: true });
+
+  heroSlider.addEventListener('touchmove', (event) => {
+    const touch = event.touches[0];
+
+    if (!touch) return;
+
+    trackSwipe(touch.clientX);
+  }, { passive: true });
+
+  heroSlider.addEventListener('touchend', (event) => {
+    const touch = event.changedTouches[0];
+
+    if (!touch) return;
+
+    endSwipe(touch.clientX, touch.clientY);
+  });
+
+  heroSlider.addEventListener('mousedown', (event) => {
+    if (event.button !== 0) return;
+    beginSwipe(event.clientX, event.clientY);
+  });
+
+  heroSlider.addEventListener('mousemove', (event) => {
+    trackSwipe(event.clientX);
+  });
+
+  heroSlider.addEventListener('mouseup', (event) => {
+    endSwipe(event.clientX, event.clientY);
+  });
+
+  heroSlider.addEventListener('mouseleave', (event) => {
+    if (!isPointerActive) return;
+    endSwipe(event.clientX, event.clientY);
+  });
 }
 
 (() => {

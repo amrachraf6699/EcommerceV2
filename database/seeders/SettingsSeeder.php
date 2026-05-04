@@ -192,6 +192,26 @@ class SettingsSeeder extends Seeder
     {
         [$normalizedKey] = $this->normalizeSettingDefinition($key);
 
+        if (in_array($normalizedKey, ['home_brands_section_background_color', 'home_new_arrivals_section_background_color'], true)) {
+            return array_merge(
+                $this->makeSettingRecord(
+                    'appearance',
+                    $normalizedKey,
+                    'color',
+                    match ($normalizedKey) {
+                        'home_brands_section_background_color' => 'Choose the background color for the home brands section.',
+                        'home_new_arrivals_section_background_color' => 'Choose the background color for the home new arrivals section.',
+                        default => null,
+                    }
+                ),
+                ['value' => match ($normalizedKey) {
+                    'home_brands_section_background_color' => '#000000',
+                    'home_new_arrivals_section_background_color' => '#121212',
+                    default => null,
+                }]
+            );
+        }
+
         return $this->makeSettingRecord(
             'appearance',
             $normalizedKey,

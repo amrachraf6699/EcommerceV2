@@ -23,6 +23,8 @@ class Slider extends Model
         'text_color',
         'button_background_color',
         'button_text_color',
+        'overlay_opacity_start',
+        'overlay_opacity_end',
         'horizontal_align',
         'vertical_align',
         'is_active',
@@ -30,5 +32,7 @@ class Slider extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'overlay_opacity_start' => 'decimal:2',
+        'overlay_opacity_end' => 'decimal:2',
     ];
 }

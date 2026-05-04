@@ -137,7 +137,7 @@ class ProductController extends Controller
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ù…Ù†ØªØ¬.');
+            ->with('success', 'تم إنشاء المنتج.');
     }
 
     public function edit(Product $product): View
@@ -164,14 +164,14 @@ class ProductController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Product details updated successfully.',
+                'message' => 'تم تحديث بيانات المنتج بنجاح.',
                 'fragments' => self::editorFragments($product),
             ]);
         }
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ù†ØªØ¬.');
+            ->with('success', 'تم تحديث بيانات المنتج.');
     }
 
     public function destroy(Product $product): RedirectResponse
@@ -188,7 +188,7 @@ class ProductController extends Controller
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬.');
+            ->with('success', 'تم حذف المنتج.');
     }
 
     public static function editorFragments(Product $product): array

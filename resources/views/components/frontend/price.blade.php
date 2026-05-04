@@ -23,11 +23,14 @@
         data-price-root
         data-bhd-amount="{{ number_format((float) $amount, 2, '.', '') }}"
         data-bhd-currency="{{ $currency }}"
+        @if ($compareAmount !== null)
+            data-bhd-compare-amount="{{ number_format((float) $compareAmount, 2, '.', '') }}"
+        @endif
     >
         <div class="{{ $rowClass }}">
             <span class="{{ $amountClass }}" data-bhd-primary>{{ storefront_format_money($amount, $currency) }}</span>
             @if ($compareAmount !== null)
-                <span class="{{ $compareClass }}">{{ storefront_format_money($compareAmount, $currency) }}</span>
+                <span class="{{ $compareClass }}" data-bhd-compare>{{ storefront_format_money($compareAmount, $currency) }}</span>
             @endif
         </div>
     </div>

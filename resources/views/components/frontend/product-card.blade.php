@@ -66,7 +66,7 @@
 
         <div style="padding:16px;{{ $list ? 'flex:1;' : '' }}">
             <p style="font-size:11px;font-weight:700;color:var(--gray-light);letter-spacing:0.12em;margin-bottom:4px">{{ $product->display_label }}</p>
-            <h3 style="font-weight:700;font-size:15px;margin-bottom:8px">{{ $product->name }}</h3>
+            <h3 style="font-weight:700;font-size:15px;margin-bottom:8px">{{ \Illuminate\Support\Str::limit($product->name, 20) }}</h3>
             @if ($product->short_description)
                 <p class="text-sm leading-7 mb-3" style="color:var(--gray-light)">{{ \Illuminate\Support\Str::limit($product->short_description, 80) }}</p>
             @endif

@@ -1,49 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>Dashboard Report</title>
+    <title>تقرير لوحة التحكم</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; color: #111827; font-size: 12px; }
         h1, h2 { margin: 0 0 10px; }
         .section { margin-top: 24px; }
         .grid { width: 100%; border-collapse: collapse; }
-        .grid th, .grid td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+        .grid th, .grid td { border: 1px solid #d1d5db; padding: 8px; text-align: right; }
         .cards { width: 100%; border-collapse: separate; border-spacing: 8px; }
         .cards td { border: 1px solid #e5e7eb; padding: 12px; vertical-align: top; }
         .muted { color: #6b7280; }
     </style>
 </head>
 <body>
-    <h1>Dashboard Report</h1>
-    <p class="muted">Range: {{ $report['range_label'] }}</p>
+    <h1>تقرير لوحة التحكم</h1>
+    <p class="muted">الفترة: {{ $report['range_label'] }}</p>
 
     <div class="section">
-        <h2>KPI Summary</h2>
+        <h2>ملخص المؤشرات</h2>
         <table class="cards">
             <tr>
-                <td><strong>Revenue</strong><br>{{ number_format($report['kpis']['revenue'], 2) }}</td>
-                <td><strong>Paid Orders</strong><br>{{ number_format($report['kpis']['paid_orders']) }}</td>
-                <td><strong>Total Orders</strong><br>{{ number_format($report['kpis']['total_orders']) }}</td>
-                <td><strong>Average Order Value</strong><br>{{ number_format($report['kpis']['average_order_value'], 2) }}</td>
+                <td><strong>الإيرادات</strong><br>{{ number_format($report['kpis']['revenue'], 2) }}</td>
+                <td><strong>الطلبات المدفوعة</strong><br>{{ number_format($report['kpis']['paid_orders']) }}</td>
+                <td><strong>إجمالي الطلبات</strong><br>{{ number_format($report['kpis']['total_orders']) }}</td>
+                <td><strong>متوسط قيمة الطلب</strong><br>{{ number_format($report['kpis']['average_order_value'], 2) }}</td>
             </tr>
             <tr>
-                <td><strong>New Customers</strong><br>{{ number_format($report['kpis']['new_customers']) }}</td>
-                <td><strong>Active Carts</strong><br>{{ number_format($report['kpis']['active_carts']) }}</td>
-                <td><strong>Conversion Rate</strong><br>{{ number_format($report['kpis']['cart_to_order_conversion_rate'], 2) }}%</td>
-                <td><strong>Low Stock Variants</strong><br>{{ number_format($report['kpis']['low_stock_variants']) }}</td>
+                <td><strong>العملاء الجدد</strong><br>{{ number_format($report['kpis']['new_customers']) }}</td>
+                <td><strong>السلات النشطة</strong><br>{{ number_format($report['kpis']['active_carts']) }}</td>
+                <td><strong>معدل التحويل</strong><br>{{ number_format($report['kpis']['cart_to_order_conversion_rate'], 2) }}%</td>
+                <td><strong>نسخ منخفضة المخزون</strong><br>{{ number_format($report['kpis']['low_stock_variants']) }}</td>
             </tr>
         </table>
     </div>
 
     <div class="section">
-        <h2>Sales Trend</h2>
+        <h2>اتجاه المبيعات</h2>
         <table class="grid">
             <thead>
                 <tr>
-                    <th>Label</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
+                    <th>الفترة</th>
+                    <th>الطلبات</th>
+                    <th>الإيرادات</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,32 +59,32 @@
     </div>
 
     <div class="section">
-        <h2>Funnel Summary</h2>
+        <h2>ملخص القمع البيعي</h2>
         <table class="grid">
             <tbody>
-                <tr><td>Carts Created</td><td>{{ number_format($report['funnel']['carts_created']) }}</td></tr>
-                <tr><td>Orders Created</td><td>{{ number_format($report['funnel']['orders_created']) }}</td></tr>
-                <tr><td>Conversion Rate</td><td>{{ number_format($report['funnel']['conversion_rate'], 2) }}%</td></tr>
-                <tr><td>Abandoned Carts</td><td>{{ number_format($report['funnel']['abandoned_carts']) }}</td></tr>
+                <tr><td>السلات المنشأة</td><td>{{ number_format($report['funnel']['carts_created']) }}</td></tr>
+                <tr><td>الطلبات المنشأة</td><td>{{ number_format($report['funnel']['orders_created']) }}</td></tr>
+                <tr><td>معدل التحويل</td><td>{{ number_format($report['funnel']['conversion_rate'], 2) }}%</td></tr>
+                <tr><td>السلات المتروكة</td><td>{{ number_format($report['funnel']['abandoned_carts']) }}</td></tr>
             </tbody>
         </table>
     </div>
 
     <div class="section">
-        <h2>Top Products</h2>
+        <h2>أعلى المنتجات</h2>
         <table class="grid">
             <thead>
                 <tr>
-                    <th>Metric</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Revenue</th>
+                    <th>المعيار</th>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>الإيراد</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($report['top_products_by_quantity'] as $row)
                     <tr>
-                        <td>Top by Quantity</td>
+                        <td>الأعلى حسب الكمية</td>
                         <td>{{ $row['product_name'] }}</td>
                         <td>{{ $row['quantity_sold'] }}</td>
                         <td>{{ number_format($row['revenue'], 2) }}</td>
@@ -92,7 +92,7 @@
                 @endforeach
                 @foreach ($report['top_products_by_revenue'] as $row)
                     <tr>
-                        <td>Top by Revenue</td>
+                        <td>الأعلى حسب الإيراد</td>
                         <td>{{ $row['product_name'] }}</td>
                         <td>{{ $row['quantity_sold'] }}</td>
                         <td>{{ number_format($row['revenue'], 2) }}</td>
@@ -103,12 +103,12 @@
     </div>
 
     <div class="section">
-        <h2>Order Status Mix</h2>
+        <h2>توزيع حالات الطلبات</h2>
         <table class="grid">
             <thead>
                 <tr>
-                    <th>Status</th>
-                    <th>Count</th>
+                    <th>الحالة</th>
+                    <th>العدد</th>
                 </tr>
             </thead>
             <tbody>
@@ -123,14 +123,14 @@
     </div>
 
     <div class="section">
-        <h2>Low Stock</h2>
+        <h2>تنبيهات المخزون</h2>
         <table class="grid">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Variant</th>
-                    <th>Stock</th>
-                    <th>Price</th>
+                    <th>المنتج</th>
+                    <th>النسخة</th>
+                    <th>المخزون</th>
+                    <th>السعر</th>
                 </tr>
             </thead>
             <tbody>

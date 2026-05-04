@@ -14,7 +14,7 @@ class DashboardOrderStatusSheet implements FromArray, ShouldAutoSize, WithTitle
 
     public function array(): array
     {
-        $rows = [['Status', 'Count']];
+        $rows = [['??????', '?????']];
 
         foreach ($this->report['order_status_breakdown'] as $row) {
             $rows[] = [$row['status'], $row['count']];
@@ -25,6 +25,6 @@ class DashboardOrderStatusSheet implements FromArray, ShouldAutoSize, WithTitle
 
     public function title(): string
     {
-        return 'Order Status';
+        return '????? ???????';
     }
 }

@@ -45,12 +45,12 @@ class ProductImageController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Images uploaded successfully.',
+                'message' => 'تم رفع الصور بنجاح.',
                 'fragments' => ProductController::editorFragments($product->fresh()),
             ]);
         }
 
-        return back()->with('success', 'ØªÙ… Ø±ÙØ¹ Ø§Ù„ØµÙˆØ±.');
+        return back()->with('success', 'تم رفع الصور.');
     }
 
     public function update(UpdateProductImageRequest $request, Product $product, ProductImage $image): RedirectResponse|JsonResponse
@@ -76,12 +76,12 @@ class ProductImageController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Image updated successfully.',
+                'message' => 'تم تحديث الصورة بنجاح.',
                 'fragments' => ProductController::editorFragments($product->fresh()),
             ]);
         }
 
-        return back()->with('success', 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„ØµÙˆØ±Ø©.');
+        return back()->with('success', 'تم تحديث الصورة.');
     }
 
     public function destroy(Product $product, ProductImage $image): RedirectResponse|JsonResponse
@@ -96,12 +96,12 @@ class ProductImageController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'message' => 'Image deleted successfully.',
+                'message' => 'تم حذف الصورة بنجاح.',
                 'fragments' => ProductController::editorFragments($product->fresh()),
             ]);
         }
 
-        return back()->with('success', 'ØªÙ… Ø­Ø°Ù Ø§Ù„ØµÙˆØ±Ø©.');
+        return back()->with('success', 'تم حذف الصورة.');
     }
 
     private function ensureSinglePrimaryImage(Product $product, ?int $preferredImageId = null): void

@@ -14,7 +14,7 @@ class DashboardLowStockSheet implements FromArray, ShouldAutoSize, WithTitle
 
     public function array(): array
     {
-        $rows = [['Product', 'Variant', 'Stock Quantity', 'Price']];
+        $rows = [['??????', '??????', '???? ???????', '?????']];
 
         foreach ($this->report['low_stock_variants'] as $row) {
             $rows[] = [$row['product_name'], $row['name'], $row['stock_quantity'], $row['price']];
@@ -25,6 +25,6 @@ class DashboardLowStockSheet implements FromArray, ShouldAutoSize, WithTitle
 
     public function title(): string
     {
-        return 'Low Stock';
+        return '??????? ???????';
     }
 }

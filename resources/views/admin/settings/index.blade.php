@@ -66,6 +66,23 @@
                                         </span>
                                     @endif
                                 </div>
+                            @elseif ($setting->input_type === 'color')
+                                <div class="flex items-center gap-3">
+                                    <input
+                                        class="h-12 w-20 cursor-pointer border border-white/10 bg-slate-950/40 p-1"
+                                        type="color"
+                                        name="{{ $setting->key }}"
+                                        value="{{ old($setting->key, $setting->value ?: '#000000') }}"
+                                        oninput="this.nextElementSibling.value = this.value"
+                                    >
+                                    <input
+                                        class="admin-input"
+                                        type="text"
+                                        value="{{ old($setting->key, $setting->value ?: '#000000') }}"
+                                        readonly
+                                        tabindex="-1"
+                                    >
+                                </div>
                             @else
                                 <input class="admin-input" type="{{ in_array($setting->input_type, ['email', 'number', 'password'], true) ? $setting->input_type : 'text' }}"
                                        name="{{ $setting->key }}"

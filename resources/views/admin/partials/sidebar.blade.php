@@ -11,7 +11,7 @@
                 @if (! empty($brandSettings['logo']->value))
                     <img
                         src="{{ asset('storage/' . $brandSettings['logo']->value) }}"
-                        alt="Logo"
+                        alt="??????"
                         class="h-6 w-6 shrink-0 object-contain"
                     >
                 @endif
@@ -26,18 +26,18 @@
             type="button"
             class="inline-flex items-center justify-center border border-black bg-white px-3 py-3 text-black xl:hidden"
             data-sidebar-close
-            aria-label="Close sidebar"
+            aria-label="????? ??????? ????????"
         >
             <i class="bx bx-x text-xl"></i>
         </button>
     </div>
 
-    <nav class="mt-6 grid gap-2" aria-label="Main navigation">
+    <nav class="mt-6 grid gap-2" aria-label="?????? ???????">
         <a href="{{ route('admin.dashboard') }}"
            class="admin-nav-link {{ request()->routeIs('admin.dashboard') ? 'is-active' : '' }}">
             <i class="bx bx-home admin-nav-icon" aria-hidden="true"></i>
-            <span>نظرة عامة</span>
-            <small>الصفحة الرئيسية</small>
+            <span>لوحة التحكم</span>
+            <small>نظرة عامة على المتجر</small>
         </a>
 
         @can('admins.view')
@@ -45,7 +45,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.admins.*') ? 'is-active' : '' }}">
                 <i class="bx bx-user admin-nav-icon" aria-hidden="true"></i>
                 <span>المسؤولون</span>
-                <small>الحسابات الإدارية</small>
+                <small>إدارة حسابات الإدارة</small>
             </a>
         @endcan
 
@@ -53,8 +53,8 @@
             <a href="{{ route('admin.roles.index') }}"
                class="admin-nav-link {{ request()->routeIs('admin.roles.*') ? 'is-active' : '' }}">
                 <i class="bx bx-shield admin-nav-icon" aria-hidden="true"></i>
-                <span>الأدوار</span>
-                <small>إدارة الأدوار والصلاحيات</small>
+                <span>الأدوار والصلاحيات</span>
+                <small>التحكم في الوصول</small>
             </a>
         @endcan
 
@@ -63,7 +63,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.settings.*') ? 'is-active' : '' }}">
                 <i class="bx bx-cog admin-nav-icon" aria-hidden="true"></i>
                 <span>الإعدادات</span>
-                <small>الهوية والتشغيل</small>
+                <small>إعدادات المتجر العامة</small>
             </a>
         @endcan
 
@@ -72,7 +72,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.pages.*') ? 'is-active' : '' }}">
                 <i class="bx bx-file admin-nav-icon" aria-hidden="true"></i>
                 <span>الصفحات</span>
-                <small>المحتوى الثابت والصفحات التعريفية</small>
+                <small>محتوى الصفحات الثابتة</small>
             </a>
         @endcan
 
@@ -81,7 +81,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.sliders.*') ? 'is-active' : '' }}">
                 <i class="bx bx-slideshow admin-nav-icon" aria-hidden="true"></i>
                 <span>السلايدر</span>
-                <small>الشرائح والعروض الرئيسية</small>
+                <small>شرائح الصفحة الرئيسية</small>
             </a>
         @endcan
 
@@ -90,7 +90,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.clients.*') ? 'is-active' : '' }}">
                 <i class="bx bx-briefcase admin-nav-icon" aria-hidden="true"></i>
                 <span>العملاء المميزون</span>
-                <small>صور العملاء والمناصب الوظيفية</small>
+                <small>شعارات وآراء العملاء</small>
             </a>
         @endcan
 
@@ -99,7 +99,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.categories.*') ? 'is-active' : '' }}">
                 <i class="bx bx-category admin-nav-icon" aria-hidden="true"></i>
                 <span>الأقسام</span>
-                <small>تنظيم الكتالوج</small>
+                <small>تصنيفات المتجر</small>
             </a>
         @endcan
 
@@ -108,7 +108,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.products.*') ? 'is-active' : '' }}">
                 <i class="bx bx-package admin-nav-icon" aria-hidden="true"></i>
                 <span>المنتجات</span>
-                <small>البيانات والنسخ والصور</small>
+                <small>إدارة المنتجات والمخزون</small>
             </a>
         @endcan
 
@@ -117,7 +117,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.customers.*') ? 'is-active' : '' }}">
                 <i class="bx bx-group admin-nav-icon" aria-hidden="true"></i>
                 <span>العملاء</span>
-                <small>الحسابات والعناوين والبيانات</small>
+                <small>حسابات العملاء والعناوين</small>
             </a>
         @endcan
 
@@ -126,7 +126,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
                 <i class="bx bx-receipt admin-nav-icon" aria-hidden="true"></i>
                 <span>الطلبات</span>
-                <small>المتابعة والتحديث</small>
+                <small>متابعة الطلبات والدفع</small>
             </a>
         @endcan
 
@@ -135,7 +135,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.carts.*') ? 'is-active' : '' }}">
                 <i class="bx bx-cart admin-nav-icon" aria-hidden="true"></i>
                 <span>السلات</span>
-                <small>سلات الجلسات الحالية</small>
+                <small>السلات النشطة والمتروكة</small>
             </a>
         @endcan
 
@@ -144,7 +144,7 @@
                class="admin-nav-link {{ request()->routeIs('admin.welcome-coupons.*') ? 'is-active' : '' }}">
                 <i class="bx bx-purchase-tag admin-nav-icon" aria-hidden="true"></i>
                 <span>كوبونات الترحيب</span>
-                <small>متابعة الإصدار والاستخدام والربط بالطلبات</small>
+                <small>العروض الترحيبية</small>
             </a>
         @endcan
 
@@ -153,15 +153,15 @@
                class="admin-nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'is-active' : '' }}">
                 <i class="bx bx-message-rounded-dots admin-nav-icon" aria-hidden="true"></i>
                 <span>رسائل التواصل</span>
-                <small>متابعة رسائل العملاء والرد عليها</small>
+                <small>استفسارات ورسائل الزوار</small>
             </a>
         @endcan
 
         <a href="{{ route('admin.profile.edit') }}"
            class="admin-nav-link {{ request()->routeIs('admin.profile.*') ? 'is-active' : '' }}">
             <i class="bx bx-id-card admin-nav-icon" aria-hidden="true"></i>
-            <span>الحساب الشخصي</span>
-            <small>الاسم والبريد وكلمة المرور</small>
+            <span>الملف الشخصي</span>
+            <small>بيانات الحساب وكلمة المرور</small>
         </a>
     </nav>
 </aside>

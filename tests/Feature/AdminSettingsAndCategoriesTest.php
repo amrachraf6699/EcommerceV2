@@ -36,7 +36,7 @@ class AdminSettingsAndCategoriesTest extends TestCase
             ->assertOk();
     }
 
-    public function test_settings_text_boolean_select_and_file_values_can_be_saved(): void
+    public function test_settings_text_boolean_select_file_and_color_values_can_be_saved(): void
     {
         Storage::fake('public');
 
@@ -65,6 +65,15 @@ class AdminSettingsAndCategoriesTest extends TestCase
             'vat_value' => '15',
         ])->assertRedirect();
 
+        $this->actingAs($this->superAdmin)->put(route('admin.settings.update'), [
+            'group' => 'appearance',
+            'categories_appearance' => 'Masonry Layout',
+            'products_appearance' => 'Grid',
+            'clients_appearance' => 'Horizontal Scroll',
+            'home_brands_section_background_color' => '#010203',
+            'home_new_arrivals_section_background_color' => '#111213',
+        ])->assertRedirect();
+
         $this->assertDatabaseHas('settings', ['key' => 'name', 'value' => 'SunFlower']);
         $this->assertDatabaseHas('settings', ['key' => 'address', 'value' => 'Cairo']);
         $this->assertDatabaseHas('settings', ['key' => 'welcome_coupon_enabled', 'value' => '1']);
@@ -73,6 +82,8 @@ class AdminSettingsAndCategoriesTest extends TestCase
         $this->assertDatabaseHas('settings', ['key' => 'welcome_coupon_max_value', 'value' => '20']);
         $this->assertDatabaseHas('settings', ['key' => 'track_order_enabled', 'value' => '0']);
         $this->assertDatabaseHas('settings', ['key' => 'shipping_type', 'value' => 'fixed']);
+        $this->assertDatabaseHas('settings', ['key' => 'home_brands_section_background_color', 'value' => '#010203']);
+        $this->assertDatabaseHas('settings', ['key' => 'home_new_arrivals_section_background_color', 'value' => '#111213']);
 
         $logoSetting = Setting::where('key', 'logo')->firstOrFail();
         Storage::disk('public')->assertExists($logoSetting->value);

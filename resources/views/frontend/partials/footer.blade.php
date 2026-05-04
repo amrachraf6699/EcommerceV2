@@ -26,7 +26,7 @@
           <div class="h-8 flex items-center justify-center overflow-hidden">
             @if ($frontendBrand['logo_url'])
               <img src="{{ $frontendBrand['logo_url'] }}" alt="{{ $frontendBrand['name'] }}"
-                class="w-full h-full object-cover">
+                class="h-full object-cover">
             @else
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M2 18L6 6L12 14L16 8L22 18H2Z" style="fill:var(--black)" />

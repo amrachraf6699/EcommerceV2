@@ -351,7 +351,7 @@ const clearAjaxErrors = (container) => {
 
 const renderAjaxErrors = (container, errors) => {
     if (! container) {
-        showToast('Please review the highlighted fields and try again.', 'error');
+        showToast('يرجى مراجعة الحقول المحددة ثم المحاولة مرة أخرى.', 'error');
         return;
     }
 
@@ -363,7 +363,7 @@ const renderAjaxErrors = (container, errors) => {
 
     container.innerHTML = items
         ? `<ul class="list-disc space-y-1 pr-5">${items}</ul>`
-        : 'Please review the form and try again.';
+        : 'يرجى مراجعة النموذج ثم المحاولة مرة أخرى.';
     container.classList.remove('hidden');
 };
 
@@ -459,15 +459,15 @@ const initAjaxForms = () => {
                 }
 
                 if (! response.ok) {
-                    throw new Error(payload.message || 'Request failed.');
+                    throw new Error(payload.message || 'تعذر تنفيذ الطلب.');
                 }
 
                 clearAjaxErrors(errorBox);
                 refreshProductEditorFragments(payload);
-                showToast(payload.message || 'Saved successfully.');
+                showToast(payload.message || 'تم الحفظ بنجاح.');
             } catch (error) {
                 renderAjaxErrors(errorBox, {
-                    form: [error.message || 'Unexpected error.'],
+                    form: [error.message || 'حدث خطأ غير متوقع.'],
                 });
             } finally {
                 submitButtons.forEach((button) => {

@@ -125,7 +125,7 @@ class AdminDashboardReportService
             ],
             '90d' => [
                 'key' => '90d',
-                'label' => 'آخر 90 يومًا',
+                'label' => 'آخر 90 يوماً',
                 'start' => $now->copy()->subDays(89)->startOfDay(),
                 'end' => $now->copy()->endOfDay(),
                 'interval' => 'day',
@@ -153,7 +153,7 @@ class AdminDashboardReportService
             'today' => 'اليوم',
             '7d' => 'هذا الأسبوع',
             '30d' => 'هذا الشهر',
-            '90d' => 'آخر 90 يومًا',
+            '90d' => 'آخر 90 يوماً',
             'year' => 'هذه السنة',
         ];
     }

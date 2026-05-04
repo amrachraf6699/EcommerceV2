@@ -61,6 +61,16 @@
             </label>
 
             <label class="space-y-2">
+                <span class="text-sm font-bold text-white">شفافية الأوفرلاي في البداية</span>
+                <input class="admin-input" type="number" name="overlay_opacity_start" min="0" max="1" step="0.05" value="{{ old('overlay_opacity_start', isset($slider) ? (float) ($slider->overlay_opacity_start ?? 0.90) : 0.90) }}" required>
+            </label>
+
+            <label class="space-y-2">
+                <span class="text-sm font-bold text-white">شفافية الأوفرلاي في النهاية</span>
+                <input class="admin-input" type="number" name="overlay_opacity_end" min="0" max="1" step="0.05" value="{{ old('overlay_opacity_end', isset($slider) ? (float) ($slider->overlay_opacity_end ?? 0.55) : 0.55) }}" required>
+            </label>
+
+            <label class="space-y-2">
                 <span class="text-sm font-bold text-white">محاذاة النص أفقياً</span>
                 <select class="admin-select" name="horizontal_align" required>
                     <option value="left" @selected(old('horizontal_align', $slider->horizontal_align ?? 'center') === 'left')>يسار</option>
