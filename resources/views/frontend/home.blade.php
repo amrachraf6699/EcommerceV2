@@ -45,10 +45,12 @@
         $overlayOpacityEnd = is_numeric($slider->overlay_opacity_end ?? null) ? number_format((float) $slider->overlay_opacity_end, 2, '.', '') : '0.55';
       @endphp
       <div class="hero-slide {{ $loop->first ? 'active' : '' }}" id="slide-{{ $loop->index }}">
-        <div class="absolute inset-0">
+        <div
+          class="absolute inset-0 hero-slide__media {{ $slider->image ? 'hero-slide__media--image' : '' }}"
           @if ($slider->image)
-            <img src="{{ asset('storage/' . $slider->image) }}" alt="{{ $slider->title ?: $frontendBrand['name'] }}" class="w-full h-full object-cover opacity-60">
+            style="background-image:url('{{ asset('storage/' . $slider->image) }}')"
           @endif
+        >
           <div class="absolute inset-0" style="background:linear-gradient(135deg,rgb(var(--overlay-rgb) / {{ $overlayOpacityStart }}),rgb(var(--overlay-rgb) / {{ $overlayOpacityEnd }}))"></div>
         </div>
         <div class="hero-slide__inner relative max-w-7xl mx-auto px-6 min-h-screen flex flex-col {{ $sliderVerticalClasses[$verticalAlign] ?? $sliderVerticalClasses['center'] }}">
@@ -219,7 +221,7 @@
 </section>
 
 @if ($clients->isNotEmpty())
-<section class="py-20 px-6" style="background:var(--gray-dark);border-top:1px solid var(--line-soft)">
+<section class="py-20 px-6 home-clients-section" style="background:var(--gray-dark);border-top:1px solid var(--line-soft)">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-14 reveal">
       <div class="divider" style="margin:0 auto 16px"></div>
@@ -237,6 +239,8 @@
   .hero-slider{touch-action:pan-y;}
   .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:0;transition:opacity .8s ease;}
   .hero-slide.active{opacity:1;position:relative;pointer-events:auto;z-index:1;}
+  .hero-slide__media{background:#000;}
+  .hero-slide__media--image{background-position:center;background-repeat:no-repeat;background-size:cover;}
   .hero-slide__inner{min-height:100vh;}
   .hero-slide__cta{background:var(--hero-slide-button-bg);color:var(--hero-slide-button-text);border-color:var(--hero-slide-button-bg);}
   .hero-slide__cta::before{display:none;}
@@ -244,6 +248,9 @@
   .hero-slide__secondary{color:var(--hero-slide-outline-color);border-color:var(--hero-slide-outline-color);}
   .hero-slide__secondary::before{display:none;}
   .hero-slide__secondary:hover{background:transparent;color:var(--hero-slide-outline-color);border-color:var(--hero-slide-outline-color);transform:translateY(-2px);}
+  .home-clients-section .client-card__media{aspect-ratio:4 / 5;}
+  .home-clients-section .client-masonry__item--featured .client-card__media{min-height:420px;}
+  .home-clients-section .client-masonry__item--tall .client-card__media{min-height:360px;}
   .home-products-filter{
     position:relative;
     isolation:isolate;
@@ -353,6 +360,9 @@
     .hero-slide__inner.justify-start{padding-top:6.5rem !important;padding-bottom:2.5rem !important;}
     .hero-slide__inner.justify-center{padding-top:4.5rem !important;padding-bottom:2.5rem !important;}
     .hero-slide__inner.justify-end{padding-top:3rem !important;padding-bottom:4.5rem !important;}
+    .home-clients-section .client-card__media{aspect-ratio:4 / 5.4;}
+    .home-clients-section .client-masonry__item--featured .client-card__media,
+    .home-clients-section .client-masonry__item--tall .client-card__media{min-height:auto;}
     .home-products-filter{
       width:100%;
       max-width:none;
