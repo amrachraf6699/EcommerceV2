@@ -2,20 +2,26 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\ProductImportErrorsExport;
+use App\Exports\ProductImportTemplateExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ProductImportRequest;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\Admin\ProductBulkImportService;
 use App\Support\LocalizedQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -59,6 +65,33 @@ class ProductController extends Controller
         return view('admin.products.create', [
             'categories' => self::activeCategories(),
         ]);
+    }
+
+    public function downloadImportTemplate()
+    {
+        return Excel::download(new ProductImportTemplateExport(), 'products-import-template.xlsx');
+    }
+
+    public function import(ProductImportRequest $request, ProductBulkImportService $importService): RedirectResponse
+    {
+        $summary = $importService->import(
+            $request->file('file'),
+            (string) $request->string('mode')
+        );
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'تم تنفيذ استيراد المنتجات.')
+            ->with('product_import_summary', $summary);
+    }
+
+    public function downloadImportErrors(string $token, ProductBulkImportService $importService)
+    {
+        $errors = $importService->getErrors($token);
+
+        abort_if($errors === null, Response::HTTP_NOT_FOUND);
+
+        return Excel::download(new ProductImportErrorsExport($errors), 'product-import-errors.xlsx');
     }
 
     public function store(StoreProductRequest $request): RedirectResponse

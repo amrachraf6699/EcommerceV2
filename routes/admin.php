@@ -111,6 +111,9 @@ Route::middleware(['auth', 'admin.access'])->group(function (): void {
 
     Route::prefix('products')->as('products.')->controller(ProductController::class)->group(function (): void {
         Route::get('/', 'index')->middleware('permission:products.view')->name('index');
+        Route::get('/import/template', 'downloadImportTemplate')->middleware('permission:products.create')->name('import.template');
+        Route::post('/import', 'import')->middleware('permission:products.create')->name('import.store');
+        Route::get('/import/errors/{token}', 'downloadImportErrors')->middleware('permission:products.create')->name('import.errors');
         Route::get('/create', 'create')->middleware('permission:products.create')->name('create');
         Route::post('/', 'store')->middleware('permission:products.create')->name('store');
         Route::get('/{product}/edit', 'edit')->middleware('permission:products.update')->name('edit');

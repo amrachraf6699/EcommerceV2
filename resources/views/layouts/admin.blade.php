@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 <body class="admin-body">
     <div class="min-h-screen bg-slate-950/95 text-slate-50">
@@ -32,5 +33,6 @@
 
     <div data-sidebar-overlay class="admin-sidebar-overlay xl:hidden"></div>
     <div id="confirm-modal-root"></div>
+    @stack('scripts')
 </body>
 </html>
