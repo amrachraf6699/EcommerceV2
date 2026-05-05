@@ -50,6 +50,7 @@
                     <p><strong class="text-white">الاسم:</strong> {{ $order->customer_first_name }} {{ $order->customer_last_name }}</p>
                     <p><strong class="text-white">البريد:</strong> {{ $order->customer_email }}</p>
                     <p><strong class="text-white">الهاتف:</strong> {{ $order->customer_phone ?: 'غير متوفر' }}</p>
+                    <p><strong class="text-white">الكوبون:</strong> {{ $order->coupon_code ?: 'غير مطبق' }}</p>
                     <p><strong class="text-white">العنوان:</strong> {{ $order->shipping_address_line_1 ?: $order->billing_address_line_1 ?: 'غير متوفر' }}</p>
                     <p><strong class="text-white">الملاحظة:</strong> {{ $order->customer_note ?: 'لا توجد ملاحظات' }}</p>
                     <p><strong class="text-white">الإجمالي:</strong> {{ number_format($order->grand_total, 2) }} {{ $order->currency }}</p>

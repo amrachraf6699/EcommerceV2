@@ -16,6 +16,10 @@ class Order extends Model
         'order_number',
         'session_id',
         'customer_id',
+        'coupon_id',
+        'coupon_code',
+        'coupon_type',
+        'coupon_value',
         'status',
         'payment_status',
         'payment_provider',
@@ -53,6 +57,7 @@ class Order extends Model
     protected $casts = [
         'shipping_same_as_billing' => 'boolean',
         'subtotal' => 'decimal:2',
+        'coupon_value' => 'decimal:2',
         'discount_total' => 'decimal:2',
         'tax_total' => 'decimal:2',
         'shipping_total' => 'decimal:2',
@@ -68,6 +73,11 @@ class Order extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function welcomeCoupon(): HasOne

@@ -40,6 +40,7 @@ class UpdateCategoryRequest extends FormRequest
             'description.ar' => ['nullable', 'string'],
             'description.en' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'size_guide' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

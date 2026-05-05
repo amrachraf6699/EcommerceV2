@@ -148,6 +148,15 @@
             </a>
         @endcan
 
+        @can('coupons.view')
+            <a href="{{ route('admin.coupons.index') }}"
+               class="admin-nav-link {{ request()->routeIs('admin.coupons.*') ? 'is-active' : '' }}">
+                <i class="bx bx-purchase-tag-alt admin-nav-icon" aria-hidden="true"></i>
+                <span>الكوبونات</span>
+                <small>أكواد الخصم العادية</small>
+            </a>
+        @endcan
+
         @can('contact_messages.view')
             <a href="{{ route('admin.contact-messages.index') }}"
                class="admin-nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'is-active' : '' }}">

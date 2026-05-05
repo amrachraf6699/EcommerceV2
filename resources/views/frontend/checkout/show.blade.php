@@ -26,7 +26,7 @@
 
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div class="border p-8" style="border-color:var(--line-soft);background:var(--gray-dark)">
-        <form method="POST" action="{{ route('storefront.checkout.store') }}" class="grid gap-5 md:grid-cols-2">
+        <form id="checkoutForm" method="POST" action="{{ route('storefront.checkout.store') }}" class="grid gap-5 md:grid-cols-2">
           @csrf
 
           <div>
@@ -92,25 +92,6 @@
           </div>
 
           <div class="md:col-span-2">
-            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_coupon_code') }}</label>
-            <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-              <input
-                type="text"
-                name="coupon_code"
-                class="input-field"
-                value="{{ $checkoutForm['coupon_code'] }}"
-                placeholder="{{ __('storefront.checkout_coupon_placeholder') }}"
-                dir="ltr"
-              >
-              <button type="button" class="btn-primary" id="checkoutApplyCouponButton">
-                <span>{{ __('storefront.checkout_coupon_apply') }}</span>
-              </button>
-            </div>
-            <p class="mt-2 text-xs" style="color:var(--gray-light)">{{ __('storefront.checkout_coupon_hint') }}</p>
-            @error('coupon_code')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
-          </div>
-
-          <div class="md:col-span-2">
             <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_note') }}</label>
             <textarea name="customer_note" class="input-field checkout-textarea">{{ $checkoutForm['customer_note'] }}</textarea>
             @error('customer_note')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
@@ -151,17 +132,41 @@
               @endforeach
             </div>
 
+            <div class="space-y-3 border-t pt-6" style="border-color:var(--line-soft)">
+              <div>
+                <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_coupon_code') }}</label>
+                <div class="grid gap-3 grid-cols-[minmax(0,1fr)_auto]">
+                  <input
+                    type="text"
+                    id="checkoutCouponCodeInput"
+                    name="coupon_code"
+                    form="checkoutForm"
+                    class="input-field"
+                    value="{{ $checkoutForm['coupon_code'] }}"
+                    placeholder="{{ __('storefront.checkout_coupon_placeholder') }}"
+                    dir="ltr"
+                  >
+                  <button
+                    type="button"
+                    class="btn-primary checkout-coupon-status"
+                    id="checkoutApplyCouponButton"
+                  >
+                    <span id="checkoutApplyCouponButtonText">{{ __('storefront.checkout_coupon_apply') }}</span>
+                    <span id="checkoutApplyCouponButtonLoading" class="checkout-coupon-status__loading" hidden>
+                      <span class="checkout-coupon-status__spinner" aria-hidden="true"></span>
+                    </span>
+                  </button>
+                </div>
+                <p
+                  id="checkoutCouponMessage"
+                  class="mt-2 text-xs"
+                  style="color:{{ $checkoutSummary['coupon_error'] ? '#ffd27d' : 'var(--gray-light)' }}"
+                >{{ $checkoutSummary['coupon_error'] ?: ($checkoutSummary['coupon_applied'] ? __('storefront.checkout_coupon_applied') : __('storefront.checkout_coupon_hint')) }}</p>
+                @error('coupon_code')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
+              </div>
+            </div>
+
             <div class="space-y-3 pt-2">
-              <p
-                id="checkoutSummaryMessage"
-                class="{{ $checkoutSummary['error'] ? '' : 'hidden' }} text-sm"
-                style="color:#ffb2b2"
-              >{{ $checkoutSummary['error'] }}</p>
-              <p
-                id="checkoutCouponMessage"
-                class="{{ $checkoutSummary['coupon_error'] ? '' : 'hidden' }} text-sm"
-                style="color:#ffd27d"
-              >{{ $checkoutSummary['coupon_error'] }}</p>
               <div class="flex items-center justify-between"><span style="color:var(--gray-light)">{{ __('storefront.cart_items_label') }}</span><strong>{{ $cart->item_count }}</strong></div>
               <div class="flex items-start justify-between gap-4">
                 <span style="color:var(--gray-light)">{{ __('storefront.account.subtotal') }}</span>
@@ -226,6 +231,13 @@
                   <div><span class="font-bold" data-bhd-primary>{{ storefront_format_money($checkoutSummary['grand_total'], $summaryCurrency) }}</span></div>
                 </div>
               </div>
+              <div class="space-y-2 border-t pt-4" style="border-color:var(--line-soft)">
+                <p
+                  id="checkoutSummaryMessage"
+                  class="{{ $checkoutSummary['error'] ? '' : 'hidden' }} text-sm"
+                  style="color:#ffb2b2"
+                >{{ $checkoutSummary['error'] }}</p>
+              </div>
             </div>
           @endif
         </div>
@@ -240,16 +252,18 @@
 document.addEventListener('DOMContentLoaded', function () {
   const countrySelect = document.querySelector('select[name="country"]');
   const emailInput = document.querySelector('input[name="email"]');
-  const couponInput = document.querySelector('input[name="coupon_code"]');
+  const couponInput = document.getElementById('checkoutCouponCodeInput');
   const applyCouponButton = document.getElementById('checkoutApplyCouponButton');
+  const applyCouponButtonText = document.getElementById('checkoutApplyCouponButtonText');
+  const applyCouponButtonLoading = document.getElementById('checkoutApplyCouponButtonLoading');
   const summaryMessage = document.getElementById('checkoutSummaryMessage');
   const couponMessage = document.getElementById('checkoutCouponMessage');
   const discountRow = document.getElementById('checkoutDiscountRow');
   const submitButton = document.querySelector('button[type="submit"]');
   const summaryEndpoint = @json(route('storefront.checkout.summary', ['locale' => app()->getLocale()]));
   const detectedCountryNameMap = @json($detectedCountryNameMap);
+  const couponHintText = @json(__('storefront.checkout_coupon_hint'));
   let activeRequest = null;
-  let refreshTimer = null;
 
   function setPrice(rootId, amount, currency) {
     const root = document.getElementById(rootId);
@@ -277,6 +291,18 @@ document.addEventListener('DOMContentLoaded', function () {
     discountRow.classList.toggle('hidden', Number(amount || 0) <= 0);
   }
 
+  function setCouponLoadingState(isLoading) {
+    if (!applyCouponButton || !applyCouponButtonText || !applyCouponButtonLoading) {
+      return;
+    }
+
+    applyCouponButton.disabled = isLoading;
+    applyCouponButton.classList.toggle('is-loading', isLoading);
+    applyCouponButtonText.hidden = isLoading;
+    applyCouponButtonLoading.hidden = !isLoading;
+    applyCouponButton.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+  }
+
   async function refreshCheckoutSummary() {
     if (!countrySelect) {
       return;
@@ -287,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     activeRequest = new AbortController();
+    setCouponLoadingState(Boolean(couponInput?.value.trim()));
 
     try {
       const query = new URLSearchParams({
@@ -327,8 +354,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const couponError = summary.coupon_error || '';
         const couponApplied = Boolean(summary.coupon_applied);
 
-        couponMessage.textContent = couponError || (couponApplied ? @json(__('storefront.checkout_coupon_applied')) : '');
-        couponMessage.classList.toggle('hidden', !couponError && !couponApplied);
+        couponMessage.textContent = couponError || (couponApplied ? @json(__('storefront.checkout_coupon_applied')) : couponHintText);
+        couponMessage.style.color = couponError
+          ? '#ffd27d'
+          : (couponApplied ? '#b7f7c5' : 'var(--gray-light)');
       }
 
       if (submitButton) {
@@ -344,15 +373,17 @@ document.addEventListener('DOMContentLoaded', function () {
         summaryMessage.classList.remove('hidden');
       }
 
+      if (couponMessage) {
+        couponMessage.textContent = couponHintText;
+        couponMessage.style.color = 'var(--gray-light)';
+      }
+
       if (submitButton) {
         submitButton.disabled = true;
       }
+    } finally {
+      setCouponLoadingState(false);
     }
-  }
-
-  function queueRefresh() {
-    window.clearTimeout(refreshTimer);
-    refreshTimer = window.setTimeout(refreshCheckoutSummary, 250);
   }
 
   function applyDetectedCountryFallback() {
@@ -376,8 +407,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   countrySelect?.addEventListener('change', refreshCheckoutSummary);
   emailInput?.addEventListener('blur', refreshCheckoutSummary);
-  couponInput?.addEventListener('blur', refreshCheckoutSummary);
-  couponInput?.addEventListener('input', queueRefresh);
   couponInput?.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -389,4 +418,54 @@ document.addEventListener('DOMContentLoaded', function () {
   refreshCheckoutSummary();
 });
 </script>
+<style>
+  .checkout-coupon-status {
+    min-width: 132px;
+    opacity: 1;
+  }
+
+  .checkout-coupon-status:hover {
+    color: var(--black);
+  }
+
+  .checkout-coupon-status:hover::before {
+    transform: translateX(101%);
+  }
+
+  .checkout-coupon-status.is-loading {
+    color: var(--white);
+  }
+
+  .checkout-coupon-status.is-loading::before {
+    transform: translateX(0);
+  }
+
+  .checkout-coupon-status__loading {
+    position: relative;
+    z-index: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .checkout-coupon-status__loading:not([hidden]) {
+    display: inline-flex;
+  }
+
+  .checkout-coupon-status__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgb(var(--white-rgb) / 0.35);
+    border-top-color: rgb(var(--white-rgb));
+    border-radius: 999px;
+    display: inline-block;
+    animation: checkoutCouponSpin .8s linear infinite;
+  }
+
+@keyframes checkoutCouponSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
 @endpush

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CartController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ContactMessageController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\NotificationController;
@@ -146,6 +147,15 @@ Route::middleware(['auth', 'admin.access'])->group(function (): void {
 
     Route::prefix('welcome-coupons')->as('welcome-coupons.')->controller(WelcomeCouponController::class)->group(function (): void {
         Route::get('/', 'index')->middleware('permission:welcome_coupons.view')->name('index');
+    });
+
+    Route::prefix('coupons')->as('coupons.')->controller(CouponController::class)->group(function (): void {
+        Route::get('/', 'index')->middleware('permission:coupons.view')->name('index');
+        Route::get('/create', 'create')->middleware('permission:coupons.create')->name('create');
+        Route::post('/', 'store')->middleware('permission:coupons.create')->name('store');
+        Route::get('/{coupon}/edit', 'edit')->middleware('permission:coupons.update')->name('edit');
+        Route::put('/{coupon}', 'update')->middleware('permission:coupons.update')->name('update');
+        Route::delete('/{coupon}', 'destroy')->middleware('permission:coupons.delete')->name('destroy');
     });
 
     Route::prefix('contact-messages')->as('contact-messages.')->controller(ContactMessageController::class)->group(function (): void {

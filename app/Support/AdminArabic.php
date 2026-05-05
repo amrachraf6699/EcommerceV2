@@ -175,6 +175,7 @@ class AdminArabic
             'clients' => 'العملاء المميزون',
             'orders' => 'الطلبات',
             'carts' => 'السلات',
+            'coupons' => 'الكوبونات',
             'welcome_coupons' => 'كوبونات الترحيب',
             'contact_messages' => 'رسائل التواصل',
         ][$group] ?? $group;
@@ -201,6 +202,7 @@ class AdminArabic
             'clients' => 'العملاء المميزين',
             'orders' => 'الطلبات',
             'carts' => 'السلات',
+            'coupons' => 'الكوبونات',
             'welcome_coupons' => 'كوبونات الترحيب',
             'contact_messages' => 'رسائل التواصل',
         ];

@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Models\Cart;
+use App\Models\Coupon;
+use App\Models\CouponRedemption;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Order;
@@ -612,6 +614,76 @@ class StorefrontCheckoutTest extends TestCase
 
         $this->assertSame($order->id, $coupon->order_id);
         $this->assertNotNull($coupon->used_at);
+    }
+
+    public function test_paid_checkout_marks_standard_coupon_used_and_stores_snapshot(): void
+    {
+        $this->seedCart();
+
+        $coupon = Coupon::query()->create([
+            'code' => 'SAVE10',
+            'discount_type' => 'amount',
+            'discount_value' => 10,
+            'is_active' => true,
+            'allowed_countries' => ['Bahrain'],
+        ]);
+
+        Http::fake([
+            'https://tap.test/v2/charges' => Http::response([
+                'id' => 'chg_standard_paid',
+                'status' => 'INITIATED',
+                'reference' => [
+                    'transaction' => 'ORD-REF-STANDARD',
+                    'order' => 'ORD-REF-STANDARD',
+                ],
+                'transaction' => [
+                    'url' => 'https://tap.test/pay/chg_standard_paid',
+                ],
+            ], 200),
+        ]);
+
+        $payload = $this->checkoutPayload();
+        $payload['coupon_code'] = 'save10';
+
+        app(FrontendCheckoutManager::class)->beginTapCheckout(
+            $this->managerRequest(),
+            $payload,
+        );
+
+        $order = Order::query()->firstOrFail();
+
+        $this->assertSame($coupon->id, $order->coupon_id);
+        $this->assertSame('SAVE10', $order->coupon_code);
+        $this->assertSame('standard', $order->coupon_type);
+        $this->assertSame('10.00', $order->coupon_value);
+        $this->assertSame('10.00', $order->discount_total);
+
+        Http::fake([
+            'https://tap.test/v2/charges/chg_standard_paid' => Http::response([
+                'id' => 'chg_standard_paid',
+                'status' => 'CAPTURED',
+                'reference' => [
+                    'transaction' => 'ORD-REF-STANDARD',
+                    'order' => $order->order_number,
+                ],
+                'metadata' => [
+                    'order_id' => (string) $order->id,
+                ],
+            ], 200),
+        ]);
+
+        $this->checkoutGet(route('storefront.checkout.result', [
+            'locale' => 'en',
+            'order' => $order->order_number,
+            'tap_id' => 'chg_standard_paid',
+        ]))->assertOk();
+
+        $this->assertDatabaseHas('coupon_redemptions', [
+            'coupon_id' => $coupon->id,
+            'order_id' => $order->id,
+            'customer_email' => 'john@example.com',
+        ]);
+        $this->assertSame(1, CouponRedemption::query()->count());
     }
 
     private function seedCart(int $quantity = 1): void

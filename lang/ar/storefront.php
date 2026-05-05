@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'checkout_coupon_code' => 'كود كوبون الترحيب',
-    'checkout_coupon_placeholder' => 'أدخل كود كوبون الترحيب',
+    'checkout_coupon_code' => 'كود الكوبون',
+    'checkout_coupon_placeholder' => 'أدخل كود الكوبون',
     'checkout_coupon_apply' => 'تطبيق',
-    'checkout_coupon_hint' => 'يعمل كوبون الترحيب فقط مع نفس البريد الإلكتروني الذي تم إرساله إليه.',
-    'checkout_coupon_applied' => 'تم تطبيق كوبون الترحيب بنجاح.',
-    'checkout_coupon_invalid' => 'كوبون الترحيب غير صالح أو مستخدم أو غير مرتبط بهذا البريد الإلكتروني.',
-    'checkout_coupon_email_required' => 'أدخل بريدك الإلكتروني أولاً لاستخدام كوبون الترحيب.',
+    'checkout_coupon_hint' => 'يمكنك استخدام كود خصم عادي أو كوبون الترحيب إن كان متاحاً.',
+    'checkout_coupon_applied' => 'تم تطبيق الكوبون بنجاح.',
+    'checkout_coupon_invalid' => 'هذا الكوبون غير صالح أو منتهي أو غير مؤهل لهذا الطلب.',
+    'checkout_coupon_email_required' => 'أدخل بريدك الإلكتروني أولاً لاستكمال التحقق من الكوبون عند الحاجة.',
     'badges' => [
         'featured' => 'مميز',
         'new' => 'جديد',

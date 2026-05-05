@@ -22,6 +22,7 @@ class Category extends Model
         'slug',
         'description',
         'image',
+        'size_guide',
         'is_active',
         'sort_order',
     ];

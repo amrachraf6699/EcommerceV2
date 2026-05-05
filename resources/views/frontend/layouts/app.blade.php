@@ -11,8 +11,9 @@
     @include('frontend.partials.navbar')
     @include('frontend.partials.mobile-menu')
 
-    @yield('content')
-
+    <div class="mt-6">
+        @yield('content')
+    </div>
     @if (! request()->routeIs('storefront.products.show') && ! empty($frontendBrand['whatsapp_phone']))
         @include('frontend.partials.whatsapp-float')
     @endif

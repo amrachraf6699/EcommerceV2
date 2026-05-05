@@ -46,8 +46,9 @@ class CategoryController extends Controller
         $validated = $request->validated();
 
         Category::create([
-            ...Arr::except($validated, ['image']),
+            ...Arr::except($validated, ['image', 'size_guide']),
             'image' => $request->hasFile('image') ? $request->file('image')->store('categories', 'public') : null,
+            'size_guide' => $request->hasFile('size_guide') ? $request->file('size_guide')->store('categories/size-guides', 'public') : null,
             'is_active' => $request->boolean('is_active', true),
             'sort_order' => (int) $request->input('sort_order', 0),
         ]);
@@ -65,7 +66,7 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
         $validated = $request->validated();
-        $data = Arr::except($validated, ['image']);
+        $data = Arr::except($validated, ['image', 'size_guide']);
 
         if ($request->hasFile('image')) {
             if ($category->image) {
@@ -73,6 +74,14 @@ class CategoryController extends Controller
             }
 
             $data['image'] = $request->file('image')->store('categories', 'public');
+        }
+
+        if ($request->hasFile('size_guide')) {
+            if ($category->size_guide) {
+                Storage::disk('public')->delete($category->size_guide);
+            }
+
+            $data['size_guide'] = $request->file('size_guide')->store('categories/size-guides', 'public');
         }
 
         $category->update([
@@ -90,6 +99,10 @@ class CategoryController extends Controller
     {
         if ($category->image) {
             Storage::disk('public')->delete($category->image);
+        }
+
+        if ($category->size_guide) {
+            Storage::disk('public')->delete($category->size_guide);
         }
 
         $category->delete();

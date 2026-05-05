@@ -45,6 +45,13 @@
                 <input class="admin-input" type="file" name="image" data-filepond>
             </div>
             <div class="space-y-2 lg:col-span-2">
+                <span class="text-sm font-bold text-white">دليل المقاسات</span>
+                @if (! empty($category?->size_guide))
+                    <img class="max-h-72 border border-black/10 bg-white p-2 object-contain" src="{{ asset('storage/' . $category->size_guide) }}" alt="دليل المقاسات - {{ $category->name }}">
+                @endif
+                <input class="admin-input" type="file" name="size_guide" accept="image/*" data-filepond>
+            </div>
+            <div class="space-y-2 lg:col-span-2">
                 <span class="text-sm font-bold text-white">الحالة</span>
                 <label class="flex items-center gap-3 border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-200">
                     <input class="admin-checkbox" type="checkbox" name="is_active" value="1" @checked(old('is_active', $category->is_active ?? true))>

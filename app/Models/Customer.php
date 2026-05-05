@@ -54,6 +54,11 @@ class Customer extends Authenticatable
         return $this->hasMany(WelcomeCoupon::class);
     }
 
+    public function couponRedemptions(): HasMany
+    {
+        return $this->hasMany(CouponRedemption::class);
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new CustomerResetPasswordNotification($token, app()->getLocale()));

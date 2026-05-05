@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Services\CheckoutPricingService;
+use App\Services\CouponService;
 use App\Services\CurrencyDetectionService;
 use App\Services\OrderNotificationService;
 use App\Services\TapPaymentService;
@@ -23,6 +24,7 @@ class FrontendCheckoutManager
     public function __construct(
         private readonly TapPaymentService $tapPaymentService,
         private readonly CheckoutPricingService $checkoutPricingService,
+        private readonly CouponService $couponService,
         private readonly CurrencyDetectionService $currencyDetectionService,
         private readonly StorefrontCountryCatalog $countryCatalog,
         private readonly WelcomeCouponService $welcomeCouponService,
@@ -51,7 +53,6 @@ class FrontendCheckoutManager
             ->first();
 
         $draftOrder = Order::query()
-            ->with('welcomeCoupon')
             ->where('session_id', $request->session()->getId())
             ->whereNull('placed_at')
             ->latest()
@@ -73,7 +74,7 @@ class FrontendCheckoutManager
             'address_line_2' => old('address_line_2', $draftOrder?->shipping_address_line_2 ?: $address?->address_line_2),
             'postal_code' => old('postal_code', $draftOrder?->shipping_postal_code ?: $address?->postal_code),
             'customer_note' => old('customer_note', $draftOrder?->customer_note),
-            'coupon_code' => old('coupon_code', $draftOrder?->welcomeCoupon?->code),
+            'coupon_code' => old('coupon_code', $draftOrder?->coupon_code),
         ];
     }
 
@@ -86,6 +87,7 @@ class FrontendCheckoutManager
      *     tax_total:float,
      *     subtotal:float,
      *     grand_total:float,
+     *     coupon_code:?string,
      *     coupon_applied:bool,
      *     coupon_error:?string,
      *     error:?string
@@ -167,7 +169,6 @@ class FrontendCheckoutManager
             }
 
             $pendingOrder = Order::query()
-                ->with('welcomeCoupon')
                 ->where('session_id', $sessionId)
                 ->whereNull('placed_at')
                 ->latest()
@@ -196,9 +197,23 @@ class FrontendCheckoutManager
                 ]);
             }
 
+            $appliedCoupon = $this->checkoutPricingService->requireRedeemableCoupon(
+                $customer,
+                (string) ($customer?->email ?: $validated['email']),
+                (string) $validated['country'],
+                (string) ($validated['coupon_code'] ?? ''),
+                (float) $pricing['subtotal_before_discount'],
+            );
+
             $order->fill([
                 'session_id' => $sessionId,
                 'customer_id' => $customer?->id,
+                'coupon_id' => ($appliedCoupon && $appliedCoupon['type'] === 'standard')
+                    ? $appliedCoupon['coupon']->id
+                    : null,
+                'coupon_code' => $appliedCoupon['coupon']->code ?? null,
+                'coupon_type' => $appliedCoupon['type'] ?? null,
+                'coupon_value' => $appliedCoupon['coupon']->discount_value ?? null,
                 'status' => 'pending',
                 'payment_status' => 'unpaid',
                 'payment_provider' => 'tap',
@@ -231,18 +246,12 @@ class FrontendCheckoutManager
             ]);
             $order->save();
 
-            $coupon = $this->checkoutPricingService->requireRedeemableCoupon(
-                $customer,
-                $order->customer_email,
-                (string) ($validated['coupon_code'] ?? ''),
-            );
-
-            if ($order->welcomeCoupon && (! $coupon || $order->welcomeCoupon->id !== $coupon->id)) {
+            if ($order->welcomeCoupon && (! $appliedCoupon || $appliedCoupon['type'] !== 'welcome' || $order->welcomeCoupon->id !== $appliedCoupon['coupon']->id)) {
                 $order->welcomeCoupon->forceFill(['order_id' => null])->save();
             }
 
-            if ($coupon) {
-                $coupon->forceFill([
+            if ($appliedCoupon && $appliedCoupon['type'] === 'welcome') {
+                $appliedCoupon['coupon']->forceFill([
                     'customer_id' => $customer->id,
                     'order_id' => $order->id,
                 ])->save();
@@ -302,7 +311,7 @@ class FrontendCheckoutManager
         return DB::transaction(function () use ($charge, $order, $request, $status): Order {
             /** @var Order $lockedOrder */
             $lockedOrder = Order::query()
-                ->with(['items', 'welcomeCoupon'])
+                ->with(['items', 'coupon', 'welcomeCoupon'])
                 ->lockForUpdate()
                 ->findOrFail($order->id);
 
@@ -327,12 +336,24 @@ class FrontendCheckoutManager
 
                     Cart::query()->where('session_id', $lockedOrder->session_id)->delete();
 
-                if ($lockedOrder->welcomeCoupon) {
-                    $this->welcomeCouponService->markAsUsed($lockedOrder->welcomeCoupon, $lockedOrder);
-                }
+                    if ($lockedOrder->coupon_type === 'standard' && $lockedOrder->coupon) {
+                        $this->couponService->markAsUsed($lockedOrder->coupon, $lockedOrder);
+                    }
 
-                $this->orderNotificationService->notifyPlaced($lockedOrder->fresh('customer'), app()->getLocale());
-            }
+                    if ($lockedOrder->coupon_type === 'welcome' && $lockedOrder->coupon_code) {
+                        $welcomeCoupon = $this->welcomeCouponService->findRedeemableForCheckout(
+                            $lockedOrder->customer,
+                            $lockedOrder->customer_email,
+                            $lockedOrder->coupon_code,
+                        );
+
+                        if ($welcomeCoupon) {
+                            $this->welcomeCouponService->markAsUsed($welcomeCoupon, $lockedOrder);
+                        }
+                    }
+
+                    $this->orderNotificationService->notifyPlaced($lockedOrder->fresh('customer'), app()->getLocale());
+                }
 
                 $lockedOrder->save();
 

@@ -15,6 +15,8 @@
   $canonicalUrl = route('storefront.products.show', ['locale' => app()->getLocale(), 'product' => $product->slug]);
   $metaImage = $mainImageUrl ?: '';
   $metaImageAlt = $mainImage?->alt_text ?: $product->name;
+  $sizeGuideCategory = $product->categories->first();
+  $sizeGuideImageUrl = $sizeGuideCategory?->size_guide ? asset('storage/' . $sizeGuideCategory->size_guide) : null;
   $ogType = 'product';
   $structuredData = array_filter([
     '@context' => 'https://schema.org',
@@ -166,7 +168,7 @@
 
   <section class="mt-20">
     <div class="flex gap-8 mb-8 overflow-x-auto" style="border-bottom:1px solid var(--line-soft)">
-      <button class="tab-btn active" type="button" onclick="switchProductTab(this,'description')">{{ __('storefront.common.description') }}</button>
+      <button class="tab-btn active p-4" type="button" onclick="switchProductTab(this,'description')">{{ __('storefront.common.description') }}</button>
     </div>
     <div class="tab-content active" id="tab-description">
       <div class="leading-8 text-base" style="color:var(--gray-light)">{{ $product->description ?: __('storefront.product.no_description') }}</div>
@@ -209,7 +211,7 @@
 <div class="toast" id="toast"></div>
 
 <div class="modal-overlay" id="sizeGuideModal">
-  <div class="modal-box" style="max-width:600px">
+  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto">
     <div style="padding:40px">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-black">{{ __('storefront.common.size_guide') }}</h2>
@@ -218,6 +220,16 @@
         </button>
       </div>
       <p class="text-sm mt-4" style="color:var(--gray-light)">{{ __('storefront.product.size_guide_copy') }}</p>
+      @if ($sizeGuideImageUrl)
+        <div class="mt-6 border p-4" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
+          <img
+            src="{{ $sizeGuideImageUrl }}"
+            alt="{{ __('storefront.common.size_guide') }} - {{ $sizeGuideCategory?->name }}"
+            class="w-full h-auto"
+            style="display:block;object-fit:contain"
+          >
+        </div>
+      @endif
     </div>
   </div>
 </div>

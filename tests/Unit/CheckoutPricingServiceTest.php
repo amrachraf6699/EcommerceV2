@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Setting;
 use App\Models\WelcomeCoupon;
@@ -234,5 +235,72 @@ class CheckoutPricingServiceTest extends TestCase
         $this->assertSame(0.0, $summary['subtotal_after_discount']);
         $this->assertSame(0.6, $summary['tax_total']);
         $this->assertSame(6.6, $summary['grand_total']);
+    }
+
+    public function test_valid_standard_coupon_reduces_subtotal_before_vat(): void
+    {
+        $cart = Cart::query()->create([
+            'session_id' => 'test-session-8',
+            'currency' => 'BHD',
+            'item_count' => 1,
+            'subtotal' => 120,
+        ]);
+
+        Coupon::query()->create([
+            'code' => 'SAVE15',
+            'discount_type' => 'percent',
+            'discount_value' => 15,
+            'is_active' => true,
+            'min_order_subtotal' => 100,
+            'allowed_countries' => ['Bahrain'],
+        ]);
+
+        $summary = app(CheckoutPricingService::class)->calculate($cart, [
+            'country' => 'Bahrain',
+            'email' => 'guest@example.com',
+            'coupon_code' => 'save15',
+        ]);
+
+        $this->assertTrue($summary['coupon_applied']);
+        $this->assertSame('SAVE15', $summary['coupon_code']);
+        $this->assertSame(18.0, $summary['discount_total']);
+        $this->assertSame(102.0, $summary['subtotal_after_discount']);
+        $this->assertSame(10.8, $summary['tax_total']);
+        $this->assertSame(118.8, $summary['grand_total']);
+    }
+
+    public function test_standard_coupon_takes_precedence_over_welcome_coupon_with_same_code(): void
+    {
+        $cart = Cart::query()->create([
+            'session_id' => 'test-session-9',
+            'currency' => 'BHD',
+            'item_count' => 1,
+            'subtotal' => 100,
+        ]);
+
+        Coupon::query()->create([
+            'code' => 'SAVE20',
+            'discount_type' => 'amount',
+            'discount_value' => 12,
+            'is_active' => true,
+        ]);
+
+        WelcomeCoupon::query()->create([
+            'email' => 'guest@example.com',
+            'code' => 'SAVE20',
+            'discount_type' => 'percent',
+            'discount_value' => 20,
+            'locale' => 'en',
+        ]);
+
+        $summary = app(CheckoutPricingService::class)->calculate($cart, [
+            'country' => 'Bahrain',
+            'email' => 'guest@example.com',
+            'coupon_code' => 'SAVE20',
+        ]);
+
+        $this->assertTrue($summary['coupon_applied']);
+        $this->assertSame(12.0, $summary['discount_total']);
+        $this->assertSame(88.0, $summary['subtotal_after_discount']);
     }
 }
