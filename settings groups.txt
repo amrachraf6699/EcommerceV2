@@ -35,10 +35,8 @@ tap_public_key
 tap_webhook_secret
 
 -shipping:
-shipping_type
 shipping_gulf_cost
-shipping_europe_america_1_2_cost
-shipping_europe_america_3_plus_cost
+shipping_others_cost
 enable_vat (boolean)
 vat_value
 

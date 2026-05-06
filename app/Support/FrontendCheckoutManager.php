@@ -2,6 +2,9 @@
 
 namespace App\Support;
 
+use App\Enums\OrderFulfillmentStatus;
+use App\Enums\OrderPaymentStatus;
+use App\Enums\OrderStatus;
 use App\Models\Cart;
 use App\Models\Customer;
 use App\Models\Order;
@@ -75,6 +78,7 @@ class FrontendCheckoutManager
             'postal_code' => old('postal_code', $draftOrder?->shipping_postal_code ?: $address?->postal_code),
             'customer_note' => old('customer_note', $draftOrder?->customer_note),
             'coupon_code' => old('coupon_code', $draftOrder?->coupon_code),
+            'shipping_box_type' => old('shipping_box_type', $this->shippingBoxTypeValue($draftOrder?->shipping_with_box)),
         ];
     }
 
@@ -83,6 +87,9 @@ class FrontendCheckoutManager
      *     country:?string,
      *     shipping_zone:?string,
      *     shipping_rate_source:?string,
+     *     shipping_unit_cost:float,
+     *     shipping_quantity_multiplier:float,
+     *     shipping_with_box:bool,
      *     shipping_total:float,
      *     tax_total:float,
      *     subtotal:float,
@@ -93,7 +100,13 @@ class FrontendCheckoutManager
      *     error:?string
      * }
      */
-    public function checkoutSummary(Request $request, ?string $country = null, ?string $email = null, ?string $couponCode = null): array
+    public function checkoutSummary(
+        Request $request,
+        ?string $country = null,
+        ?string $email = null,
+        ?string $couponCode = null,
+        ?string $shippingBoxType = null
+    ): array
     {
         $sessionId = $this->ensureSession($request);
         $cart = $this->cartForSession($sessionId);
@@ -106,6 +119,7 @@ class FrontendCheckoutManager
             'customer' => $customer,
             'email' => $email ?: $customer?->email,
             'coupon_code' => $couponCode,
+            'shipping_box_type' => $shippingBoxType ?: $this->shippingBoxTypeValue(null),
         ]);
     }
 
@@ -183,6 +197,7 @@ class FrontendCheckoutManager
                 (string) $validated['country'],
                 (string) ($customer?->email ?: $validated['email']),
                 (string) ($validated['coupon_code'] ?? ''),
+                (string) $validated['shipping_box_type'],
             );
 
             if ($pricing['error']) {
@@ -214,10 +229,10 @@ class FrontendCheckoutManager
                 'coupon_code' => $appliedCoupon['coupon']->code ?? null,
                 'coupon_type' => $appliedCoupon['type'] ?? null,
                 'coupon_value' => $appliedCoupon['coupon']->discount_value ?? null,
-                'status' => 'pending',
-                'payment_status' => 'unpaid',
+                'status' => OrderStatus::PENDING,
+                'payment_status' => OrderPaymentStatus::UNPAID,
                 'payment_provider' => 'tap',
-                'fulfillment_status' => 'unfulfilled',
+                'fulfillment_status' => OrderFulfillmentStatus::UNFULFILLED,
                 'currency' => $lockedCart->currency ?: 'BHD',
                 'customer_first_name' => (string) $validated['first_name'],
                 'customer_last_name' => (string) $validated['last_name'],
@@ -236,11 +251,16 @@ class FrontendCheckoutManager
                 'shipping_address_line_1' => $validated['address_line_1'],
                 'shipping_address_line_2' => $validated['address_line_2'] ?? null,
                 'shipping_postal_code' => $validated['postal_code'] ?? null,
+                'shipping_with_box' => $pricing['shipping_with_box'],
                 'customer_note' => $validated['customer_note'] ?? null,
                 'subtotal' => $pricing['subtotal'],
                 'discount_total' => $pricing['discount_total'],
                 'tax_total' => $pricing['tax_total'],
                 'shipping_total' => $pricing['shipping_total'],
+                'shipping_zone' => $pricing['shipping_zone'],
+                'shipping_rate_source' => $pricing['shipping_rate_source'],
+                'shipping_unit_cost' => $pricing['shipping_unit_cost'],
+                'shipping_quantity_multiplier' => $pricing['shipping_quantity_multiplier'],
                 'grand_total' => $pricing['grand_total'],
                 'placed_at' => null,
             ]);
@@ -325,12 +345,12 @@ class FrontendCheckoutManager
             ]);
 
             if ($status === 'CAPTURED') {
-                if ($lockedOrder->payment_status !== 'paid') {
+                if ($lockedOrder->payment_status !== OrderPaymentStatus::PAID) {
                     $this->decrementStockForOrder($lockedOrder);
 
                     $lockedOrder->fill([
-                        'status' => 'processing',
-                        'payment_status' => 'paid',
+                        'status' => OrderStatus::PROCESSING,
+                        'payment_status' => OrderPaymentStatus::PAID,
                         'placed_at' => $lockedOrder->placed_at ?: now(),
                     ]);
 
@@ -371,15 +391,15 @@ class FrontendCheckoutManager
 
             if (in_array($status, ['CANCELLED', 'DECLINED', 'FAILED', 'VOID'], true)) {
                 $lockedOrder->fill([
-                    'payment_status' => $status === 'CANCELLED' ? 'canceled' : 'failed',
-                    'status' => 'pending',
+                    'payment_status' => $status === 'CANCELLED' ? OrderPaymentStatus::CANCELED : OrderPaymentStatus::FAILED,
+                    'status' => OrderStatus::PENDING,
                 ])->save();
 
                 return $lockedOrder->fresh('items');
             }
 
             $lockedOrder->fill([
-                'payment_status' => 'pending',
+                'payment_status' => OrderPaymentStatus::PENDING,
             ])->save();
 
             return $lockedOrder->fresh('items');
@@ -408,13 +428,13 @@ class FrontendCheckoutManager
 
     public function cancelOrder(Order $order): Order
     {
-        if ($order->payment_status === 'paid') {
+        if ($order->payment_status === OrderPaymentStatus::PAID) {
             return $order;
         }
 
         $order->update([
-            'payment_status' => 'canceled',
-            'status' => 'pending',
+            'payment_status' => OrderPaymentStatus::CANCELED,
+            'status' => OrderStatus::PENDING,
         ]);
 
         return $order->fresh('items');
@@ -588,5 +608,10 @@ class FrontendCheckoutManager
         return Customer::query()
             ->whereRaw('LOWER(email) = ?', [Str::lower($email)])
             ->first();
+    }
+
+    private function shippingBoxTypeValue(?bool $shippingWithBox): string
+    {
+        return $shippingWithBox ? 'with_box' : 'without_box';
     }
 }

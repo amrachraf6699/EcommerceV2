@@ -43,15 +43,15 @@
         <div class="grid gap-5 md:grid-cols-3">
           <div class="border p-5" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
             <p class="text-xs font-bold mb-2" style="letter-spacing:0.14em;color:var(--gray-light)">{{ __('storefront.account.order_status') }}</p>
-            <p class="text-lg font-black">{{ $order->status }}</p>
+            <p class="text-lg font-black">{{ $order->status_label }}</p>
           </div>
           <div class="border p-5" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
             <p class="text-xs font-bold mb-2" style="letter-spacing:0.14em;color:var(--gray-light)">{{ __('storefront.account.payment_status') }}</p>
-            <p class="text-lg font-black">{{ $order->payment_status }}</p>
+            <p class="text-lg font-black">{{ $order->payment_status_label }}</p>
           </div>
           <div class="border p-5" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
             <p class="text-xs font-bold mb-2" style="letter-spacing:0.14em;color:var(--gray-light)">{{ __('storefront.account.fulfillment_status') }}</p>
-            <p class="text-lg font-black">{{ $order->fulfillment_status }}</p>
+            <p class="text-lg font-black">{{ $order->fulfillment_status_label }}</p>
           </div>
         </div>
       </div>
@@ -65,11 +65,8 @@
                 <div class="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p class="text-lg font-black">{{ $item->product_name }}</p>
-                    @if ($item->variant_name)
-                      <p class="text-sm" style="color:var(--gray-light)">{{ $item->variant_name }}</p>
-                    @endif
-                    @if ($item->sku)
-                      <p class="text-xs mt-2" style="letter-spacing:0.12em;color:var(--gray-light)">{{ $item->sku }}</p>
+                    @if ($item->display_variant_name)
+                      <p class="text-sm" style="color:var(--gray-light)">{{ $item->display_variant_name }}</p>
                     @endif
                     @if (($item->product_id && ! $item->product) || ($item->product_variant_id && ! $item->variant))
                       <p class="text-xs mt-2" style="color:#f4ce7a">Deleted catalog record. Order snapshot preserved.</p>
@@ -101,6 +98,7 @@
             <div class="space-y-3 text-sm">
               <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.subtotal') }}</span><x-frontend.price :amount="$order->subtotal" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
               <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.discount_total') }}</span><x-frontend.price :amount="$order->discount_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
+              <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.shipping_box_type') }}</span><span class="font-bold">{{ $order->shipping_with_box === null ? __('storefront.account.not_available') : __($order->shipping_with_box ? 'storefront.checkout_shipping_with_box' : 'storefront.checkout_shipping_without_box') }}</span></div>
               <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.shipping_total') }}</span><x-frontend.price :amount="$order->shipping_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
               <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.tax_total') }}</span><x-frontend.price :amount="$order->tax_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
               <div class="pt-3 mt-3 flex items-start justify-between gap-4 border-t text-lg" style="border-color:var(--line-soft)"><span>{{ __('storefront.account.grand_total') }}</span><x-frontend.price :amount="$order->grand_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>

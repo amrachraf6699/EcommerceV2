@@ -152,9 +152,9 @@
       </p>
 
       <p class="footer-credit">
-        <span>تم التنفيذ و التطوير بكل ❤ بواسطة</span>
+        <span>{{ __('storefront.footer.credit_label') }}</span>
         <a href="https://wa.me/201063153994" target="_blank" rel="noopener noreferrer" class="footer-credit__link">
-          عمرو أشرف
+          {{ __('storefront.footer.credit_name') }}
         </a>
       </p>
     </div>

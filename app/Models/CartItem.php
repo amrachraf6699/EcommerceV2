@@ -41,4 +41,13 @@ class CartItem extends Model
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
+
+    public function getDisplayVariantNameAttribute(): ?string
+    {
+        if ($this->relationLoaded('variant') && $this->variant) {
+            return $this->variant->display_name;
+        }
+
+        return $this->variant_name;
+    }
 }

@@ -274,7 +274,7 @@
                         <article class="rounded-[1.5rem] border border-white/10 bg-slate-950/40 px-4 py-4">
                             <div class="dashboard-split-row flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <strong class="text-white">{{ $order->order_number }}</strong>
-                                <span class="text-xs text-slate-400">{{ $order->status }}</span>
+                                <span class="text-xs text-slate-400">{{ $order->status_label }}</span>
                             </div>
                             <p class="mt-2 text-sm text-slate-300">{{ $order->customer_first_name }} {{ $order->customer_last_name }}</p>
                             <p class="mt-1 text-xs text-slate-400">{{ number_format($order->grand_total, 2) }} {{ $order->currency }}</p>

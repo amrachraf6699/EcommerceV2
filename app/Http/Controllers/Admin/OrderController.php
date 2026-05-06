@@ -38,6 +38,9 @@ class OrderController extends Controller
 
         return view('admin.orders.index', [
             'orders' => $query->paginate(12)->withQueryString(),
+            'statusOptions' => Order::statusOptions(),
+            'paymentStatusOptions' => Order::paymentStatusOptions(),
+            'fulfillmentStatusOptions' => Order::fulfillmentStatusOptions(),
         ]);
     }
 
@@ -45,12 +48,19 @@ class OrderController extends Controller
     {
         return view('admin.orders.show', [
             'order' => $order->load('items.product', 'items.variant'),
+            'statusOptions' => Order::statusOptions(),
+            'paymentStatusOptions' => Order::paymentStatusOptions(),
+            'fulfillmentStatusOptions' => Order::fulfillmentStatusOptions(),
         ]);
     }
 
     public function update(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
-        $original = $order->only(['status', 'payment_status', 'fulfillment_status']);
+        $original = [
+            'status' => $order->status?->value,
+            'payment_status' => $order->payment_status?->value,
+            'fulfillment_status' => $order->fulfillment_status?->value,
+        ];
 
         $order->update($request->validated());
 

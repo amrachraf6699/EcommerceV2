@@ -25,7 +25,6 @@
     'description' => $metaDescription,
     'image' => $mainImageUrl ? [$mainImageUrl] : null,
     'url' => $canonicalUrl,
-    'sku' => $initialVariant?->sku,
     'brand' => [
       '@type' => 'Brand',
       'name' => $brandName,
@@ -112,7 +111,7 @@
 
       <div class="reveal mb-8">
         <div class="flex items-center justify-between mb-4">
-          <p class="text-sm font-bold">{{ __('storefront.common.size') }}</p>
+          <p class="text-sm font-bold">{{ app()->getLocale() === 'ar' ? 'الخيار' : 'Variant' }}</p>
           <button type="button" class="text-sm" style="color:var(--gray-light)" onclick="openSizeGuide()">{{ __('storefront.common.size_guide') }}</button>
         </div>
         <div class="grid grid-cols-4 gap-2">
@@ -123,8 +122,7 @@
               data-variant-id="{{ $variant->id }}"
               data-stock-quantity="{{ (int) $variant->stock_quantity }}"
               data-is-active="{{ $variant->is_active ? '1' : '0' }}"
-              data-size-label="{{ $variant->display_name }}"
-              onclick="selectSize(this,'{{ $variant->display_name }}')"
+              onclick="selectSize(this)"
             >
               {{ $variant->display_name }}
             </button>

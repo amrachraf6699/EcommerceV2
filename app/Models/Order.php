@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\OrderFulfillmentStatus;
+use App\Enums\OrderPaymentStatus;
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,22 +48,33 @@ class Order extends Model
         'shipping_address_line_1',
         'shipping_address_line_2',
         'shipping_postal_code',
+        'shipping_with_box',
         'customer_note',
         'subtotal',
         'discount_total',
         'tax_total',
         'shipping_total',
+        'shipping_zone',
+        'shipping_rate_source',
+        'shipping_unit_cost',
+        'shipping_quantity_multiplier',
         'grand_total',
         'placed_at',
     ];
 
     protected $casts = [
+        'status' => OrderStatus::class,
+        'payment_status' => OrderPaymentStatus::class,
+        'fulfillment_status' => OrderFulfillmentStatus::class,
         'shipping_same_as_billing' => 'boolean',
+        'shipping_with_box' => 'boolean',
         'subtotal' => 'decimal:2',
         'coupon_value' => 'decimal:2',
         'discount_total' => 'decimal:2',
         'tax_total' => 'decimal:2',
         'shipping_total' => 'decimal:2',
+        'shipping_unit_cost' => 'decimal:2',
+        'shipping_quantity_multiplier' => 'decimal:2',
         'grand_total' => 'decimal:2',
         'placed_at' => 'datetime',
     ];
@@ -83,5 +97,44 @@ class Order extends Model
     public function welcomeCoupon(): HasOne
     {
         return $this->hasOne(WelcomeCoupon::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function statusOptions(): array
+    {
+        return OrderStatus::options();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function paymentStatusOptions(): array
+    {
+        return OrderPaymentStatus::options();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function fulfillmentStatusOptions(): array
+    {
+        return OrderFulfillmentStatus::options();
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status?->label() ?? '';
+    }
+
+    public function getPaymentStatusLabelAttribute(): string
+    {
+        return $this->payment_status?->label() ?? '';
+    }
+
+    public function getFulfillmentStatusLabelAttribute(): string
+    {
+        return $this->fulfillment_status?->label() ?? '';
     }
 }

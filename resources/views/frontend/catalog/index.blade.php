@@ -57,6 +57,9 @@
         @foreach ($selectedSizes as $selectedSize)
           <input type="hidden" name="sizes[]" value="{{ $selectedSize }}">
         @endforeach
+        @foreach ($selectedColors as $selectedColor)
+          <input type="hidden" name="colors[]" value="{{ $selectedColor }}">
+        @endforeach
       </form>
     </div>
   </section>
@@ -138,6 +141,21 @@
             </div>
           </div>
 
+          <div class="catalog-filter-card">
+            <div class="catalog-filter-card__header">
+              <h2>{{ app()->getLocale() === 'ar' ? 'اللون' : 'Color' }}</h2>
+              <i class='bx bx-palette'></i>
+            </div>
+            <div class="catalog-sizes">
+              @foreach ($colorOptions as $colorOption)
+                <label class="catalog-size-chip">
+                  <input type="checkbox" name="colors[]" value="{{ $colorOption }}" @checked(in_array($colorOption, $selectedColors, true))>
+                  <span>{{ $colorOption }}</span>
+                </label>
+              @endforeach
+            </div>
+          </div>
+
           <div class="catalog-filter-actions">
             <button class="btn-primary w-full" type="submit"><span>{{ __('storefront.common.apply') }}</span></button>
             <a href="{{ route('storefront.catalog', ['locale' => app()->getLocale()]) }}" class="catalog-reset">{{ __('storefront.catalog.reset_filters') }}</a>
@@ -164,6 +182,9 @@
               @foreach ($selectedSizes as $selectedSize)
                 <input type="hidden" name="sizes[]" value="{{ $selectedSize }}">
               @endforeach
+              @foreach ($selectedColors as $selectedColor)
+                <input type="hidden" name="colors[]" value="{{ $selectedColor }}">
+              @endforeach
               <label class="catalog-sort">
                 {{-- <span>{{ __('storefront.catalog.sort_by') }}</span> --}}
                 <select class="sort-select" name="sort" onchange="this.form.submit()">
@@ -186,7 +207,7 @@
           </div>
         </div>
 
-        @if ($selectedSizes !== [] || $selectedCategory !== '' || $selectedMinPrice !== '' || $selectedMaxPrice !== '' || $searchTerm !== '')
+        @if ($selectedSizes !== [] || $selectedColors !== [] || $selectedCategory !== '' || $selectedMinPrice !== '' || $selectedMaxPrice !== '' || $searchTerm !== '')
           <div class="catalog-active-filters">
             @if ($searchTerm !== '')
               <span class="catalog-pill catalog-pill--muted"><i class='bx bx-search'></i>{{ $searchTerm }}</span>
@@ -199,6 +220,9 @@
             @endif
             @foreach ($selectedSizes as $selectedSize)
               <span class="catalog-pill catalog-pill--muted"><i class='bx bx-ruler'></i>{{ $selectedSize }}</span>
+            @endforeach
+            @foreach ($selectedColors as $selectedColor)
+              <span class="catalog-pill catalog-pill--muted"><i class='bx bx-palette'></i>{{ $selectedColor }}</span>
             @endforeach
           </div>
         @endif
@@ -284,6 +308,18 @@
               <label class="catalog-size-chip">
                 <input type="checkbox" name="sizes[]" value="{{ $sizeOption }}" @checked(in_array($sizeOption, $selectedSizes, true))>
                 <span>{{ $sizeOption }}</span>
+              </label>
+            @endforeach
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold block mb-2" style="color:var(--gray-light)">{{ app()->getLocale() === 'ar' ? 'اللون' : 'Color' }}</label>
+          <div class="catalog-sizes">
+            @foreach ($colorOptions as $colorOption)
+              <label class="catalog-size-chip">
+                <input type="checkbox" name="colors[]" value="{{ $colorOption }}" @checked(in_array($colorOption, $selectedColors, true))>
+                <span>{{ $colorOption }}</span>
               </label>
             @endforeach
           </div>

@@ -120,8 +120,8 @@
                           <h2 class="text-lg md:text-xl font-black leading-tight">{{ $item->product_name }}</h2>
                         @endif
 
-                        @if ($item->variant_name)
-                          <p class="mt-2 cart-chip">{{ $item->variant_name }}</p>
+                        @if ($item->display_variant_name)
+                          <p class="mt-2 cart-chip">{{ $item->display_variant_name }}</p>
                         @endif
                       </div>
 

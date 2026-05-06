@@ -26,6 +26,7 @@ class StoreCheckoutRequest extends FormRequest
             'postal_code' => ['nullable', 'string', 'max:255'],
             'customer_note' => ['nullable', 'string', 'max:2000'],
             'coupon_code' => ['nullable', 'string', 'max:255'],
+            'shipping_box_type' => ['required', 'string', 'in:with_box,without_box'],
         ];
     }
 }

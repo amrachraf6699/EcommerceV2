@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\OrderFulfillmentStatus;
+use App\Enums\OrderPaymentStatus;
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\AdminNewOrderNotification;
@@ -49,20 +52,21 @@ class OrderNotificationService
     {
         $milestones = [];
 
-        if (($original['payment_status'] ?? null) !== 'paid' && $order->payment_status === 'paid') {
+        if (($original['payment_status'] ?? null) !== OrderPaymentStatus::PAID->value && $order->payment_status === OrderPaymentStatus::PAID) {
             $milestones[] = 'paid';
         }
 
-        if (($original['fulfillment_status'] ?? null) !== 'shipped' && $order->fulfillment_status === 'shipped') {
+        if (($original['fulfillment_status'] ?? null) !== OrderFulfillmentStatus::SHIPPED->value && $order->fulfillment_status === OrderFulfillmentStatus::SHIPPED) {
             $milestones[] = 'shipped';
         }
 
-        if (($original['fulfillment_status'] ?? null) !== 'delivered' && $order->fulfillment_status === 'delivered') {
+        if (($original['fulfillment_status'] ?? null) !== OrderFulfillmentStatus::DELIVERED->value && $order->fulfillment_status === OrderFulfillmentStatus::DELIVERED) {
             $milestones[] = 'delivered';
         }
 
-        $canceledBefore = ($original['payment_status'] ?? null) === 'canceled' || ($original['status'] ?? null) === 'canceled';
-        $canceledNow = $order->payment_status === 'canceled' || $order->status === 'canceled';
+        $canceledBefore = ($original['payment_status'] ?? null) === OrderPaymentStatus::CANCELED->value
+            || ($original['status'] ?? null) === OrderStatus::CANCELED->value;
+        $canceledNow = $order->payment_status === OrderPaymentStatus::CANCELED || $order->status === OrderStatus::CANCELED;
 
         if (! $canceledBefore && $canceledNow) {
             $milestones[] = 'canceled';

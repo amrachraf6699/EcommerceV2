@@ -2,7 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\OrderFulfillmentStatus;
+use App\Enums\OrderPaymentStatus;
+use App\Enums\OrderStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateOrderStatusRequest extends FormRequest
 {
@@ -14,9 +18,9 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', 'max:255'],
-            'payment_status' => ['required', 'string', 'max:255'],
-            'fulfillment_status' => ['required', 'string', 'max:255'],
+            'status' => ['required', Rule::enum(OrderStatus::class)],
+            'payment_status' => ['required', Rule::enum(OrderPaymentStatus::class)],
+            'fulfillment_status' => ['required', Rule::enum(OrderFulfillmentStatus::class)],
         ];
     }
 }

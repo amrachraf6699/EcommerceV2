@@ -24,7 +24,7 @@
               </div>
               <div>
                 <p class="text-xs font-bold mb-2" style="letter-spacing:0.14em;color:var(--gray-light)">{{ __('storefront.account.order_status') }}</p>
-                <p class="text-sm font-bold">{{ $order->status }}</p>
+                <p class="text-sm font-bold">{{ $order->status_label }}</p>
               </div>
               <div class="text-left md:text-right">
                 <x-frontend.price :amount="$order->grand_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="text-lg font-black" secondary-class="text-xs" note-class="text-[10px]" />

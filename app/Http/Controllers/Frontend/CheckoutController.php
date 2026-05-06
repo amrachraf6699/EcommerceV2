@@ -39,6 +39,7 @@ class CheckoutController extends Controller
                 $checkoutForm['country'] ?? null,
                 $checkoutForm['email'] ?? null,
                 $checkoutForm['coupon_code'] ?? null,
+                $checkoutForm['shipping_box_type'] ?? null,
             ),
             'detectedCountryNameMap' => $this->countryCatalog->detectedCountryNameMap(),
             'tapCheckoutAvailable' => $this->tapPaymentService->isConfigured(),
@@ -56,6 +57,7 @@ class CheckoutController extends Controller
             $request->string('country')->toString() ?: null,
             $request->string('email')->toString() ?: null,
             $request->string('coupon_code')->toString() ?: null,
+            $request->string('shipping_box_type')->toString() ?: null,
         );
 
         return response()->json([

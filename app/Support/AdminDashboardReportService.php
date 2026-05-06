@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use BackedEnum;
 use App\Models\Cart;
 use App\Models\Customer;
 use App\Models\Order;
@@ -70,7 +71,7 @@ class AdminDashboardReportService
                 ->orderByDesc('aggregate')
                 ->get()
                 ->map(fn ($row) => [
-                    'status' => (string) $row->status,
+                    'status' => $this->formatOrderStatus($row->status),
                     'count' => (int) $row->aggregate,
                 ])
                 ->values()
@@ -285,6 +286,19 @@ class AdminDashboardReportService
         }
 
         return round(($numerator / $denominator) * 100, 2);
+    }
+
+    private function formatOrderStatus(mixed $status): string
+    {
+        if (is_object($status) && method_exists($status, 'label')) {
+            return (string) $status->label();
+        }
+
+        if ($status instanceof BackedEnum) {
+            return (string) $status->value;
+        }
+
+        return (string) $status;
     }
 
     private function period(CarbonInterface $start, CarbonInterface $end, string $interval): CarbonPeriod

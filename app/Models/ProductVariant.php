@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 
 class ProductVariant extends Model
 {
@@ -15,8 +14,8 @@ class ProductVariant extends Model
 
     protected $fillable = [
         'product_id',
-        'name',
-        'sku',
+        'size',
+        'color',
         'price',
         'compare_at_price',
         'stock_quantity',
@@ -33,16 +32,22 @@ class ProductVariant extends Model
 
     public function getDisplayNameAttribute(): string
     {
-        return (string) ($this->name ?: ('Variant #' . $this->id));
-    }
+        $size = trim((string) $this->size);
+        $color = trim((string) $this->color);
 
-    public static function generateSku(): string
-    {
-        do {
-            $sku = 'VAR-' . Str::upper(Str::random(10));
-        } while (self::query()->where('sku', $sku)->exists());
+        if ($size !== '' && $color !== '') {
+            return sprintf('(%s - %s)', $size, $color);
+        }
 
-        return $sku;
+        if ($size !== '') {
+            return $size;
+        }
+
+        if ($color !== '') {
+            return $color;
+        }
+
+        return 'Variant #' . $this->id;
     }
 
     public function product(): BelongsTo

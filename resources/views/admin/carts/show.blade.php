@@ -16,8 +16,7 @@
                     <div class="admin-subcard flex items-start justify-between gap-4">
                         <div>
                             <p class="font-bold text-white">{{ $item->product_name }}</p>
-                            <p class="mt-1 text-sm text-slate-300">{{ $item->variant_name ?: 'نسخة افتراضية' }}</p>
-                            <p class="mt-1 text-xs text-slate-400">SKU: {{ $item->sku ?: 'غير متوفر' }}</p>
+                            <p class="mt-1 text-sm text-slate-300">{{ $item->display_variant_name ?: 'نسخة افتراضية' }}</p>
                         </div>
                         <div class="text-left">
                             <p class="font-bold text-white">{{ number_format($item->line_total, 2) }} {{ $cart->currency }}</p>

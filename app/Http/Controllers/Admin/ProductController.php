@@ -120,7 +120,8 @@ class ProductController extends Controller
 
             foreach (($validated['variants'] ?? []) as $index => $variantData) {
                 if (
-                    blank($variantData['name'] ?? null)
+                    blank($variantData['size'] ?? null)
+                    && blank($variantData['color'] ?? null)
                     && blank($variantData['price'] ?? null)
                     && blank($variantData['stock_quantity'] ?? null)
                 ) {
@@ -131,8 +132,8 @@ class ProductController extends Controller
                 $defaultVariantSelected = $defaultVariantSelected || $isDefault;
 
                 $variant = $product->variants()->create([
-                    'name' => $variantData['name'] ?? null,
-                    'sku' => ProductVariant::generateSku(),
+                    'size' => $variantData['size'] ?? null,
+                    'color' => $variantData['color'] ?? null,
                     'price' => $variantData['price'],
                     'compare_at_price' => $variantData['compare_at_price'] ?? null,
                     'stock_quantity' => $variantData['stock_quantity'],

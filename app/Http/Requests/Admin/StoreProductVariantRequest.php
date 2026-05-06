@@ -14,7 +14,8 @@ class StoreProductVariantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'size' => ['required', 'string', 'max:255'],
+            'color' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'stock_quantity' => ['required', 'integer', 'min:0'],

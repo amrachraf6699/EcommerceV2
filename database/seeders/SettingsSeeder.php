@@ -162,22 +162,14 @@ class SettingsSeeder extends Seeder
         [$normalizedKey] = $this->normalizeSettingDefinition($key);
 
         return match ($normalizedKey) {
-            'shipping_type' => $this->makeSettingRecord(
-                'shipping',
-                $normalizedKey,
-                'select',
-                'Choose shipping cost calculation type.',
-                ['percent', 'fixed']
-            ),
             'shipping_gulf_cost' => array_merge(
                 $this->makeSettingRecord('shipping', $normalizedKey, 'number'),
                 ['value' => '0']
             ),
-            'shipping_europe_america_1_2_cost', 'shipping_europe_america_3_plus_cost', 'vat_value' => array_merge(
+            'shipping_others_cost', 'vat_value' => array_merge(
                 $this->makeSettingRecord('shipping', $normalizedKey, 'number'),
                 ['value' => match ($normalizedKey) {
-                    'shipping_europe_america_1_2_cost' => '15',
-                    'shipping_europe_america_3_plus_cost' => '10',
+                    'shipping_others_cost' => '15',
                     default => null,
                 }]
             ),

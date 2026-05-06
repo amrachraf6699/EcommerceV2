@@ -18,11 +18,13 @@ use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\PricingContextController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\ProductReminderController;
+use App\Http\Controllers\Frontend\SitemapController;
 use App\Http\Controllers\Frontend\TrackOrderController;
 use App\Http\Controllers\Frontend\WelcomeCouponController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/' . config('storefront.default_locale', 'ar'));
+Route::get('/sitemap.xml', SitemapController::class)->name('storefront.sitemap');
 Route::redirect('/catalog', '/' . config('storefront.default_locale', 'ar') . '/catalog');
 Route::redirect('/categories', '/' . config('storefront.default_locale', 'ar') . '/categories');
 Route::get('/categories/{category:slug}', fn (\App\Models\Category $category) => redirect()->route('storefront.categories.show', [

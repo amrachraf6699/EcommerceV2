@@ -23,7 +23,6 @@ class ProductVariantController extends Controller
 
             $variant = $product->variants()->create([
                 ...$request->validated(),
-                'sku' => ProductVariant::generateSku(),
                 'is_default' => $request->boolean('is_default'),
                 'is_active' => $request->boolean('is_active', true),
             ]);

@@ -12,6 +12,9 @@
     <a href="{{ route('storefront.categories.index') }}" class="text-2xl font-bold {{ request()->routeIs('storefront.categories.index', 'storefront.categories.show') ? '' : 'text-neutral-400' }}">{{ __('storefront.common.categories') }}</a>
     <a href="{{ route('storefront.catalog') }}" class="text-2xl font-bold {{ request()->routeIs('storefront.catalog') ? '' : 'text-neutral-400' }}">{{ __('storefront.common.products') }}</a>
     <a href="{{ route('storefront.contact.show') }}" class="text-2xl font-bold {{ request()->routeIs('storefront.contact.show') ? '' : 'text-neutral-400' }}">{{ __('storefront.common.contact') }}</a>
+    @if ($frontendTrackOrderEnabled)
+      <a href="{{ route('storefront.track-order.show') }}" class="text-2xl font-bold {{ request()->routeIs('storefront.track-order.show', 'storefront.track-order.store') ? '' : 'text-neutral-400' }}">{{ __('storefront.track_order.nav_label') }}</a>
+    @endif
     @if ($customer)
       <div class="mobile-account-dropdown">
         <button

@@ -29,6 +29,11 @@ class CatalogController extends Controller
             ->values()
             ->all();
 
+        $selectedColors = collect($request->input('colors', []))
+            ->filter(fn ($value) => is_string($value) && $value !== '')
+            ->values()
+            ->all();
+
         $query = Product::query()
             ->with(['categories', 'images', 'variants'])
             ->where('products.is_active', true);
@@ -47,10 +52,18 @@ class CatalogController extends Controller
             $query->whereHas('categories', fn (Builder $builder) => $builder->where('slug', $category));
         }
 
-        if ($selectedSizes !== []) {
-            $query->whereHas('variants', fn (Builder $builder) => $builder
-                ->where('is_active', true)
-                ->whereIn('name', $selectedSizes));
+        if ($selectedSizes !== [] || $selectedColors !== []) {
+            $query->whereHas('variants', function (Builder $builder) use ($selectedSizes, $selectedColors): void {
+                $builder->where('is_active', true);
+
+                if ($selectedSizes !== []) {
+                    $builder->whereIn('size', $selectedSizes);
+                }
+
+                if ($selectedColors !== []) {
+                    $builder->whereIn('color', $selectedColors);
+                }
+            });
         }
 
         if ($request->filled('min_price')) {
@@ -98,12 +111,19 @@ class CatalogController extends Controller
                 ->orderByRaw(LocalizedQuery::expression('name'))
                 ->get(),
             'sizeOptions' => (clone $activeVariantsQuery)
-                ->select('product_variants.name')
-                ->whereNotNull('product_variants.name')
-                ->where('product_variants.name', '!=', '')
+                ->select('product_variants.size')
+                ->whereNotNull('product_variants.size')
+                ->where('product_variants.size', '!=', '')
                 ->distinct()
-                ->orderBy('product_variants.name')
-                ->pluck('product_variants.name'),
+                ->orderBy('product_variants.size')
+                ->pluck('product_variants.size'),
+            'colorOptions' => (clone $activeVariantsQuery)
+                ->select('product_variants.color')
+                ->whereNotNull('product_variants.color')
+                ->where('product_variants.color', '!=', '')
+                ->distinct()
+                ->orderBy('product_variants.color')
+                ->pluck('product_variants.color'),
             'priceRange' => [
                 'min' => (float) ((clone $activeVariantsQuery)->min('product_variants.price') ?? 0),
                 'max' => (float) ((clone $activeVariantsQuery)->max('product_variants.price') ?? 0),
@@ -114,6 +134,7 @@ class CatalogController extends Controller
             'selectedMinPrice' => $request->string('min_price')->toString(),
             'selectedMaxPrice' => $request->string('max_price')->toString(),
             'selectedSizes' => $selectedSizes,
+            'selectedColors' => $selectedColors,
         ]);
     }
 }

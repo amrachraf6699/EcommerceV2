@@ -191,21 +191,21 @@ class ProductBulkImportService
 
     private function parseVariants(Collection $row): array
     {
-        $names = $this->parseDelimitedStrings($row->get('variant_names'));
+        $sizes = $this->parseDelimitedStrings($row->get('variant_sizes'));
+        $colors = $this->parseDelimitedStrings($row->get('variant_colors'));
         $prices = $this->parseAlignedOptionalValues($row->get('variant_prices'));
         $stocks = $this->parseAlignedOptionalValues($row->get('variant_stocks'));
 
-        if ($names === [] || $prices === [] || $stocks === []) {
-            throw new RuntimeException('بيانات النسخ مطلوبة: variant_names و variant_prices و variant_stocks.');
+        if ($sizes === [] || $colors === [] || $prices === [] || $stocks === []) {
+            throw new RuntimeException('بيانات النسخ مطلوبة: variant_sizes و variant_colors و variant_prices و variant_stocks.');
         }
 
-        $variantCount = count($names);
+        $variantCount = count($sizes);
 
-        if (count($prices) !== $variantCount || count($stocks) !== $variantCount) {
-            throw new RuntimeException('عدد عناصر النسخ غير متطابق بين الأسماء والأسعار والمخزون.');
+        if (count($colors) !== $variantCount || count($prices) !== $variantCount || count($stocks) !== $variantCount) {
+            throw new RuntimeException('عدد عناصر النسخ غير متطابق بين المقاسات والألوان والأسعار والمخزون.');
         }
 
-        $skus = $this->parseOptionalColumn($row->get('variant_skus'), $variantCount, null);
         $comparePrices = $this->parseOptionalColumn($row->get('variant_compare_prices'), $variantCount, null);
         $defaults = $this->parseOptionalColumn($row->get('variant_is_default'), $variantCount, false);
         $activeFlags = $this->parseOptionalColumn($row->get('variant_is_active'), $variantCount, true);
@@ -223,8 +223,8 @@ class ProductBulkImportService
             }
 
             $variants[] = [
-                'name' => $names[$index],
-                'sku' => blank($skus[$index]) ? null : $this->stringValue($skus[$index]),
+                'size' => $sizes[$index],
+                'color' => $colors[$index],
                 'price' => $this->decimalValue($prices[$index], 'variant_prices'),
                 'compare_at_price' => blank($comparePrices[$index])
                     ? null
@@ -245,53 +245,19 @@ class ProductBulkImportService
     private function prepareVariantsForPersistence(Product $product, array $variants, bool $isUpdate): array
     {
         if (! $isUpdate) {
-            return array_map(function (array $variant): array {
-                if ($variant['sku'] !== null && ProductVariant::withTrashed()->where('sku', $variant['sku'])->exists()) {
-                    throw new RuntimeException("الـ SKU [{$variant['sku']}] مستخدم بالفعل.");
-                }
-
-                $variant['sku'] ??= ProductVariant::generateSku();
-
-                return $variant;
-            }, $variants);
+            return $variants;
         }
 
-        $hasIncomingSku = collect($variants)->contains(fn (array $variant) => filled($variant['sku']));
-        $currentVariants = $product->variants()->withTrashed()->get();
+        $existingByCombination = $product->variants()
+            ->withTrashed()
+            ->get()
+            ->mapWithKeys(fn (ProductVariant $variant) => [
+                $this->variantCombinationKey((string) $variant->size, (string) $variant->color) => $variant,
+            ]);
 
-        if (! $hasIncomingSku) {
-            if (count($variants) > 1 || $currentVariants->count() > 1) {
-                throw new RuntimeException('الاستيراد بنمط upsert لعدة نسخ يتطلب تعبئة عمود variant_skus.');
-            }
-
-            return array_map(function (array $variant) use ($currentVariants): array {
-                $existingVariant = $currentVariants->first();
-                $variant['existing_variant_id'] = $existingVariant?->id;
-                $variant['sku'] ??= $existingVariant?->sku ?? ProductVariant::generateSku();
-
-                return $variant;
-            }, $variants);
-        }
-
-        $existingBySku = $currentVariants->keyBy('sku');
-
-        return array_map(function (array $variant) use ($product, $existingBySku): array {
-            $sku = $variant['sku'];
-
-            if ($sku === null) {
-                throw new RuntimeException('عند استخدام upsert مع أكثر من نسخة، يجب تعبئة كل قيم variant_skus.');
-            }
-
-            $foreignVariant = ProductVariant::withTrashed()
-                ->where('sku', $sku)
-                ->where('product_id', '!=', $product->id)
-                ->first();
-
-            if ($foreignVariant !== null) {
-                throw new RuntimeException("الـ SKU [{$sku}] مرتبط بمنتج آخر.");
-            }
-
-            $variant['existing_variant_id'] = $existingBySku->get($sku)?->id;
+        return array_map(function (array $variant) use ($existingByCombination): array {
+            $variant['existing_variant_id'] = $existingByCombination
+                ->get($this->variantCombinationKey((string) $variant['size'], (string) $variant['color']))?->id;
 
             return $variant;
         }, $variants);
@@ -532,5 +498,10 @@ class ProductBulkImportService
     private function errorCacheKey(string $token): string
     {
         return 'product-import-errors:' . $token;
+    }
+
+    private function variantCombinationKey(string $size, string $color): string
+    {
+        return mb_strtolower(trim($size)) . '|' . mb_strtolower(trim($color));
     }
 }

@@ -1,4 +1,6 @@
 @php($title = __('storefront.checkout'))
+@php($isPaid = $order->payment_status === \App\Enums\OrderPaymentStatus::PAID)
+@php($isCanceled = $order->payment_status === \App\Enums\OrderPaymentStatus::CANCELED)
 
 @extends('frontend.layouts.app')
 
@@ -8,10 +10,10 @@
     <div class="mb-8">
       <div class="divider reveal"></div>
       <h1 class="text-3xl md:text-4xl font-black mb-3">
-        {{ $order->payment_status === 'paid' ? __('storefront.checkout_success_title') : ($order->payment_status === 'canceled' ? __('storefront.checkout_canceled_title') : __('storefront.checkout_failed_title')) }}
+        {{ $isPaid ? __('storefront.checkout_success_title') : ($isCanceled ? __('storefront.checkout_canceled_title') : __('storefront.checkout_failed_title')) }}
       </h1>
       <p style="color:var(--gray-light)">
-        {{ $order->payment_status === 'paid' ? __('storefront.checkout_success_copy') : ($order->payment_status === 'canceled' ? __('storefront.checkout_canceled_copy') : __('storefront.checkout_failed_copy')) }}
+        {{ $isPaid ? __('storefront.checkout_success_copy') : ($isCanceled ? __('storefront.checkout_canceled_copy') : __('storefront.checkout_failed_copy')) }}
       </p>
     </div>
 
@@ -22,13 +24,14 @@
       </div>
       <div class="border p-5" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
         <p class="text-xs font-bold mb-2 checkout-eyebrow">{{ __('storefront.account.payment_status') }}</p>
-        <p class="text-xl font-black">{{ $order->payment_status }}</p>
+        <p class="text-xl font-black">{{ $order->payment_status_label }}</p>
       </div>
     </div>
 
     <div class="border p-6 mb-8" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
       <div class="space-y-3 text-sm">
         <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.subtotal') }}</span><x-frontend.price :amount="$order->subtotal" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
+        <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.shipping_box_type') }}</span><span class="font-bold">{{ $order->shipping_with_box === null ? __('storefront.account.not_available') : __($order->shipping_with_box ? 'storefront.checkout_shipping_with_box' : 'storefront.checkout_shipping_without_box') }}</span></div>
         <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.shipping_total') }}</span><x-frontend.price :amount="$order->shipping_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
         <div class="flex items-start justify-between gap-4"><span style="color:var(--gray-light)">{{ __('storefront.account.tax_total') }}</span><x-frontend.price :amount="$order->tax_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
         <div class="flex items-start justify-between gap-4 border-t pt-4 text-lg" style="border-color:var(--line-soft)"><span>{{ __('storefront.account.grand_total') }}</span><x-frontend.price :amount="$order->grand_total" :currency="$order->currency" wrapper-class="items-end text-left" amount-class="font-bold" secondary-class="text-xs" note-class="text-[10px]" /></div>
@@ -36,7 +39,7 @@
     </div>
 
     <div class="flex flex-wrap gap-4">
-      @if ($order->payment_status === 'paid')
+      @if ($isPaid)
         <a href="{{ route('storefront.orders.index') }}" class="btn-primary"><span>{{ __('storefront.checkout_view_orders') }}</span></a>
       @else
         <a href="{{ route('storefront.checkout.show') }}" class="btn-primary"><span>{{ __('storefront.checkout_try_again') }}</span></a>

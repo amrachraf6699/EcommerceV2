@@ -12,7 +12,7 @@
         method="POST"
         action="{{ route('admin.products.store') }}"
         enctype="multipart/form-data"
-        class="admin-card space-y-6"
+        class="admin-card min-w-0 space-y-6"
         data-admin-tabs
         data-product-variants
     >
@@ -30,10 +30,10 @@
             @include('admin.products.partials.seo-fields', ['product' => null])
         </section>
 
-        <section class="admin-tab-panel hidden space-y-5" data-admin-tab-panel="variants">
+        <section class="admin-tab-panel hidden min-w-0 space-y-5" data-admin-tab-panel="variants">
             @php
                 $oldVariants = old('variants', [
-                    ['name' => '', 'price' => '', 'compare_at_price' => '', 'stock_quantity' => '', 'is_default' => '1', 'is_active' => '1'],
+                    ['size' => '', 'color' => '', 'price' => '', 'compare_at_price' => '', 'stock_quantity' => '', 'is_default' => '1', 'is_active' => '1'],
                 ]);
             @endphp
 
@@ -42,12 +42,13 @@
                 <button class="admin-btn-secondary" type="button" data-add-variant>إضافة نسخة أخرى</button>
             </div>
 
-            <div class="overflow-x-auto rounded-2xl border border-white/10">
+            <div class="min-w-0 overflow-x-auto rounded-2xl border border-white/10">
                 <table class="min-w-full divide-y divide-white/10 text-sm text-slate-200">
                     <thead class="bg-white/5 text-xs uppercase tracking-[0.2em] text-slate-400">
                         <tr>
                             <th class="px-4 py-3 text-right">#</th>
-                            <th class="px-4 py-3 text-right">اسم النسخة</th>
+                            <th class="px-4 py-3 text-right">المقاس</th>
+                            <th class="px-4 py-3 text-right">اللون</th>
                             <th class="px-4 py-3 text-right">السعر</th>
                             <th class="px-4 py-3 text-right">السعر قبل الخصم</th>
                             <th class="px-4 py-3 text-right">المخزون</th>
@@ -63,7 +64,10 @@
                                     <span data-variant-number>{{ $loop->iteration }}</span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <input class="admin-input min-w-[180px]" type="text" name="variants[{{ $index }}][name]" value="{{ $variant['name'] ?? '' }}" placeholder="اسم النسخة">
+                                    <input class="admin-input min-w-[140px]" type="text" name="variants[{{ $index }}][size]" value="{{ $variant['size'] ?? '' }}" placeholder="المقاس">
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input class="admin-input min-w-[140px]" type="text" name="variants[{{ $index }}][color]" value="{{ $variant['color'] ?? '' }}" placeholder="اللون">
                                 </td>
                                 <td class="px-4 py-3">
                                     <input class="admin-input min-w-[140px]" type="number" step="0.01" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? '' }}" placeholder="السعر">
@@ -95,7 +99,10 @@
                         <span data-variant-number></span>
                     </td>
                     <td class="px-4 py-3">
-                        <input class="admin-input min-w-[180px]" type="text" name="variants[__INDEX__][name]" placeholder="اسم النسخة">
+                        <input class="admin-input min-w-[140px]" type="text" name="variants[__INDEX__][size]" placeholder="المقاس">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input class="admin-input min-w-[140px]" type="text" name="variants[__INDEX__][color]" placeholder="اللون">
                     </td>
                     <td class="px-4 py-3">
                         <input class="admin-input min-w-[140px]" type="number" step="0.01" name="variants[__INDEX__][price]" placeholder="السعر">

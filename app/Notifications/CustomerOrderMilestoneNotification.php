@@ -39,9 +39,9 @@ class CustomerOrderMilestoneNotification extends Notification
             'summaryLine' => $line,
             'totalLine' => __('storefront.notifications.customer.common.total', ['total' => number_format((float) $this->order->grand_total, 2) . ' ' . $this->order->currency], $this->notificationLocale),
             'statusesLine' => __('storefront.notifications.customer.common.statuses', [
-                'status' => $this->order->status,
-                'payment' => $this->order->payment_status,
-                'fulfillment' => $this->order->fulfillment_status,
+                'status' => $this->order->status_label,
+                'payment' => $this->order->payment_status_label,
+                'fulfillment' => $this->order->fulfillment_status_label,
             ], $this->notificationLocale),
             'actionLabel' => __('storefront.notifications.customer.milestone_action', [], $this->notificationLocale),
             'actionUrl' => $this->orderUrl(),
