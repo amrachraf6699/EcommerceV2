@@ -71,5 +71,6 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         'admin.access' => \App\Http\Middleware\EnsureAdminAccess::class,
         'storefront.locale' => \App\Http\Middleware\SetStorefrontLocale::class,
+        'active.customer' => \App\Http\Middleware\EnsureActiveCustomer::class,
     ];
 }

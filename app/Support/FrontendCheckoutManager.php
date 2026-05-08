@@ -16,6 +16,7 @@ use App\Services\OrderNotificationService;
 use App\Services\TapPaymentService;
 use App\Services\WelcomeCouponService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -40,6 +41,14 @@ class FrontendCheckoutManager
         return Cart::query()
             ->with('items')
             ->where('session_id', $sessionId)
+            ->first();
+    }
+
+    public function cartForCustomer(Customer $customer): ?Cart
+    {
+        return Cart::query()
+            ->with('items')
+            ->where('customer_id', $customer->id)
             ->first();
     }
 
@@ -146,6 +155,52 @@ class FrontendCheckoutManager
 
         $customer = $this->resolveCustomer($validated);
 
+        return $this->beginTapCheckoutForCart(
+            $cart,
+            $validated,
+            $request,
+            $customer,
+            $sessionId,
+            'hosted_redirect',
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{order:Order,redirect_url:string,payment_mode:string,hosted_redirect_url:string,hosted_charge:array<string,mixed>,tap_public_key:string}
+     */
+    public function beginTapCheckoutForCustomer(Customer $customer, array $validated, string $paymentMode = 'native_sdk'): array
+    {
+        if (! $this->tapPaymentService->isConfigured()) {
+            throw ValidationException::withMessages([
+                'cart' => __('storefront.checkout_maintenance'),
+            ]);
+        }
+
+        $cart = $this->cartForCustomer($customer);
+
+        return $this->beginTapCheckoutForCart(
+            $cart,
+            $validated,
+            null,
+            $customer,
+            null,
+            $paymentMode,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{order:Order,redirect_url:string,payment_mode:string,hosted_redirect_url:string,hosted_charge:array<string,mixed>,tap_public_key:string}
+     */
+    private function beginTapCheckoutForCart(?Cart $cart, array $validated, ?Request $request, Customer $customer, ?string $sessionId, string $paymentMode): array
+    {
+        if (! $cart || $cart->items->isEmpty()) {
+            throw ValidationException::withMessages([
+                'cart' => __('storefront.checkout_empty_cart'),
+            ]);
+        }
+
         $order = DB::transaction(function () use ($cart, $customer, $request, $sessionId, $validated): Order {
             $lockedCart = Cart::query()
                 ->with('items')
@@ -183,7 +238,8 @@ class FrontendCheckoutManager
             }
 
             $pendingOrder = Order::query()
-                ->where('session_id', $sessionId)
+                ->when($sessionId, fn ($query) => $query->where('session_id', $sessionId))
+                ->when(! $sessionId, fn ($query) => $query->where('customer_id', $customer->id))
                 ->whereNull('placed_at')
                 ->latest()
                 ->first();
@@ -192,13 +248,13 @@ class FrontendCheckoutManager
                 'order_number' => $this->generateOrderNumber(),
             ]);
 
-            $pricing = $this->checkoutSummary(
-                $request,
-                (string) $validated['country'],
-                (string) ($customer?->email ?: $validated['email']),
-                (string) ($validated['coupon_code'] ?? ''),
-                (string) $validated['shipping_box_type'],
-            );
+            $pricing = $this->checkoutPricingService->calculate($lockedCart, [
+                'country' => (string) $validated['country'],
+                'customer' => $customer,
+                'email' => (string) ($customer->email ?: $validated['email']),
+                'coupon_code' => (string) ($validated['coupon_code'] ?? ''),
+                'shipping_box_type' => (string) $validated['shipping_box_type'],
+            ]);
 
             if ($pricing['error']) {
                 throw ValidationException::withMessages([
@@ -222,7 +278,7 @@ class FrontendCheckoutManager
 
             $order->fill([
                 'session_id' => $sessionId,
-                'customer_id' => $customer?->id,
+                'customer_id' => $customer->id,
                 'coupon_id' => ($appliedCoupon && $appliedCoupon['type'] === 'standard')
                     ? $appliedCoupon['coupon']->id
                     : null,
@@ -236,7 +292,7 @@ class FrontendCheckoutManager
                 'currency' => $lockedCart->currency ?: 'BHD',
                 'customer_first_name' => (string) $validated['first_name'],
                 'customer_last_name' => (string) $validated['last_name'],
-                'customer_email' => (string) ($customer?->email ?: $validated['email']),
+                'customer_email' => (string) ($customer->email ?: $validated['email']),
                 'customer_phone' => $validated['phone'] ?? null,
                 'billing_country' => $validated['country'],
                 'billing_state' => $validated['state'] ?? null,
@@ -311,12 +367,18 @@ class FrontendCheckoutManager
             'payment_redirect_url' => data_get($charge, 'transaction.url'),
         ])->save();
 
-        $request->session()->put('storefront_checkout_order_id', $order->id);
-        $request->session()->put('storefront_checkout_customer_id', $customer?->id);
+        if ($request) {
+            $request->session()->put('storefront_checkout_order_id', $order->id);
+            $request->session()->put('storefront_checkout_customer_id', $customer->id);
+        }
 
         return [
             'order' => $order->fresh(),
             'redirect_url' => (string) data_get($charge, 'transaction.url'),
+            'payment_mode' => $paymentMode,
+            'hosted_redirect_url' => (string) data_get($charge, 'transaction.url'),
+            'hosted_charge' => $charge,
+            'tap_public_key' => $this->tapPaymentService->publicKey(),
         ];
     }
 
@@ -354,7 +416,21 @@ class FrontendCheckoutManager
                         'placed_at' => $lockedOrder->placed_at ?: now(),
                     ]);
 
-                    Cart::query()->where('session_id', $lockedOrder->session_id)->delete();
+                    Cart::query()
+                        ->where(function ($query) use ($lockedOrder): void {
+                            if ($lockedOrder->session_id) {
+                                $query->where('session_id', $lockedOrder->session_id);
+                            }
+
+                            if ($lockedOrder->customer_id) {
+                                if ($lockedOrder->session_id) {
+                                    $query->orWhere('customer_id', $lockedOrder->customer_id);
+                                } else {
+                                    $query->where('customer_id', $lockedOrder->customer_id);
+                                }
+                            }
+                        })
+                        ->delete();
 
                     if ($lockedOrder->coupon_type === 'standard' && $lockedOrder->coupon) {
                         $this->couponService->markAsUsed($lockedOrder->coupon, $lockedOrder);
@@ -494,6 +570,17 @@ class FrontendCheckoutManager
         $customer->save();
 
         return $customer;
+    }
+
+    public function checkoutSummaryForCustomer(Customer $customer, array $input = []): array
+    {
+        return $this->checkoutPricingService->calculate($this->cartForCustomer($customer), [
+            'country' => Arr::get($input, 'country'),
+            'customer' => $customer,
+            'email' => Arr::get($input, 'email', $customer->email),
+            'coupon_code' => Arr::get($input, 'coupon_code'),
+            'shipping_box_type' => Arr::get($input, 'shipping_box_type', $this->shippingBoxTypeValue(null)),
+        ]);
     }
 
     private function resolveOrderFromCharge(array $charge): Order

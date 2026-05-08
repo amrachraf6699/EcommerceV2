@@ -22,6 +22,14 @@ class TapPaymentService
         return $this->secretKey() !== '' && $this->publicKey() !== '';
     }
 
+    public function publicKey(): string
+    {
+        return trim((string) Setting::query()
+            ->where('group', self::SETTINGS_GROUP)
+            ->where('key', 'tap_public_key')
+            ->value('value'));
+    }
+
     /**
      * @param  array<string, mixed>  $customer
      * @return array<string, mixed>
@@ -109,11 +117,4 @@ class TapPaymentService
             ->value('value'));
     }
 
-    private function publicKey(): string
-    {
-        return trim((string) Setting::query()
-            ->where('group', self::SETTINGS_GROUP)
-            ->where('key', 'tap_public_key')
-            ->value('value'));
-    }
 }

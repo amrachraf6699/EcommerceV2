@@ -20,7 +20,7 @@ class UpdateCustomerProfileRequest extends FormRequest
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('customers', 'email')->ignore(auth('customer')->id()),
+                Rule::unique('customers', 'email')->ignore($this->user()?->id),
             ],
             'phone' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],

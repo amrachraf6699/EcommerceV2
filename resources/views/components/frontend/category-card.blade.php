@@ -14,7 +14,7 @@
 @if ($compact)
     <a href="{{ route('storefront.categories.show', ['category' => $category->slug]) }}" class="reveal block">
         <div class="border" style="border-color:var(--line-soft);background:var(--gray-dark);padding:10px;">
-            <div class="compact-card-media" style="aspect-ratio:1 / 1;background:linear-gradient(135deg,rgb(var(--surface-rgb)) 0%,rgb(var(--surface-alt-rgb)) 100%);overflow:hidden;">
+            <div class="compact-card-media" style="aspect-ratio:1 / 1;background:transparent;overflow:hidden;">
                 @if ($category->image_url)
                     <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="compact-card-media__image w-full h-full">
                 @else

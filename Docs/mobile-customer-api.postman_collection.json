@@ -1,0 +1,371 @@
+{
+  "info": {
+    "name": "SunFlower Mobile Customer API",
+    "_postman_id": "8ec4960d-a7a4-4a7a-8587-8c4f1be6aa01",
+    "description": "Customer-facing mobile API for SunFlower.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "category_slug", "value": "" },
+    { "key": "product_slug", "value": "" },
+    { "key": "product_id", "value": "" },
+    { "key": "variant_id", "value": "" },
+    { "key": "item_id", "value": "" },
+    { "key": "address_id", "value": "" },
+    { "key": "order_number", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara Ali\",\n  \"email\": \"sara@example.com\",\n  \"phone\": \"12345678\",\n  \"country\": \"Bahrain\",\n  \"password\": \"Password123!\",\n  \"password_confirmation\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sara@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/auth/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Brand Settings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/settings/brand"
+          }
+        },
+        {
+          "name": "Social Settings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/settings/social"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "Home",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/home"
+          }
+        },
+        {
+          "name": "Catalog",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/catalog?search=&sort=featured"
+          }
+        },
+        {
+          "name": "Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/categories"
+          }
+        },
+        {
+          "name": "Category Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/categories/{{category_slug}}"
+          }
+        },
+        {
+          "name": "Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/products/{{product_slug}}"
+          }
+        },
+        {
+          "name": "Product Variants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/products/{{product_slug}}/variants"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile And Addresses",
+      "item": [
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara Ali\",\n  \"email\": \"sara@example.com\",\n  \"phone\": \"12345678\",\n  \"country\": \"Bahrain\"\n}"
+            },
+            "url": "{{base_url}}/profile"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"Password123!\",\n  \"password\": \"Password123!\",\n  \"password_confirmation\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/profile/password"
+          }
+        },
+        {
+          "name": "List Addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/addresses"
+          }
+        },
+        {
+          "name": "Create Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"recipient_name\": \"Sara Ali\",\n  \"phone\": \"12345678\",\n  \"country\": \"Bahrain\",\n  \"state\": \"Capital\",\n  \"city\": \"Manama\",\n  \"address_line_1\": \"Street 1\",\n  \"address_line_2\": \"Building 2\",\n  \"postal_code\": \"100\",\n  \"is_default_shipping\": true,\n  \"is_default_billing\": true\n}"
+            },
+            "url": "{{base_url}}/addresses"
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Office\",\n  \"recipient_name\": \"Sara Ali\",\n  \"phone\": \"12345678\",\n  \"country\": \"Bahrain\",\n  \"state\": \"Capital\",\n  \"city\": \"Manama\",\n  \"address_line_1\": \"Street 2\",\n  \"address_line_2\": \"Suite 10\",\n  \"postal_code\": \"101\",\n  \"is_default_shipping\": true,\n  \"is_default_billing\": false\n}"
+            },
+            "url": "{{base_url}}/addresses/{{address_id}}"
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/addresses/{{address_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/cart"
+          }
+        },
+        {
+          "name": "Add Cart Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"product_variant_id\": {{variant_id}},\n  \"quantity\": 1\n}"
+            },
+            "url": "{{base_url}}/cart/items"
+          }
+        },
+        {
+          "name": "Update Cart Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}"
+            },
+            "url": "{{base_url}}/cart/items/{{item_id}}"
+          }
+        },
+        {
+          "name": "Delete Cart Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/cart/items/{{item_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkout",
+      "item": [
+        {
+          "name": "Checkout Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/checkout/summary?country=Bahrain&coupon_code=&shipping_box_type=without_box"
+          }
+        },
+        {
+          "name": "Initialize Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Customer\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"12345678\",\n  \"country\": \"Bahrain\",\n  \"state\": \"Capital\",\n  \"city\": \"Manama\",\n  \"address_line_1\": \"Street 1\",\n  \"address_line_2\": \"Building 2\",\n  \"postal_code\": \"100\",\n  \"customer_note\": \"Leave at the desk\",\n  \"coupon_code\": \"\",\n  \"shipping_box_type\": \"without_box\",\n  \"payment_mode\": \"native_sdk\"\n}"
+            },
+            "url": "{{base_url}}/checkout"
+          }
+        },
+        {
+          "name": "Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/checkout/orders/{{order_number}}/payment-status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/orders"
+          }
+        },
+        {
+          "name": "Track Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": "{{base_url}}/orders/track"
+          }
+        }
+      ]
+    }
+  ]
+}
