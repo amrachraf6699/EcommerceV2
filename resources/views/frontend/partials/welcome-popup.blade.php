@@ -11,7 +11,8 @@
       </div>
       <p class="text-xs font-bold mb-3" style="color:var(--gray-light);letter-spacing:0.3em">{{ __('storefront.welcome_coupon.eyebrow') }}</p>
       <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">{{ __('storefront.welcome_coupon.title') }}<br><span style="color:var(--text-faint);-webkit-text-stroke:1px rgb(var(--white-rgb) / .5)">{{ $welcomeOffer['headline'] }}</span></h2>
-      <p class="mb-6 leading-relaxed" style="color:var(--gray-light);font-size:15px">{{ __('storefront.welcome_coupon.copy') }}</p>
+      <p class="mb-2 leading-relaxed" style="color:var(--gray-light);font-size:15px">{{ __('storefront.welcome_coupon.copy') }}</p>
+      <p class="mb-6 leading-relaxed" style="color:var(--text-faint);font-size:12px">{{ __('storefront.welcome_coupon.exclusive_updates') }}</p>
 
       <form id="welcomeCouponForm" class="grid gap-4 text-start" onsubmit="submitWelcomeCoupon(event)">
         <div>

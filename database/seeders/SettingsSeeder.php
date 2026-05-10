@@ -184,7 +184,27 @@ class SettingsSeeder extends Seeder
     {
         [$normalizedKey] = $this->normalizeSettingDefinition($key);
 
-        if (in_array($normalizedKey, ['home_brands_section_background_color', 'home_new_arrivals_section_background_color'], true)) {
+        if (in_array($normalizedKey, ['categories_title_ar', 'categories_title_en'], true)) {
+            return array_merge(
+                $this->makeSettingRecord(
+                    'appearance',
+                    $normalizedKey,
+                    'text',
+                    match ($normalizedKey) {
+                        'categories_title_ar' => 'Title shown above the home categories section in Arabic.',
+                        'categories_title_en' => 'Title shown above the home categories section in English.',
+                        default => null,
+                    }
+                ),
+                ['value' => match ($normalizedKey) {
+                    'categories_title_ar' => 'علاماتنا الرياضية',
+                    'categories_title_en' => 'Our Athletic Brands',
+                    default => null,
+                }]
+            );
+        }
+
+        if (in_array($normalizedKey, ['home_brands_section_background_color', 'home_shop_by_size_section_background_color', 'home_new_arrivals_section_background_color'], true)) {
             return array_merge(
                 $this->makeSettingRecord(
                     'appearance',
@@ -192,12 +212,14 @@ class SettingsSeeder extends Seeder
                     'color',
                     match ($normalizedKey) {
                         'home_brands_section_background_color' => 'Choose the background color for the home brands section.',
+                        'home_shop_by_size_section_background_color' => 'Choose the background color for the home shop by size section.',
                         'home_new_arrivals_section_background_color' => 'Choose the background color for the home new arrivals section.',
                         default => null,
                     }
                 ),
                 ['value' => match ($normalizedKey) {
                     'home_brands_section_background_color' => '#000000',
+                    'home_shop_by_size_section_background_color' => '#0a0a0a',
                     'home_new_arrivals_section_background_color' => '#121212',
                     default => null,
                 }]

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Client;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Slider;
 use App\Support\FrontendCatalogPresenter;
 use App\Support\LocalizedQuery;
@@ -59,6 +60,7 @@ class HomeController extends Controller
             'homeProductOptions' => $homeProductOptions,
             'featuredProducts' => $featuredProducts,
             'newArrivalProducts' => $newArrivalProducts,
+            'shopBySizeGroups' => $this->shopBySizeGroups(),
             'clients' => Client::query()
                 ->latest()
                 ->limit(8)
@@ -95,13 +97,6 @@ class HomeController extends Controller
 
     private function homeProductOptions()
     {
-        $randomCategories = Category::query()
-            ->where('is_active', true)
-            ->whereHas('products', fn ($query) => $query->where('is_active', true))
-            ->inRandomOrder()
-            ->limit(2)
-            ->get(['id', 'name', 'slug']);
-
         return collect([
             [
                 'type' => 'featured',
@@ -111,14 +106,7 @@ class HomeController extends Controller
                 'type' => 'new',
                 'label' => __('storefront.home.new_arrivals'),
             ],
-        ])->concat(
-            $randomCategories->map(fn (Category $category): array => [
-                'type' => 'category',
-                'category_id' => $category->id,
-                'slug' => $category->slug,
-                'label' => $category->name,
-            ])
-        )->values();
+        ]);
     }
 
     private function resolveHomeProducts(string $type, ?Category $category = null)
@@ -165,5 +153,50 @@ class HomeController extends Controller
                 ->limit(8)
                 ->get()
         );
+    }
+
+    private function shopBySizeGroups()
+    {
+        $sizes = ProductVariant::query()
+            ->select('product_variants.size')
+            ->join('products', 'products.id', '=', 'product_variants.product_id')
+            ->whereNull('products.deleted_at')
+            ->where('products.is_active', true)
+            ->whereNull('product_variants.deleted_at')
+            ->where('product_variants.is_active', true)
+            ->whereNotNull('product_variants.size')
+            ->where('product_variants.size', '!=', '')
+            ->distinct()
+            ->pluck('product_variants.size')
+            ->map(fn ($size) => trim((string) $size))
+            ->filter()
+            ->unique()
+            ->sort(fn (string $first, string $second) => strnatcasecmp($first, $second))
+            ->values();
+
+        if ($sizes->isEmpty()) {
+            return collect();
+        }
+
+        $groupsCount = min(5, $sizes->count());
+        $baseSize = intdiv($sizes->count(), $groupsCount);
+        $remainder = $sizes->count() % $groupsCount;
+        $offset = 0;
+
+        return collect(range(0, $groupsCount - 1))->map(function (int $groupIndex) use ($sizes, $baseSize, $remainder, &$offset): array {
+            $length = $baseSize + ($groupIndex < $remainder ? 1 : 0);
+            $groupSizes = $sizes->slice($offset, $length)->values();
+            $offset += $length;
+
+            return [
+                'sizes' => $groupSizes->all(),
+                'from' => $groupSizes->first(),
+                'to' => $groupSizes->last(),
+                'url' => route('storefront.catalog', [
+                    'locale' => app()->getLocale(),
+                    'sizes' => $groupSizes->all(),
+                ]),
+            ];
+        });
     }
 }

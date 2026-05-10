@@ -1,5 +1,9 @@
-@php($title = __('storefront.checkout'))
-@php($summaryCurrency = $cart?->currency ?? 'BHD')
+@php
+  $title = __('storefront.checkout');
+  $summaryCurrency = $cart?->currency ?? 'BHD';
+  $checkoutWhatsappPhone = preg_replace('/\D+/', '', (string) ($frontendBrand['whatsapp_phone'] ?? ''));
+  $checkoutWhatsappMessage = rawurlencode(__('storefront.checkout_whatsapp_quote_message'));
+@endphp
 
 @extends('frontend.layouts.app')
 
@@ -101,6 +105,11 @@
             <button type="submit" class="btn-primary w-full" @disabled(! $tapCheckoutAvailable || ! $cart || $cart->items->isEmpty() || $checkoutSummary['error'])>
               <span>{{ __('storefront.checkout_pay_with_tap') }}</span>
             </button>
+            <div class="footer-payment-icons mt-4" aria-label="Payment methods">
+              @foreach (['visa', 'mastercard', 'amex', 'apple', 'google', 'samsung-pay', 'click-to-pay', 'benefit', 'benefit-pay'] as $paymentIcon)
+                <img src="{{ asset('pay-icons/' . $paymentIcon . '.svg') }}" alt="" class="payment-icon" loading="lazy">
+              @endforeach
+            </div>
           </div>
         </form>
       </div>
@@ -267,6 +276,23 @@
                   <div><span class="font-bold" data-bhd-primary>{{ storefront_format_money($checkoutSummary['grand_total'], $summaryCurrency) }}</span></div>
                 </div>
               </div>
+              @if ($checkoutWhatsappPhone)
+                <a
+                  href="https://wa.me/{{ $checkoutWhatsappPhone }}?text=مرحباً، أنا في صفحة إتمام الشراء وأحتاج مساعدة بخصوص تكلفة الطلب."
+                  class="checkout-whatsapp-quote"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span class="checkout-whatsapp-quote__icon">
+                    <i class="bx bxl-whatsapp" aria-hidden="true"></i>
+                  </span>
+                  <span class="checkout-whatsapp-quote__body">
+                    <strong>{{ __('storefront.checkout_whatsapp_quote_title') }}</strong>
+                    <span>{{ __('storefront.checkout_whatsapp_quote_copy') }}</span>
+                  </span>
+                  <i class="bx bx-chevron-left checkout-whatsapp-quote__arrow" aria-hidden="true"></i>
+                </a>
+              @endif
               <div class="space-y-2 border-t pt-4" style="border-color:var(--line-soft)">
                 <p
                   id="checkoutSummaryMessage"
@@ -406,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const payload = await response.json();
       const summary = payload.summary || {};
-      const currency = @json($summaryCurrency);
+      const currency = document.getElementById('checkoutGrandTotalPrice')?.dataset.bhdCurrency || 'BHD';
       const error = summary.error || '';
 
       setPrice('checkoutSubtotalPrice', Number(summary.subtotal || 0), currency);
@@ -637,6 +663,80 @@ document.addEventListener('DOMContentLoaded', function () {
     border-color: rgb(183 247 197 / .28);
     background: rgb(183 247 197 / .08);
     color: #b7f7c5;
+  }
+
+  .checkout-whatsapp-quote {
+    position: relative;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 22px;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid rgb(37 211 102 / .38);
+    background:
+      linear-gradient(135deg, rgb(37 211 102 / .16), rgb(var(--white-rgb) / .035)),
+      rgb(var(--white-rgb) / .025);
+    color: var(--white);
+    overflow: hidden;
+    transition: border-color .2s ease, background-color .2s ease, transform .2s ease;
+  }
+
+  .checkout-whatsapp-quote::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #25d366;
+  }
+
+  .checkout-whatsapp-quote:hover {
+    transform: translateY(-2px);
+    border-color: rgb(37 211 102 / .72);
+    background:
+      linear-gradient(135deg, rgb(37 211 102 / .22), rgb(var(--white-rgb) / .055)),
+      rgb(var(--white-rgb) / .035);
+  }
+
+  .checkout-whatsapp-quote__icon {
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #25d366;
+    color: #06160c;
+    font-size: 1.65rem;
+    flex: none;
+  }
+
+  .checkout-whatsapp-quote__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .checkout-whatsapp-quote__body strong {
+    font-size: .94rem;
+    font-weight: 900;
+    line-height: 1.35;
+  }
+
+  .checkout-whatsapp-quote__body span {
+    color: var(--gray-light);
+    font-size: .82rem;
+    line-height: 1.65;
+  }
+
+  .checkout-whatsapp-quote__arrow {
+    color: #25d366;
+    font-size: 1.35rem;
+  }
+
+  html[dir="ltr"] .checkout-whatsapp-quote__arrow {
+    transform: rotate(180deg);
   }
 
 @keyframes checkoutCouponSpin {

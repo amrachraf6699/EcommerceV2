@@ -34,7 +34,7 @@
           onclick="toggleNavbarCartDropdown()"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          <span class="count-badge" id="cartCount">{{ $frontendCartSummary['items_count'] }}</span>
+          <span class="count-badge" id="cartCount" data-cart-count>{{ $frontendCartSummary['items_count'] }}</span>
         </button>
         <div class="navbar-cart-menu" id="navbarCartMenu">
           <div class="navbar-cart-menu__content">
@@ -175,7 +175,7 @@
         aria-label="{{ __('storefront.common.add_to_cart') }}"
       >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          <span class="count-badge">{{ $frontendCartSummary['items_count'] }}</span>
+          <span class="count-badge" data-cart-count>{{ $frontendCartSummary['items_count'] }}</span>
       </a>
 
       @if ($customer)

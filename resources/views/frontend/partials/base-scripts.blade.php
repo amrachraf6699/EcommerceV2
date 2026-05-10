@@ -280,16 +280,16 @@ async function refreshNavbarCartSummary() {
     const itemsCount = Number(cart.items_count || 0);
     const subtotal = Number(cart.subtotal || 0);
     const currency = cart.currency || @json($frontendCartSummary['currency']);
-    const cartCount = document.getElementById('cartCount');
+    const cartCountBadges = document.querySelectorAll('[data-cart-count]');
     const cartSummaryCount = document.getElementById('cartSummaryCount');
     const cartSummarySubtotal = document.getElementById('cartSummarySubtotal');
     const cartSummarySubtotalPrimary = cartSummarySubtotal?.querySelector('[data-bhd-primary]');
     const cartSummaryEmpty = document.getElementById('cartSummaryEmpty');
     const cartCheckoutButton = document.getElementById('cartCheckoutButton');
 
-    if (cartCount) {
-      cartCount.textContent = String(itemsCount);
-    }
+    cartCountBadges.forEach((badge) => {
+      badge.textContent = String(itemsCount);
+    });
 
     if (cartSummaryCount) {
       cartSummaryCount.textContent = String(itemsCount);

@@ -10,12 +10,13 @@
 @php
     $productHref = $href ?: route('storefront.products.show', ['product' => $product->slug]);
     $imageHeight ??= $list ? '160px' : '240px';
+    $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
 @endphp
 
 @if ($compact)
     <a href="{{ $productHref }}" class="block">
         <div class="border" style="border-color:var(--line-soft);background:var(--gray-dark);padding:10px;">
-            <div class="compact-card-media" style="aspect-ratio:1 / 1;background:linear-gradient(135deg,rgb(var(--surface-rgb)) 0%,rgb(var(--surface-alt-rgb)) 100%);overflow:hidden;position:relative;">
+            <div class="compact-card-media" style="aspect-ratio:1 / 1;background:var(--gray-dark);overflow:hidden;position:relative;">
                 @if ($product->primary_image_url)
                     <img src="{{ $product->primary_image_url }}" alt="{{ $product->name }}" loading="lazy" class="compact-card-media__image w-full h-full">
                 @else
@@ -23,7 +24,7 @@
                 @endif
 
                 @if ($product->display_badge)
-                    <span class="badge">{{ $product->display_badge }}</span>
+                    <span class="badge {{ $isSoldOut ? 'badge--sold-out' : '' }}">{{ $product->display_badge }}</span>
                 @endif
             </div>
 
@@ -54,7 +55,7 @@
             @endif
 
             @if ($product->display_badge)
-                <span class="badge">{{ $product->display_badge }}</span>
+                <span class="badge {{ $isSoldOut ? 'badge--sold-out' : '' }}">{{ $product->display_badge }}</span>
             @endif
 
             @if ($showOverlay)

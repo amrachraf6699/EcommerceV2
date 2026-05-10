@@ -147,16 +147,25 @@
       @endif
     </div>
     <div class="footer-meta">
-      <p>
-        &copy; {{ now()->year }} {{ $frontendBrand['name'] }}. {{ __('storefront.footer.rights') }}
-      </p>
+      <div class="footer-meta__top">
+        <p class="footer-copyright">
+          &copy; {{ now()->year }} {{ $frontendBrand['name'] }}. {{ __('storefront.footer.rights') }}
+        </p>
+        <span class="footer-powered">
+          Powered by
+          <a href="https://wa.me/201063153994" target="_blank" rel="noopener noreferrer" class="footer-credit__link">
+            Amr Achraf
+          </a>
+        </span>
+      </div>
 
-      <p class="footer-credit">
-        <span>{{ __('storefront.footer.credit_label') }}</span>
-        <a href="https://wa.me/201063153994" target="_blank" rel="noopener noreferrer" class="footer-credit__link">
-          {{ __('storefront.footer.credit_name') }}
-        </a>
-      </p>
+      <div class="footer-payments" aria-label="Payment methods">
+        <div class="footer-payment-icons" aria-hidden="true">
+          @foreach (['visa', 'mastercard', 'amex', 'apple', 'google', 'samsung-pay', 'click-to-pay', 'benefit', 'benefit-pay'] as $paymentIcon)
+            <img src="{{ asset('pay-icons/' . $paymentIcon . '.svg') }}" alt="" class="payment-icon" loading="lazy">
+          @endforeach
+        </div>
+      </div>
     </div>
   </div>
 </footer>

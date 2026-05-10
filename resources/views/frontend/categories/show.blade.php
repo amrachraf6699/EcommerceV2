@@ -3,30 +3,8 @@
 @extends('frontend.layouts.app')
 
 @section('content')
-<div style="padding-top:72px;background:var(--gray-dark);border-bottom:1px solid var(--line-soft)">
-  <div class="mt-6 max-w-7xl mx-auto px-6 py-16">
-    <div class="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_420px] lg:items-center">
-      <div>
-        <div class="divider reveal"></div>
-        <h1 class="text-5xl font-black mb-4 reveal" style="letter-spacing:-0.03em">{{ $category->name }}</h1>
-        <p class="reveal" style="color:var(--gray-light);max-width:600px;font-size:16px;line-height:1.8">{{ $category->description }}</p>
-      </div>
-      @if ($category->image_url)
-        <div class="border overflow-hidden reveal" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
-          <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="w-full h-full object-cover" style="min-height:280px;max-height:420px">
-        </div>
-      @endif
-    </div>
-  </div>
-</div>
-
-<section class="py-16 px-6" style="background:var(--black)">
+<section class="px-6 pb-16" style="padding-top:120px;background:var(--black)">
   <div class="max-w-7xl mx-auto">
-    <div class="text-center mb-14 reveal">
-      <div class="divider" style="margin:0 auto 16px"></div>
-      <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">{{ __('storefront.category_show.section_products', ['category' => $category->name]) }}</h2>
-    </div>
-
     @if ($products->count() > 0)
       @include('frontend.partials.product-collection', ['products' => $products, 'showOverlay' => false])
       <div class="mt-12">

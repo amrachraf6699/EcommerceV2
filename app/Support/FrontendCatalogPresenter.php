@@ -22,6 +22,7 @@ class FrontendCatalogPresenter
     public static function product(Product $product): Product
     {
         $activeVariants = $product->variants->where('is_active', true);
+        $isSoldOut = $product->variants->isNotEmpty() && (int) $product->variants->sum('stock_quantity') <= 0;
         $variant = $product->variants
             ->where('is_active', true)
             ->sortByDesc(fn (ProductVariant $variant) => $variant->is_default)
@@ -38,12 +39,15 @@ class FrontendCatalogPresenter
         $product->setAttribute('display_price', $variant?->price);
         $product->setAttribute('display_compare_price', $variant?->compare_at_price);
         $product->setAttribute('display_stock_quantity', (int) $activeVariants->sum('stock_quantity'));
+        $product->setAttribute('display_is_sold_out', $isSoldOut);
         $product->setAttribute('display_label', $product->categories->pluck('name')->first() ?: (string) setting('brand.name', config('app.name')));
         $product->setAttribute(
             'display_badge',
-            $product->is_featured
-                ? Lang::get('storefront.badges.featured')
-                : ($product->created_at?->gt(now()->subDays(14)) ? Lang::get('storefront.badges.new') : null)
+            $isSoldOut
+                ? Lang::get('storefront.badges.sold_out')
+                : ($product->is_featured
+                    ? Lang::get('storefront.badges.featured')
+                    : ($product->created_at?->gt(now()->subDays(14)) ? Lang::get('storefront.badges.new') : null))
         );
 
         return $product;

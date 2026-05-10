@@ -1,7 +1,9 @@
 @php
     $title = ($frontendBrand['name'] ?? config('app.name')) . ' - ' . __('storefront.common.home');
     $homeBrandsSectionBackgroundColor = setting('appearance.home_brands_section_background_color', '#000000');
+    $homeShopBySizeSectionBackgroundColor = setting('appearance.home_shop_by_size_section_background_color', '#0a0a0a');
     $homeNewArrivalsSectionBackgroundColor = setting('appearance.home_new_arrivals_section_background_color', '#121212');
+    $categoriesTitle = setting('appearance.categories_title_' . app()->getLocale(), __('storefront.home.athletic_brands')) ?: __('storefront.home.athletic_brands');
     $primaryCategory = $featuredCategories->first();
     $secondaryCategories = $featuredCategories->skip(1);
     $defaultHomeProductOption = $homeProductOptions->firstWhere('type', 'featured') ?? $homeProductOptions->first();
@@ -110,7 +112,7 @@
     <div class="flex items-end justify-between gap-6 mb-12">
       <div>
         <div class="divider reveal"></div>
-        <h2 class="text-3xl md:text-4xl font-black mb-3 reveal" style="letter-spacing:-0.02em">{{ __('storefront.home.athletic_brands') }}</h2>
+        <h2 class="text-3xl md:text-4xl font-black mb-3 reveal" style="letter-spacing:-0.02em">{{ $categoriesTitle }}</h2>
       </div>
     </div>
     @if ($primaryCategory)
@@ -118,6 +120,33 @@
     @endif
   </div>
 </section>
+
+@if ($shopBySizeGroups->isNotEmpty())
+<section class="py-20 px-6 home-shop-by-size-section" style="background:{{ $homeShopBySizeSectionBackgroundColor }};border-top:1px solid var(--line-soft)">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-12 reveal">
+      <div class="divider" style="margin:0 auto 16px"></div>
+      <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">{{ __('storefront.home.shop_by_size') }}</h2>
+    </div>
+
+    <div class="collection-scroller shop-by-size-scroller">
+      @foreach ($shopBySizeGroups as $group)
+        <a href="{{ $group['url'] }}" class="shop-by-size-card reveal" aria-label="{{ __('storefront.home.shop_by_size') }} {{ $group['from'] }} - {{ $group['to'] }}">
+          <span class="shop-by-size-card__overlay"></span>
+          <span class="shop-by-size-card__content">
+            @if ($group['from'] === $group['to'])
+              <strong>{{ $group['from'] }}</strong>
+            @else
+              <strong>{{ $group['from'] }}</strong>
+              <span>{{ $group['to'] }}</span>
+            @endif
+          </span>
+        </a>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
 
 <section class="py-16 px-6" style="background:var(--gray-dark);border-top:1px solid var(--line-soft)">
   <div class="max-w-7xl mx-auto">
@@ -251,6 +280,55 @@
   .home-clients-section .client-card__media{aspect-ratio:4 / 5;}
   .home-clients-section .client-masonry__item--featured .client-card__media{min-height:420px;}
   .home-clients-section .client-masonry__item--tall .client-card__media{min-height:360px;}
+  .shop-by-size-scroller{justify-content:flex-start;gap:28px;padding-bottom:20px;}
+  .shop-by-size-card{
+    position:relative;
+    flex:0 0 clamp(118px,14vw,160px);
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    border-radius:50%;
+    border:1px solid var(--line-soft);
+    background-image:url('{{ asset('shop-by-size-bg.jpg') }}');
+    background-position:center;
+    background-size:cover;
+    transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease;
+  }
+  .shop-by-size-card:hover{
+    transform:translateY(-6px);
+    border-color:var(--line-strong);
+  }
+  .shop-by-size-card__overlay{
+    position:absolute;
+    inset:0;
+    background:rgb(var(--overlay-rgb) / .38);
+  }
+  .shop-by-size-card__content{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    text-align:center;
+    text-shadow:0 3px 16px rgb(0 0 0 / .55);
+    line-height:1;
+  }
+  .shop-by-size-card__content strong{
+    font-size:clamp(1.55rem,3vw,2.45rem);
+    font-weight:900;
+  }
+  .shop-by-size-card__content span{
+    margin-top:10px;
+    padding-top:10px;
+    min-width:52px;
+    border-top:2px solid rgb(255 255 255 / .72);
+    font-size:clamp(1rem,1.9vw,1.55rem);
+    font-weight:900;
+  }
   .home-products-filter{
     position:relative;
     isolation:isolate;

@@ -14,11 +14,11 @@
     <div class="mt-6">
         @yield('content')
     </div>
-    @if (! request()->routeIs('storefront.products.show') && ! empty($frontendBrand['whatsapp_phone']))
+    @if (! request()->routeIs('storefront.products.show', 'storefront.checkout.show') && ! empty($frontendBrand['whatsapp_phone']))
         @include('frontend.partials.whatsapp-float')
     @endif
 
-    @if (! request()->routeIs('storefront.products.show') && $frontendChatbotEnabled)
+    @if (! request()->routeIs('storefront.products.show', 'storefront.checkout.show') && $frontendChatbotEnabled)
         @include('frontend.partials.chatbot')
     @endif
 

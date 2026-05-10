@@ -12,17 +12,18 @@
 @endphp
 
 @if ($compact)
-    <a href="{{ route('storefront.categories.show', ['category' => $category->slug]) }}" class="reveal block">
-        <div class="border" style="border-color:var(--line-soft);background:var(--gray-dark);padding:10px;">
-            <div class="compact-card-media" style="aspect-ratio:1 / 1;background:transparent;overflow:hidden;">
+    <a href="{{ route('storefront.categories.show', ['category' => $category->slug]) }}" class="category-compact-card reveal block">
+        <div>
+            <div class="compact-card-media category-compact-card__media" style="aspect-ratio:1 / 1;background:transparent;overflow:hidden;">
                 @if ($category->image_url)
                     <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="compact-card-media__image w-full h-full">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-sm font-black text-neutral-500">{{ $category->name }}</div>
                 @endif
+                <span class="category-compact-card__overlay-title">{{ \Illuminate\Support\Str::limit($category->name, 24) }}</span>
             </div>
-            <div style="padding-top:10px">
-                <h2 style="font-size:13px;line-height:1.5;font-weight:800">{{ \Illuminate\Support\Str::limit($category->name, 24) }}</h2>
+            <div class="category-compact-card__body">
+                <h2>{{ \Illuminate\Support\Str::limit($category->name, 24) }}</h2>
             </div>
         </div>
     </a>
