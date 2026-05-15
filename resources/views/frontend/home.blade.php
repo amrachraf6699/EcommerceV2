@@ -2,6 +2,10 @@
     $title = ($frontendBrand['name'] ?? config('app.name')) . ' - ' . __('storefront.common.home');
     $homeBrandsSectionBackgroundColor = setting('appearance.home_brands_section_background_color', '#000000');
     $homeShopBySizeSectionBackgroundColor = setting('appearance.home_shop_by_size_section_background_color', '#0a0a0a');
+    $homeShopBySizeCardBackgroundImage = setting('appearance.home_shop_by_size_card_background_image');
+    $homeShopBySizeCardBackgroundImageUrl = $homeShopBySizeCardBackgroundImage
+        ? asset('storage/' . $homeShopBySizeCardBackgroundImage)
+        : asset('shop-by-size-bg.jpg');
     $homeNewArrivalsSectionBackgroundColor = setting('appearance.home_new_arrivals_section_background_color', '#121212');
     $categoriesTitle = setting('appearance.categories_title_' . app()->getLocale(), __('storefront.home.athletic_brands')) ?: __('storefront.home.athletic_brands');
     $primaryCategory = $featuredCategories->first();
@@ -131,7 +135,7 @@
 
     <div class="collection-scroller shop-by-size-scroller">
       @foreach ($shopBySizeGroups as $group)
-        <a href="{{ $group['url'] }}" class="shop-by-size-card reveal" aria-label="{{ __('storefront.home.shop_by_size') }} {{ $group['from'] }} - {{ $group['to'] }}">
+        <a href="{{ $group['url'] }}" class="shop-by-size-card reveal" aria-label="{{ __('storefront.home.shop_by_size') }} {{ $group['from'] === $group['to'] ? $group['from'] : $group['from'] . ' - ' . $group['to'] }}">
           <span class="shop-by-size-card__overlay"></span>
           <span class="shop-by-size-card__content">
             @if ($group['from'] === $group['to'])
@@ -280,10 +284,10 @@
   .home-clients-section .client-card__media{aspect-ratio:4 / 5;}
   .home-clients-section .client-masonry__item--featured .client-card__media{min-height:420px;}
   .home-clients-section .client-masonry__item--tall .client-card__media{min-height:360px;}
-  .shop-by-size-scroller{justify-content:flex-start;gap:28px;padding-bottom:20px;}
+  .shop-by-size-scroller{justify-content:flex-start;gap:32px;padding-bottom:20px;}
   .shop-by-size-card{
     position:relative;
-    flex:0 0 clamp(118px,14vw,160px);
+    flex:0 0 clamp(156px,19vw,230px);
     aspect-ratio:1;
     display:flex;
     align-items:center;
@@ -291,7 +295,7 @@
     overflow:hidden;
     border-radius:50%;
     border:1px solid var(--line-soft);
-    background-image:url('{{ asset('shop-by-size-bg.jpg') }}');
+    background-image:url('{{ $homeShopBySizeCardBackgroundImageUrl }}');
     background-position:center;
     background-size:cover;
     transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease;
@@ -318,15 +322,15 @@
     line-height:1;
   }
   .shop-by-size-card__content strong{
-    font-size:clamp(1.55rem,3vw,2.45rem);
+    font-size:clamp(2rem,3.6vw,3.25rem);
     font-weight:900;
   }
   .shop-by-size-card__content span{
     margin-top:10px;
     padding-top:10px;
-    min-width:52px;
+    min-width:68px;
     border-top:2px solid rgb(255 255 255 / .72);
-    font-size:clamp(1rem,1.9vw,1.55rem);
+    font-size:clamp(1.25rem,2.2vw,1.9rem);
     font-weight:900;
   }
   .home-products-filter{
@@ -454,6 +458,8 @@
       max-width:none;
     }
     .home-products-filter__option{padding:13px 14px;font-size:.95rem;}
+    .shop-by-size-scroller{gap:22px;}
+    .shop-by-size-card{flex-basis:clamp(150px,48vw,190px);}
   }
 </style>
 @endpush

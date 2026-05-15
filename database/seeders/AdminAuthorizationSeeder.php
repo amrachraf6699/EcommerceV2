@@ -15,6 +15,7 @@ class AdminAuthorizationSeeder extends Seeder
 
         $permissions = [
             'dashboard.view',
+            'analytics.view',
             'admins.view',
             'admins.create',
             'admins.update',
@@ -71,6 +72,7 @@ class AdminAuthorizationSeeder extends Seeder
         $superAdmin->syncPermissions(Permission::all());
         $admin->syncPermissions([
             'dashboard.view',
+            'analytics.view',
             'products.view',
             'products.create',
             'products.update',

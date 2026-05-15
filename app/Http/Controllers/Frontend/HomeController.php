@@ -178,23 +178,16 @@ class HomeController extends Controller
             return collect();
         }
 
-        $groupsCount = min(5, $sizes->count());
-        $baseSize = intdiv($sizes->count(), $groupsCount);
-        $remainder = $sizes->count() % $groupsCount;
-        $offset = 0;
-
-        return collect(range(0, $groupsCount - 1))->map(function (int $groupIndex) use ($sizes, $baseSize, $remainder, &$offset): array {
-            $length = $baseSize + ($groupIndex < $remainder ? 1 : 0);
-            $groupSizes = $sizes->slice($offset, $length)->values();
-            $offset += $length;
+        return $sizes->map(function (string $size): array {
+            $sizes = [$size];
 
             return [
-                'sizes' => $groupSizes->all(),
-                'from' => $groupSizes->first(),
-                'to' => $groupSizes->last(),
+                'sizes' => $sizes,
+                'from' => $size,
+                'to' => $size,
                 'url' => route('storefront.catalog', [
                     'locale' => app()->getLocale(),
-                    'sizes' => $groupSizes->all(),
+                    'sizes' => $sizes,
                 ]),
             ];
         });

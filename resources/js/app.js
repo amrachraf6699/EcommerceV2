@@ -752,6 +752,185 @@ const initDashboardRangeFilter = () => {
     });
 };
 
+const parseJsonDataset = (value, fallback = []) => {
+    try {
+        return JSON.parse(value || JSON.stringify(fallback));
+    } catch (error) {
+        return fallback;
+    }
+};
+
+const showAnalyticsEmptyChart = (element) => {
+    element.classList.add('flex', 'items-center', 'justify-center', 'text-sm', 'text-slate-400');
+    element.textContent = 'لا توجد بيانات كافية لعرض الرسم.';
+    element.dataset.enhanced = 'true';
+};
+
+const initAnalyticsCharts = () => {
+    document.querySelectorAll('[data-analytics-chart]').forEach((element) => {
+        if (element.dataset.enhanced === 'true') {
+            return;
+        }
+
+        const kind = element.dataset.chartKind || 'bar';
+        const labels = parseJsonDataset(element.dataset.chartLabels);
+        const values = parseJsonDataset(element.dataset.chartValues);
+
+        if (! labels.length || (kind !== 'sales-trend' && ! values.some((value) => Number(value) > 0))) {
+            showAnalyticsEmptyChart(element);
+            return;
+        }
+
+        let options;
+
+        if (kind === 'sales-trend') {
+            const orders = parseJsonDataset(element.dataset.chartOrders);
+            const revenue = parseJsonDataset(element.dataset.chartRevenue);
+            const aov = parseJsonDataset(element.dataset.chartAov);
+
+            if (![orders, revenue, aov].some((series) => series.some((value) => Number(value) > 0))) {
+                showAnalyticsEmptyChart(element);
+                return;
+            }
+
+            options = {
+                chart: { type: 'line', height: 330, toolbar: { show: false }, foreColor: '#cbd5e1' },
+                series: [
+                    { name: 'الطلبات', type: 'line', data: orders },
+                    { name: 'الإيرادات', type: 'area', data: revenue },
+                    { name: 'متوسط الطلب', type: 'line', data: aov },
+                ],
+                colors: ['#f59e0b', '#10b981', '#38bdf8'],
+                stroke: { width: [3, 3, 2], curve: 'smooth' },
+                fill: { type: ['solid', 'gradient', 'solid'], gradient: { opacityFrom: 0.25, opacityTo: 0.04 } },
+                grid: { borderColor: 'rgba(255,255,255,0.08)' },
+                xaxis: { categories: labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                legend: { labels: { colors: '#e2e8f0' } },
+                tooltip: { theme: 'dark' },
+                dataLabels: { enabled: false },
+            };
+        } else if (kind === 'donut') {
+            options = {
+                chart: { type: 'donut', height: 320, toolbar: { show: false }, foreColor: '#cbd5e1' },
+                labels,
+                series: values.map((value) => Number(value)),
+                colors: ['#f59e0b', '#10b981', '#38bdf8', '#ef4444', '#a78bfa', '#f97316'],
+                legend: { position: 'bottom', labels: { colors: '#e2e8f0' } },
+                stroke: { colors: ['rgba(15,23,42,0.9)'] },
+                tooltip: { theme: 'dark' },
+                dataLabels: { enabled: true },
+            };
+        } else if (kind === 'line') {
+            options = {
+                chart: { type: 'area', height: 320, toolbar: { show: false }, foreColor: '#cbd5e1' },
+                series: [{ name: element.dataset.chartSeriesName || 'القيمة', data: values }],
+                colors: ['#38bdf8'],
+                stroke: { width: 3, curve: 'smooth' },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.22, opacityTo: 0.03 } },
+                grid: { borderColor: 'rgba(255,255,255,0.08)' },
+                xaxis: { categories: labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                tooltip: { theme: 'dark' },
+                dataLabels: { enabled: false },
+            };
+        } else {
+            options = {
+                chart: { type: 'bar', height: 320, toolbar: { show: false }, foreColor: '#cbd5e1' },
+                series: [{ name: element.dataset.chartSeriesName || 'القيمة', data: values }],
+                colors: ['#f59e0b'],
+                plotOptions: { bar: { horizontal: true, borderRadius: 0 } },
+                grid: { borderColor: 'rgba(255,255,255,0.08)' },
+                xaxis: { categories: labels, labels: { style: { colors: '#94a3b8' } } },
+                yaxis: { labels: { style: { colors: '#94a3b8' } } },
+                tooltip: { theme: 'dark' },
+                dataLabels: { enabled: false },
+            };
+        }
+
+        const chart = new ApexCharts(element, options);
+        chart.render();
+        element.dataset.enhanced = 'true';
+    });
+};
+
+const initAnalyticsFilter = () => {
+    document.querySelectorAll('[data-analytics-filter-form]').forEach((form) => {
+        if (form.dataset.enhanced === 'true') {
+            return;
+        }
+
+        const rangeSelect = form.querySelector('[data-analytics-range-select]');
+        const dateInputs = form.querySelectorAll('[data-analytics-date-input]');
+
+        const submitRequest = async () => {
+            const formData = new FormData(form);
+            const url = new URL(form.action, window.location.origin);
+
+            formData.forEach((value, key) => {
+                if (value !== '') {
+                    url.searchParams.set(key, value);
+                }
+            });
+
+            form.querySelectorAll('button, select, input').forEach((input) => {
+                input.disabled = true;
+            });
+
+            try {
+                const response = await window.fetch(url, {
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                const payload = await response.json().catch(() => ({}));
+
+                if (! response.ok || ! payload.html) {
+                    throw new Error('تعذر تحديث التحليلات حالياً.');
+                }
+
+                const container = document.getElementById('adminAnalyticsContent');
+
+                if (! container) {
+                    throw new Error('تعذر تحديث واجهة التحليلات.');
+                }
+
+                container.innerHTML = payload.html;
+                window.history.replaceState({}, '', url);
+
+                initAnalyticsFilter();
+                initAnalyticsCharts();
+            } catch (error) {
+                showToast(error.message || 'حدث خطأ غير متوقع.', 'error');
+            } finally {
+                form.querySelectorAll('button, select, input').forEach((input) => {
+                    input.disabled = false;
+                });
+            }
+        };
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            submitRequest();
+        });
+
+        rangeSelect?.addEventListener('change', () => {
+            if (rangeSelect.value !== 'custom') {
+                dateInputs.forEach((input) => {
+                    input.value = '';
+                });
+
+                submitRequest();
+            }
+        });
+
+        form.dataset.enhanced = 'true';
+    });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     initTomSelect();
     initFilePond();
@@ -768,6 +947,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initProductVariantRows();
     initDashboardRangeFilter();
     initDashboardCharts();
+    initAnalyticsFilter();
+    initAnalyticsCharts();
 });
 
 window.AdminUi = {
@@ -787,5 +968,7 @@ window.AdminUi = {
     initProductVariantRows,
     initDashboardRangeFilter,
     initDashboardCharts,
+    initAnalyticsFilter,
+    initAnalyticsCharts,
     FilePond,
 };

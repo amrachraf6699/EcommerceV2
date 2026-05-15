@@ -40,6 +40,15 @@
             <small>نظرة عامة على المتجر</small>
         </a>
 
+        @can('analytics.view')
+            <a href="{{ route('admin.analytics.index') }}"
+               class="admin-nav-link {{ request()->routeIs('admin.analytics.*') ? 'is-active' : '' }}">
+                <i class="bx bx-line-chart admin-nav-icon" aria-hidden="true"></i>
+                <span>التحليلات</span>
+                <small>تقارير تفصيلية وتصدير البيانات</small>
+            </a>
+        @endcan
+
         @can('admins.view')
             <a href="{{ route('admin.admins.index') }}"
                class="admin-nav-link {{ request()->routeIs('admin.admins.*') ? 'is-active' : '' }}">

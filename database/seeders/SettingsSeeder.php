@@ -226,6 +226,15 @@ class SettingsSeeder extends Seeder
             );
         }
 
+        if ($normalizedKey === 'home_shop_by_size_card_background_image') {
+            return $this->makeSettingRecord(
+                'appearance',
+                $normalizedKey,
+                'file',
+                'Choose the background image used for each home shop by size card.'
+            );
+        }
+
         return $this->makeSettingRecord(
             'appearance',
             $normalizedKey,

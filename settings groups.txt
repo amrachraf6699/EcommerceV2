@@ -48,6 +48,7 @@ products_appearance (ENUM "select": Masonry Layout or Horizontal Scroll or Grid)
 clients_appearance (ENUM "select": Masonry Layout or Horizontal Scroll or Grid)
 home_brands_section_background_color
 home_shop_by_size_section_background_color
+home_shop_by_size_card_background_image
 home_new_arrivals_section_background_color
 
 -analytics:

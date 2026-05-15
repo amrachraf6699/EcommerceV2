@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CartController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -27,6 +28,12 @@ Route::middleware(['auth', 'admin.access'])->group(function (): void {
         Route::get('/', 'index')->name('dashboard');
         Route::get('/dashboard/export/pdf', 'exportPdf')->middleware('permission:dashboard.view')->name('dashboard.export.pdf');
         Route::get('/dashboard/export/excel', 'exportExcel')->middleware('permission:dashboard.view')->name('dashboard.export.excel');
+    });
+
+    Route::controller(AnalyticsController::class)->group(function (): void {
+        Route::get('/analytics', 'index')->middleware('permission:analytics.view')->name('analytics.index');
+        Route::get('/analytics/export/pdf', 'exportPdf')->middleware('permission:analytics.view')->name('analytics.export.pdf');
+        Route::get('/analytics/export/excel', 'exportExcel')->middleware('permission:analytics.view')->name('analytics.export.excel');
     });
 
     Route::controller(ProfileController::class)->group(function (): void {
