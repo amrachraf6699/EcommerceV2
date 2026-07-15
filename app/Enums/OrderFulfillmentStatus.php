@@ -11,7 +11,7 @@ enum OrderFulfillmentStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::UNFULFILLED => 'غير مجهز',
+            self::UNFULFILLED => 'قيد التجهيز',
             self::SHIPPED => 'تم الشحن',
             self::DELIVERED => 'تم التسليم',
         };
