@@ -152,9 +152,9 @@
           &copy; {{ now()->year }} {{ $frontendBrand['name'] }}. {{ __('storefront.footer.rights') }}
         </p>
         <span class="footer-powered">
-          Powered by
+          {{ __('storefront.footer.powered_by') }}
           <a href="https://wa.me/201063153994" target="_blank" rel="noopener noreferrer" class="footer-credit__link">
-            Amr Achraf
+            {{ __('storefront.footer.powered_by_name') }}
           </a>
         </span>
       </div>

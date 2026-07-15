@@ -14,6 +14,11 @@ default_theme
 email
 phone
 whatsapp_phone
+whatsapp_message
+working_hours (Translatable text)
+po_box
+country
+cr_number
 address_ar
 address_en
 

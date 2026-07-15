@@ -31,6 +31,9 @@ class FrontendTemplateData
                 'address_ar' => setting('brand.address_ar'),
                 'address_en' => setting('brand.address_en'),
                 'address' => setting('brand.address_ar') ?: setting('brand.address_en'),
+                'working_hours' => setting('brand.working_hours'),
+                'country' => setting('brand.country'),
+                'cr_number' => setting('brand.cr_number'),
             ],
             'frontendSocialLinks' => $socialGroup
                 ->filter(fn ($setting) => filled($setting->value))

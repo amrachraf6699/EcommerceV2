@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ProductVariantGroundType;
 use App\Http\Requests\Admin\Concerns\NormalizesTranslatableInput;
+use App\Rules\SafeSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -38,7 +40,7 @@ class StoreProductRequest extends FormRequest
             'name' => ['required', 'array:ar,en'],
             'name.ar' => ['required', 'string', 'max:255'],
             'name.en' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')],
+            'slug' => ['required', 'string', 'max:255', new SafeSlug(), Rule::unique('products', 'slug')],
             'short_description' => ['nullable', 'array:ar,en'],
             'short_description.ar' => ['nullable', 'string'],
             'short_description.en' => ['nullable', 'string'],
@@ -59,11 +61,12 @@ class StoreProductRequest extends FormRequest
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:categories,id'],
             'variants' => ['nullable', 'array'],
-            'variants.*.size' => ['nullable', 'required_with:variants.*.color,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'string', 'max:255'],
-            'variants.*.color' => ['nullable', 'required_with:variants.*.size,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'string', 'max:255'],
-            'variants.*.price' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.stock_quantity', 'numeric', 'min:0'],
+            'variants.*.size' => ['nullable', 'required_with:variants.*.color,variants.*.ground_type,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'string', 'max:255'],
+            'variants.*.color' => ['nullable', 'required_with:variants.*.size,variants.*.ground_type,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'string', 'max:255'],
+            'variants.*.ground_type' => ['nullable', Rule::enum(ProductVariantGroundType::class)],
+            'variants.*.price' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.ground_type,variants.*.stock_quantity', 'numeric', 'min:0'],
             'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.stock_quantity' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.price', 'integer', 'min:0'],
+            'variants.*.stock_quantity' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.ground_type,variants.*.price', 'integer', 'min:0'],
             'variants.*.is_default' => ['nullable', 'boolean'],
             'variants.*.is_active' => ['nullable', 'boolean'],
             'images' => ['nullable', 'array'],

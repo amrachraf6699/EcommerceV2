@@ -144,7 +144,7 @@ class CustomerAccountTest extends TestCase
             ->assertSee('ORD-2001');
 
         $this->actingAs($customer, 'customer')
-            ->get(route('storefront.orders.show', ['locale' => 'en', 'order' => $order]))
+            ->get(route('storefront.orders.show', ['locale' => 'en', 'order' => $order->order_number]))
             ->assertOk()
             ->assertSee('Runner Pro');
 
@@ -223,7 +223,7 @@ class CustomerAccountTest extends TestCase
         $product->delete();
 
         $this->actingAs($customer, 'customer')
-            ->get(route('storefront.orders.show', ['locale' => 'en', 'order' => $order]))
+            ->get(route('storefront.orders.show', ['locale' => 'en', 'order' => $order->order_number]))
             ->assertOk()
             ->assertSee('Runner Pro');
 
@@ -231,7 +231,7 @@ class CustomerAccountTest extends TestCase
         $product->forceDelete();
 
         $this->actingAs($customer, 'customer')
-            ->get(route('storefront.orders.show', ['locale' => 'en', 'order' => $order]))
+            ->get(route('storefront.orders.show', ['locale' => 'en', 'order' => $order->order_number]))
             ->assertOk()
             ->assertSee('Runner Pro')
             ->assertSee('Deleted catalog record. Order snapshot preserved.');

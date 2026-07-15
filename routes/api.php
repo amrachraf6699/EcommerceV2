@@ -53,6 +53,6 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/checkout/orders/{orderNumber}/payment-status', [CheckoutController::class, 'paymentStatus']);
 
         Route::get('/orders', [OrderController::class, 'index']);
-        Route::get('/orders/{order}', [OrderController::class, 'show']);
+        Route::get('/orders/{order:order_number}', [OrderController::class, 'show']);
     });
 });

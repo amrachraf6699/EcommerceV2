@@ -57,29 +57,62 @@
         <h2 class="text-2xl font-black mb-6">{{ __('storefront.contact.direct_title') }}</h2>
         <div class="space-y-4 text-sm" style="color:var(--gray-light)">
           @if ($frontendBrand['email'] ?: setting('mail.mail_from_address'))
-            <div>
-              <p class="font-bold text-white mb-1">{{ __('storefront.contact.email') }}</p>
-              <a href="mailto:{{ $frontendBrand['email'] ?: setting('mail.mail_from_address') }}" class="footer-link">
-                {{ $frontendBrand['email'] ?: setting('mail.mail_from_address') }}
-              </a>
+            <div class="flex items-start gap-3">
+              <i class="bx bx-envelope mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center text-lg" style="color:var(--white)" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1 text-start">
+                <p class="mb-1 font-bold" style="color:var(--white)">{{ __('storefront.contact.email') }}</p>
+                <a href="mailto:{{ $frontendBrand['email'] ?: setting('mail.mail_from_address') }}" class="footer-link">{{ $frontendBrand['email'] ?: setting('mail.mail_from_address') }}</a>
+              </div>
             </div>
           @endif
 
           @if ($frontendBrand['phone'])
-            <div>
-              <p class="font-bold text-white mb-1">{{ __('storefront.contact.phone') }}</p>
-              <a href="tel:{{ $frontendBrand['phone'] }}" class="footer-link">{{ $frontendBrand['phone'] }}</a>
+            <div class="flex items-start gap-3">
+              <i class="bx bx-mobile mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center text-lg" style="color:var(--white)" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1 text-start">
+                <p class="mb-1 font-bold" style="color:var(--white)">{{ __('storefront.contact.mobile') }}</p>
+                <a href="tel:{{ $frontendBrand['phone'] }}" class="footer-link">{{ $frontendBrand['phone'] }}</a>
+              </div>
             </div>
           @endif
 
-          @if ($frontendBrand['address_ar'] || $frontendBrand['address_en'])
-            <div>
-              <p class="font-bold text-white mb-1">{{ __('storefront.contact.address') }}</p>
-              <p>
-                {{ app()->getLocale() === 'ar'
-                    ? ($frontendBrand['address_ar'] ?? $frontendBrand['address_en'])
-                    : ($frontendBrand['address_en'] ?? $frontendBrand['address_ar']) }}
-              </p>
+          @if (app()->getLocale() === 'ar' ? ($frontendBrand['address_ar'] ?: $frontendBrand['address_en']) : ($frontendBrand['address_en'] ?: $frontendBrand['address_ar']))
+            <div class="flex items-start gap-3">
+              <i class="bx bx-map mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center text-lg" style="color:var(--white)" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1 text-start">
+                <p class="mb-1 font-bold" style="color:var(--white)">{{ __('storefront.contact.address') }}</p>
+                <p>{{ app()->getLocale() === 'ar' ? ($frontendBrand['address_ar'] ?: $frontendBrand['address_en']) : ($frontendBrand['address_en'] ?: $frontendBrand['address_ar']) }}</p>
+              </div>
+            </div>
+          @endif
+
+          @if ($frontendBrand['working_hours'])
+            <div class="flex items-start gap-3">
+              <i class="bx bx-time-five mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center text-lg" style="color:var(--white)" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1 text-start">
+                <p class="mb-1 font-bold" style="color:var(--white)">{{ __('storefront.contact.working_hours') }}</p>
+                <p>{{ $frontendBrand['working_hours'] }}</p>
+              </div>
+            </div>
+          @endif
+
+          @if ($frontendBrand['country'])
+            <div class="flex items-start gap-3">
+              <i class="bx bx-globe mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center text-lg" style="color:var(--white)" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1 text-start">
+                <p class="mb-1 font-bold" style="color:var(--white)">{{ __('storefront.contact.country') }}</p>
+                <p>{{ $frontendBrand['country'] }}</p>
+              </div>
+            </div>
+          @endif
+
+          @if ($frontendBrand['cr_number'])
+            <div class="flex items-start gap-3">
+              <i class="bx bx-id-card mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center text-lg" style="color:var(--white)" aria-hidden="true"></i>
+              <div class="min-w-0 flex-1 text-start">
+                <p class="mb-1 font-bold" style="color:var(--white)">{{ __('storefront.contact.cr_number') }}</p>
+                <p>{{ $frontendBrand['cr_number'] }}</p>
+              </div>
             </div>
           @endif
         </div>

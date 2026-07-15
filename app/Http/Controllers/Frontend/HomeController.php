@@ -72,7 +72,7 @@ class HomeController extends Controller
     {
         $validated = $request->validate([
             'type' => ['required', 'string', 'in:featured,new,category'],
-            'category_id' => ['nullable', 'integer'],
+            'category_id' => ['nullable', 'required_if:type,category', 'integer'],
         ]);
 
         $category = null;
@@ -97,7 +97,7 @@ class HomeController extends Controller
 
     private function homeProductOptions()
     {
-        return collect([
+        $baseOptions = collect([
             [
                 'type' => 'featured',
                 'label' => __('storefront.home.featured_products'),
@@ -107,6 +107,23 @@ class HomeController extends Controller
                 'label' => __('storefront.home.new_arrivals'),
             ],
         ]);
+
+        $categoryOptions = Category::query()
+            ->where('is_active', true)
+            ->where('is_featured', true)
+            ->withCount(['products' => fn ($query) => $query->where('products.is_active', true)])
+            ->orderBy('sort_order')
+            ->orderByRaw(LocalizedQuery::expression('name'))
+            ->get()
+            ->filter(fn (Category $category) => $category->products_count > 0)
+            ->map(fn (Category $category): array => [
+                'type' => 'category',
+                'label' => $category->name,
+                'category_id' => $category->id,
+                'slug' => $category->slug,
+            ]);
+
+        return $baseOptions->merge($categoryOptions)->values();
     }
 
     private function resolveHomeProducts(string $type, ?Category $category = null)

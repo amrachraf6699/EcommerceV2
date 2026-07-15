@@ -7,6 +7,7 @@ use App\Imports\ProductBulkImportSheet;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Rules\SafeSlug;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -89,6 +90,13 @@ class ProductBulkImportService
     private function importRow(Collection $row, string $mode): string
     {
         $slug = $this->requiredString($row, 'slug', 'slug');
+
+        if (! SafeSlug::isValid($slug)) {
+            throw ValidationException::withMessages([
+                'slug' => 'The slug may contain only lowercase letters, numbers, and single hyphens between words.',
+            ]);
+        }
+
         $categories = $this->resolveCategories($row);
         $variants = $this->parseVariants($row);
         $productPayload = $this->buildProductPayload($row, $slug);
@@ -175,6 +183,14 @@ class ProductBulkImportService
 
         if ($slugs === []) {
             return collect();
+        }
+
+        $invalidSlugs = array_values(array_filter($slugs, fn (string $slug) => ! SafeSlug::isValid($slug)));
+
+        if ($invalidSlugs !== []) {
+            throw ValidationException::withMessages([
+                'category_slugs' => 'Category slugs may contain only lowercase letters, numbers, and single hyphens between words.',
+            ]);
         }
 
         $categories = Category::query()->whereIn('slug', $slugs)->get()->keyBy('slug');

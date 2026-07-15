@@ -8,6 +8,7 @@
     ?? $product->variants->first();
   $initialVariantStock = $initialVariant ? (int) $initialVariant->stock_quantity : 0;
   $initialVariantId = $initialVariant?->id;
+  $initialVariantGroundType = trim((string) ($initialVariant?->ground_type?->label() ?? ''));
   $initialVariantIsPurchasable = (bool) ($initialVariant?->is_active && $initialVariantStock > 0);
   $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
   $seoTitle = trim((string) ($product->meta_title ?: $product->name));
@@ -121,6 +122,10 @@
             unavailable-class="text-[30px]"
             row-class="flex items-center gap-3 flex-wrap"
           />
+          <p class="product-ground-type product-ground-type--detail {{ $initialVariantGroundType !== '' ? '' : 'hidden' }}" id="selectedGroundType">
+            <span>{{ __('storefront.common.ground_type') }}</span>
+            <strong>{{ $initialVariantGroundType }}</strong>
+          </p>
         </div>
       </div>
 
@@ -137,6 +142,7 @@
               data-variant-id="{{ $variant->id }}"
               data-stock-quantity="{{ (int) $variant->stock_quantity }}"
               data-is-active="{{ $variant->is_active ? '1' : '0' }}"
+              data-ground-type="{{ $variant->ground_type?->label() }}"
               onclick="selectSize(this)"
             >
               {{ $variant->display_name }}
@@ -543,9 +549,21 @@ function selectSize(button) {
   document.querySelectorAll('.size-btn').forEach((item) => item.classList.remove('active'));
   button.classList.add('active');
   selectedVariantId = button.dataset.variantId || null;
+  updateGroundType(button);
   updateStockWarning(button);
   updateReminderState(button);
   syncQuantityAndActions(button);
+}
+
+function updateGroundType(button) {
+  const groundTypeNode = document.getElementById('selectedGroundType');
+  const groundTypeValue = button?.dataset?.groundType || '';
+  const groundTypeText = groundTypeNode?.querySelector('strong');
+
+  if (!groundTypeNode || !groundTypeText) return;
+
+  groundTypeText.textContent = groundTypeValue;
+  groundTypeNode.classList.toggle('hidden', groundTypeValue === '');
 }
 
 function updateStockWarning(button) {

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\NormalizesTranslatableInput;
+use App\Rules\SafeSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -31,13 +32,14 @@ class StoreCategoryRequest extends FormRequest
             'name' => ['required', 'array:ar,en'],
             'name.ar' => ['required', 'string', 'max:255'],
             'name.en' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('categories', 'slug')],
+            'slug' => ['required', 'string', 'max:255', new SafeSlug(), Rule::unique('categories', 'slug')],
             'description' => ['nullable', 'array:ar,en'],
             'description.ar' => ['nullable', 'string'],
             'description.en' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:5120'],
             'size_guide' => ['nullable', 'image', 'max:5120'],
             'is_active' => ['nullable', 'boolean'],
+            'is_featured' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }

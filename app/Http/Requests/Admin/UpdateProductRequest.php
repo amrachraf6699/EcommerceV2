@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\NormalizesTranslatableInput;
 use App\Models\Product;
+use App\Rules\SafeSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -42,7 +43,7 @@ class UpdateProductRequest extends FormRequest
             'name' => ['required', 'array:ar,en'],
             'name.ar' => ['required', 'string', 'max:255'],
             'name.en' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product?->id)],
+            'slug' => ['required', 'string', 'max:255', new SafeSlug(), Rule::unique('products', 'slug')->ignore($product?->id)],
             'short_description' => ['nullable', 'array:ar,en'],
             'short_description.ar' => ['nullable', 'string'],
             'short_description.en' => ['nullable', 'string'],

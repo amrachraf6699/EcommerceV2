@@ -62,7 +62,6 @@
         <div class="hero-slide__inner relative max-w-7xl mx-auto px-6 min-h-screen flex flex-col {{ $sliderVerticalClasses[$verticalAlign] ?? $sliderVerticalClasses['center'] }}">
           <div class="max-w-3xl w-full flex flex-col {{ $sliderHorizontalClasses[$horizontalAlign] ?? $sliderHorizontalClasses['center'] }}" style="color:{{ $textColor }}">
             @if ($slider->title)
-              <div class="divider reveal" style="background:{{ $textColor }}"></div>
               <h1 class="text-5xl md:text-7xl font-black leading-none mb-6 reveal" style="letter-spacing:-0.04em">{{ $slider->title }}</h1>
             @endif
 
@@ -91,7 +90,6 @@
         <div class="absolute inset-0" style="background:linear-gradient(135deg,rgb(var(--overlay-rgb) / .95),rgb(var(--surface-alt-rgb) / .88))"></div>
         <div class="hero-slide__inner relative max-w-7xl mx-auto px-6 min-h-screen flex items-center justify-center text-center">
           <div class="max-w-3xl">
-            <div class="divider reveal"></div>
             <h1 class="text-5xl md:text-7xl font-black leading-none mb-6 reveal" style="letter-spacing:-0.04em">{{ $frontendBrand['name'] ?? config('app.name') }}</h1>
             <div class="flex flex-wrap gap-4 justify-center reveal">
               <a href="{{ route('storefront.catalog') }}" class="btn-primary"><span>{{ __('storefront.common.start_shopping') }}</span></a>
@@ -113,9 +111,8 @@
 
 <section class="py-16 px-6" style="background:{{ $homeBrandsSectionBackgroundColor }}">
   <div class="max-w-7xl mx-auto">
-    <div class="flex items-end justify-between gap-6 mb-12">
+    <div class="flex items-end justify-center gap-6 mb-12 text-center">
       <div>
-        <div class="divider reveal"></div>
         <h2 class="text-3xl md:text-4xl font-black mb-3 reveal" style="letter-spacing:-0.02em">{{ $categoriesTitle }}</h2>
       </div>
     </div>
@@ -129,7 +126,6 @@
 <section class="py-20 px-6 home-shop-by-size-section" style="background:{{ $homeShopBySizeSectionBackgroundColor }};border-top:1px solid var(--line-soft)">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-12 reveal">
-      <div class="divider" style="margin:0 auto 16px"></div>
       <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">{{ __('storefront.home.shop_by_size') }}</h2>
     </div>
 
@@ -154,9 +150,8 @@
 
 <section class="py-16 px-6" style="background:var(--gray-dark);border-top:1px solid var(--line-soft)">
   <div class="max-w-7xl mx-auto">
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-      <div>
-        <div class="divider reveal"></div>
+    <div class="flex flex-col items-center justify-center gap-6 mb-12 text-center">
+      <div class="w-full flex justify-center">
         <label for="home-products-trigger" class="sr-only">{{ __('storefront.home.featured_products') }}</label>
         <div
           class="home-products-filter reveal z-9999"
@@ -219,11 +214,6 @@
           </div>
         </div>
       </div>
-      <a
-        href="{{ $featuredCatalogUrl }}"
-        class="btn-outline hidden md:inline-flex reveal"
-        data-home-products-view-all
-      ><span>{{ __('storefront.common.view_all') }}</span></a>
     </div>
 
     <div
@@ -245,7 +235,6 @@
 <section class="py-20 px-6" style="background:{{ $homeNewArrivalsSectionBackgroundColor }}">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-14 reveal">
-      <div class="divider" style="margin:0 auto 16px"></div>
       <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">{{ __('storefront.home.new_arrivals') }}</h2>
       <p style="color:var(--gray-light)">{{ __('storefront.home.new_arrivals_copy') }}</p>
     </div>
@@ -257,7 +246,6 @@
 <section class="py-20 px-6 home-clients-section" style="background:var(--gray-dark);border-top:1px solid var(--line-soft)">
   <div class="max-w-7xl mx-auto">
     <div class="text-center mb-14 reveal">
-      <div class="divider" style="margin:0 auto 16px"></div>
       <h2 class="text-3xl font-black mb-3" style="letter-spacing:-0.02em">{{ __('storefront.home.clients') }}</h2>
       <p style="color:var(--gray-light)">{{ __('storefront.home.clients_copy') }}</p>
     </div>

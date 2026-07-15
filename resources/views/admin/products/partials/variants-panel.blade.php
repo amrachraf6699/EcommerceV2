@@ -1,4 +1,5 @@
 <div class="min-w-0 space-y-5" data-product-variants-fragment>
+    @php($groundTypes = \App\Enums\ProductVariantGroundType::options())
     <article class="admin-subcard min-w-0 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold text-white">نسخ المنتج</h2>
@@ -35,6 +36,7 @@
                     <tr>
                         <th class="px-4 py-3 text-right">المقاس</th>
                         <th class="px-4 py-3 text-right">اللون</th>
+                        <th class="px-4 py-3 text-right">{{ __('storefront.common.ground_type') }}</th>
                         <th class="px-4 py-3 text-right">السعر</th>
                         <th class="px-4 py-3 text-right">السعر قبل الخصم</th>
                         <th class="px-4 py-3 text-right">المخزون</th>
@@ -50,6 +52,14 @@
                         </td>
                         <td class="px-4 py-3">
                             <input class="admin-input min-w-[140px]" type="text" name="color" placeholder="اللون" form="variant-create-form" required>
+                        </td>
+                        <td class="px-4 py-3">
+                            <select class="admin-select min-w-[140px]" name="ground_type" form="variant-create-form">
+                                <option value="">{{ __('storefront.common.ground_type') }}</option>
+                                @foreach ($groundTypes as $groundTypeValue => $groundTypeLabel)
+                                    <option value="{{ $groundTypeValue }}">{{ $groundTypeLabel }}</option>
+                                @endforeach
+                            </select>
                         </td>
                         <td class="px-4 py-3">
                             <input class="admin-input min-w-[140px]" type="number" step="0.01" name="price" placeholder="السعر" form="variant-create-form" required>
@@ -80,6 +90,14 @@
                                 <input class="admin-input min-w-[140px]" type="text" name="color" value="{{ $variant->color }}" form="variant-update-{{ $variant->id }}" required>
                             </td>
                             <td class="px-4 py-3">
+                                <select class="admin-select min-w-[140px]" name="ground_type" form="variant-update-{{ $variant->id }}">
+                                    <option value="">{{ __('storefront.common.ground_type') }}</option>
+                                    @foreach ($groundTypes as $groundTypeValue => $groundTypeLabel)
+                                        <option value="{{ $groundTypeValue }}" @selected($variant->ground_type?->value === $groundTypeValue)>{{ $groundTypeLabel }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td class="px-4 py-3">
                                 <input class="admin-input min-w-[140px]" type="number" step="0.01" name="price" value="{{ $variant->price }}" form="variant-update-{{ $variant->id }}" required>
                             </td>
                             <td class="px-4 py-3">
@@ -103,7 +121,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td class="px-4 py-6 text-center text-slate-400" colspan="8">أضف أول نسخة للبدء في التسعير والمخزون.</td>
+                            <td class="px-4 py-6 text-center text-slate-400" colspan="9">أضف أول نسخة للبدء في التسعير والمخزون.</td>
                         </tr>
                     @endforelse
                 </tbody>

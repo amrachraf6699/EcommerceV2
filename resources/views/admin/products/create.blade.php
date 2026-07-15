@@ -32,8 +32,9 @@
 
         <section class="admin-tab-panel hidden min-w-0 space-y-5" data-admin-tab-panel="variants">
             @php
+                $groundTypes = \App\Enums\ProductVariantGroundType::options();
                 $oldVariants = old('variants', [
-                    ['size' => '', 'color' => '', 'price' => '', 'compare_at_price' => '', 'stock_quantity' => '', 'is_default' => '1', 'is_active' => '1'],
+                    ['size' => '', 'color' => '', 'ground_type' => '', 'price' => '', 'compare_at_price' => '', 'stock_quantity' => '', 'is_default' => '1', 'is_active' => '1'],
                 ]);
             @endphp
 
@@ -49,6 +50,7 @@
                             <th class="px-4 py-3 text-right">#</th>
                             <th class="px-4 py-3 text-right">المقاس</th>
                             <th class="px-4 py-3 text-right">اللون</th>
+                            <th class="px-4 py-3 text-right">{{ __('storefront.common.ground_type') }}</th>
                             <th class="px-4 py-3 text-right">السعر</th>
                             <th class="px-4 py-3 text-right">السعر قبل الخصم</th>
                             <th class="px-4 py-3 text-right">المخزون</th>
@@ -68,6 +70,14 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <input class="admin-input min-w-[140px]" type="text" name="variants[{{ $index }}][color]" value="{{ $variant['color'] ?? '' }}" placeholder="اللون">
+                                </td>
+                                <td class="px-4 py-3">
+                                    <select class="admin-select min-w-[140px]" name="variants[{{ $index }}][ground_type]">
+                                        <option value="">{{ __('storefront.common.ground_type') }}</option>
+                                        @foreach ($groundTypes as $groundTypeValue => $groundTypeLabel)
+                                            <option value="{{ $groundTypeValue }}" @selected(($variant['ground_type'] ?? '') === $groundTypeValue)>{{ $groundTypeLabel }}</option>
+                                        @endforeach
+                                    </select>
                                 </td>
                                 <td class="px-4 py-3">
                                     <input class="admin-input min-w-[140px]" type="number" step="0.01" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? '' }}" placeholder="السعر">
@@ -103,6 +113,14 @@
                     </td>
                     <td class="px-4 py-3">
                         <input class="admin-input min-w-[140px]" type="text" name="variants[__INDEX__][color]" placeholder="اللون">
+                    </td>
+                    <td class="px-4 py-3">
+                        <select class="admin-select min-w-[140px]" name="variants[__INDEX__][ground_type]">
+                            <option value="">{{ __('storefront.common.ground_type') }}</option>
+                            @foreach ($groundTypes as $groundTypeValue => $groundTypeLabel)
+                                <option value="{{ $groundTypeValue }}">{{ $groundTypeLabel }}</option>
+                            @endforeach
+                        </select>
                     </td>
                     <td class="px-4 py-3">
                         <input class="admin-input min-w-[140px]" type="number" step="0.01" name="variants[__INDEX__][price]" placeholder="السعر">

@@ -11,6 +11,7 @@
     $productHref = $href ?: route('storefront.products.show', ['product' => $product->slug]);
     $imageHeight ??= $list ? '160px' : '240px';
     $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
+    $groundType = trim((string) ($product->default_variant?->ground_type?->label() ?? ''));
 @endphp
 
 @if ($compact)
@@ -31,6 +32,9 @@
             <div style="padding-top:10px">
                 <p style="font-size:9px;font-weight:800;color:var(--gray-light);letter-spacing:.12em;margin-bottom:4px">{{ \Illuminate\Support\Str::limit($product->display_label, 14) }}</p>
                 <h3 style="font-weight:800;font-size:12px;line-height:1.5;margin-bottom:6px">{{ \Illuminate\Support\Str::limit($product->name, 22) }}</h3>
+                @if ($groundType !== '')
+                    <p class="product-ground-type product-ground-type--compact">{{ $groundType }}</p>
+                @endif
                 <x-frontend.price
                     :amount="$product->display_price"
                     :compare-amount="$product->display_compare_price"
@@ -70,6 +74,9 @@
             <h3 style="font-weight:700;font-size:15px;margin-bottom:8px">{{ \Illuminate\Support\Str::limit($product->name, 20) }}</h3>
             @if ($product->short_description)
                 <p class="text-sm leading-7 mb-3" style="color:var(--gray-light)">{{ \Illuminate\Support\Str::limit($product->short_description, 80) }}</p>
+            @endif
+            @if ($groundType !== '')
+                <p class="product-ground-type">{{ $groundType }}</p>
             @endif
             <x-frontend.price
                 :amount="$product->display_price"

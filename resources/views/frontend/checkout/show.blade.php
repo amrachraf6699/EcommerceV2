@@ -2,7 +2,8 @@
   $title = __('storefront.checkout');
   $summaryCurrency = $cart?->currency ?? 'BHD';
   $checkoutWhatsappPhone = preg_replace('/\D+/', '', (string) ($frontendBrand['whatsapp_phone'] ?? ''));
-  $checkoutWhatsappMessage = rawurlencode(__('storefront.checkout_whatsapp_quote_message'));
+  $checkoutWhatsappMessageText = trim((string) setting('whatsapp_message', ''));
+  $checkoutWhatsappMessage = rawurlencode($checkoutWhatsappMessageText !== '' ? $checkoutWhatsappMessageText : __('storefront.checkout_whatsapp_quote_message'));
 @endphp
 
 @extends('frontend.layouts.app')
@@ -278,7 +279,7 @@
               </div>
               @if ($checkoutWhatsappPhone)
                 <a
-                  href="https://wa.me/{{ $checkoutWhatsappPhone }}?text=مرحباً، أنا في صفحة إتمام الشراء وأحتاج مساعدة بخصوص تكلفة الطلب."
+                  href="https://wa.me/{{ $checkoutWhatsappPhone }}?text={{ $checkoutWhatsappMessage }}"
                   class="checkout-whatsapp-quote"
                   target="_blank"
                   rel="noreferrer"

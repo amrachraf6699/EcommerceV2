@@ -58,6 +58,13 @@
                     القسم ظاهر ونشط
                 </label>
             </div>
+            <div class="space-y-2 lg:col-span-2">
+                <span class="text-sm font-bold text-white">التمييز</span>
+                <label class="flex items-center gap-3 border border-white/10 bg-slate-950/40 px-4 py-3 text-slate-200">
+                    <input class="admin-checkbox" type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $category->is_featured ?? false))>
+                    قسم مميز يظهر في اختيارات الصفحة الرئيسية
+                </label>
+            </div>
         </div>
     </section>
 </div>

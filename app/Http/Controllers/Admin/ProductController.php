@@ -122,6 +122,7 @@ class ProductController extends Controller
                 if (
                     blank($variantData['size'] ?? null)
                     && blank($variantData['color'] ?? null)
+                    && blank($variantData['ground_type'] ?? null)
                     && blank($variantData['price'] ?? null)
                     && blank($variantData['stock_quantity'] ?? null)
                 ) {
@@ -134,6 +135,7 @@ class ProductController extends Controller
                 $variant = $product->variants()->create([
                     'size' => $variantData['size'] ?? null,
                     'color' => $variantData['color'] ?? null,
+                    'ground_type' => $variantData['ground_type'] ?? null,
                     'price' => $variantData['price'],
                     'compare_at_price' => $variantData['compare_at_price'] ?? null,
                     'stock_quantity' => $variantData['stock_quantity'],

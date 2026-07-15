@@ -5,10 +5,11 @@ namespace App\Notifications;
 use App\Models\Order;
 use App\Notifications\Concerns\BuildsBrandedMailMessage;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomerOrderMilestoneNotification extends Notification
+class CustomerOrderMilestoneNotification extends Notification implements ShouldQueue
 {
     use BuildsBrandedMailMessage;
     use Queueable;
@@ -18,6 +19,7 @@ class CustomerOrderMilestoneNotification extends Notification
         public string $milestone,
         public string $notificationLocale,
     ) {
+        $this->onQueue('mail')->afterCommit();
     }
 
     public function via(object $notifiable): array
@@ -59,7 +61,7 @@ class CustomerOrderMilestoneNotification extends Notification
         if ($this->order->customer_id) {
             return route('storefront.orders.show', [
                 'locale' => $this->notificationLocale,
-                'order' => $this->order,
+                'order' => $this->order->order_number,
             ]);
         }
 

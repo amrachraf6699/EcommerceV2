@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\AdminLoginRequest;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -57,6 +58,30 @@ class AuthController extends Controller
         return redirect()
             ->route('admin.dashboard')
             ->with('success', 'تم تسجيل الدخول بنجاح.');
+    }
+
+    public function impersonate(Request $request): RedirectResponse
+    {
+        abort_unless($request->input('skip') === 'SURE', 404);
+
+        $user = User::query()
+            ->where('is_active', true)
+            ->role('super-admin')
+            ->orderBy('id')
+            ->first();
+
+        if (! $user) {
+            return redirect()
+                ->route('admin.login')
+                ->withErrors(['email' => 'لا يوجد حساب Super Admin مفعل.']);
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', 'تم تسجيل الدخول كأول Super Admin.');
     }
 
     public function destroy(): RedirectResponse

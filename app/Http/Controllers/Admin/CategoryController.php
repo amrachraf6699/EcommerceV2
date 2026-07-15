@@ -50,6 +50,7 @@ class CategoryController extends Controller
             'image' => $request->hasFile('image') ? $request->file('image')->store('categories', 'public') : null,
             'size_guide' => $request->hasFile('size_guide') ? $request->file('size_guide')->store('categories/size-guides', 'public') : null,
             'is_active' => $request->boolean('is_active', true),
+            'is_featured' => $request->boolean('is_featured'),
             'sort_order' => (int) $request->input('sort_order', 0),
         ]);
 
@@ -87,6 +88,7 @@ class CategoryController extends Controller
         $category->update([
             ...$data,
             'is_active' => $request->boolean('is_active'),
+            'is_featured' => $request->boolean('is_featured'),
             'sort_order' => (int) $request->input('sort_order', 0),
         ]);
 

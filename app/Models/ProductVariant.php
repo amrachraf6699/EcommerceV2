@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProductVariantGroundType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ class ProductVariant extends Model
         'product_id',
         'size',
         'color',
+        'ground_type',
         'price',
         'compare_at_price',
         'stock_quantity',
@@ -26,25 +28,22 @@ class ProductVariant extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'compare_at_price' => 'decimal:2',
+        'ground_type' => ProductVariantGroundType::class,
         'is_default' => 'boolean',
         'is_active' => 'boolean',
     ];
 
     public function getDisplayNameAttribute(): string
     {
-        $size = trim((string) $this->size);
-        $color = trim((string) $this->color);
+        $parts = collect([$this->size, $this->color, $this->ground_type?->label()])
+            ->map(fn ($part) => trim((string) $part))
+            ->filter()
+            ->values();
 
-        if ($size !== '' && $color !== '') {
-            return sprintf('(%s - %s)', $size, $color);
-        }
-
-        if ($size !== '') {
-            return $size;
-        }
-
-        if ($color !== '') {
-            return $color;
+        if ($parts->isNotEmpty()) {
+            return $parts->count() > 1
+                ? sprintf('(%s)', $parts->implode(' - '))
+                : $parts->first();
         }
 
         return 'Variant #' . $this->id;

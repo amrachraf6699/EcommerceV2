@@ -95,7 +95,7 @@ Route::prefix('{locale}')
             Route::put('/account/password', [CustomerProfileController::class, 'updatePassword'])->name('storefront.profile.password.update');
 
             Route::get('/account/orders', [CustomerOrderController::class, 'index'])->name('storefront.orders.index');
-            Route::get('/account/orders/{order}', [CustomerOrderController::class, 'show'])->name('storefront.orders.show');
+            Route::get('/account/orders/{order:order_number}', [CustomerOrderController::class, 'show'])->name('storefront.orders.show');
 
             Route::get('/account/addresses', [CustomerAddressController::class, 'index'])->name('storefront.addresses.index');
             Route::post('/account/addresses', [CustomerAddressController::class, 'store'])->name('storefront.addresses.store');

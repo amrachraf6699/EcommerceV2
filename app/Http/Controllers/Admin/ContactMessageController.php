@@ -45,7 +45,7 @@ class ContactMessageController extends Controller
     {
         $validated = $request->validated();
 
-        Mail::to($contactMessage->email)->send(new ContactMessageReplyMail(
+        Mail::to($contactMessage->email)->queue(new ContactMessageReplyMail(
             $contactMessage,
             $validated['subject'],
             $validated['message']

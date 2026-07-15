@@ -1,0 +1,119 @@
+{
+  "_index-B0NSdy3p.js": {
+    "file": "assets/index-B0NSdy3p.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_index-Bt5SSJxm.js": {
+    "file": "assets/index-Bt5SSJxm.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_index-Cnws8KV-.js": {
+    "file": "assets/index-Cnws8KV-.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_index-DMQUMqyB.js": {
+    "file": "assets/index-DMQUMqyB.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_index-DQ5MinZ-.js": {
+    "file": "assets/index-DQ5MinZ-.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_index-JjcgOiJ9.js": {
+    "file": "assets/index-JjcgOiJ9.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_index-VugMZg8V.js": {
+    "file": "assets/index-VugMZg8V.js",
+    "name": "index",
+    "isDynamicEntry": true
+  },
+  "_tinymce-DFyVbr5v.js": {
+    "file": "assets/tinymce-DFyVbr5v.js",
+    "name": "tinymce",
+    "isDynamicEntry": true
+  },
+  "node_modules/tinymce/icons/default/icons.min.js": {
+    "file": "assets/icons.min-DFnxavVi.js",
+    "name": "icons.min",
+    "src": "node_modules/tinymce/icons/default/icons.min.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/tinymce/models/dom/model.min.js": {
+    "file": "assets/model.min-DcuJvEy3.js",
+    "name": "model.min",
+    "src": "node_modules/tinymce/models/dom/model.min.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/tinymce/skins/content/default/content.js": {
+    "file": "assets/content-COboIpWU.js",
+    "name": "content",
+    "src": "node_modules/tinymce/skins/content/default/content.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/tinymce/skins/ui/oxide/content.js": {
+    "file": "assets/content-Cb37K4f6.js",
+    "name": "content",
+    "src": "node_modules/tinymce/skins/ui/oxide/content.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/tinymce/skins/ui/oxide/skin.js": {
+    "file": "assets/skin-GC0gEaT0.js",
+    "name": "skin",
+    "src": "node_modules/tinymce/skins/ui/oxide/skin.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/tinymce/themes/silver/theme.min.js": {
+    "file": "assets/theme.min-ChFSqh5P.js",
+    "name": "theme.min",
+    "src": "node_modules/tinymce/themes/silver/theme.min.js",
+    "isDynamicEntry": true
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-BwAD5wsp.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/css/storefront.css": {
+    "file": "assets/storefront-Ceh7ZV3a.css",
+    "src": "resources/css/storefront.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BD_EJ9Ol.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "_tinymce-DFyVbr5v.js",
+      "node_modules/tinymce/icons/default/icons.min.js",
+      "node_modules/tinymce/themes/silver/theme.min.js",
+      "node_modules/tinymce/models/dom/model.min.js",
+      "node_modules/tinymce/skins/ui/oxide/skin.js",
+      "node_modules/tinymce/skins/ui/oxide/content.js",
+      "node_modules/tinymce/skins/content/default/content.js",
+      "_index-Cnws8KV-.js",
+      "_index-VugMZg8V.js",
+      "_index-DQ5MinZ-.js",
+      "_index-JjcgOiJ9.js",
+      "_index-DMQUMqyB.js",
+      "_index-B0NSdy3p.js",
+      "_index-Bt5SSJxm.js"
+    ],
+    "css": [
+      "assets/app-BP6osOyh.css"
+    ]
+  },
+  "resources/js/storefront.js": {
+    "file": "assets/storefront-BqALcPCq.js",
+    "name": "storefront",
+    "src": "resources/js/storefront.js",
+    "isEntry": true
+  }
+}

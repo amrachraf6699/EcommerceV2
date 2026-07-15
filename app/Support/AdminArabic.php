@@ -90,6 +90,11 @@ class AdminArabic
             'customer_order_delivered_notification_enabled' => 'إشعار العميل عند تسليم الطلب',
             'customer_order_canceled_notification_enabled' => 'إشعار العميل عند إلغاء الطلب',
             'admin_new_order_notification_enabled' => 'إشعار الإدارة عند وصول طلب جديد',
+            'whatsapp_message' => 'رسالة الواتساب الخاصة بالتواصل',
+            'working_hours' => 'ساعات العمل',
+            'po_box' => 'صندوق البريد',
+            'country' => 'الدولة',
+            'cr_number' => 'رقم السجل التجاري',
         ][$key] ?? ($fallback ?: Str::title(str_replace('_', ' ', $key)));
     }
 
@@ -153,6 +158,10 @@ class AdminArabic
             'customer_order_delivered_notification_enabled' => 'إرسال إشعار للعميل عند انتقال حالة التجهيز إلى delivered.',
             'customer_order_canceled_notification_enabled' => 'إرسال إشعار للعميل عند انتقال الطلب أو الدفع إلى canceled.',
             'admin_new_order_notification_enabled' => 'إنشاء إشعار داخل لوحة الإدارة عند وصول طلب جديد للمسؤولين الذين لديهم صلاحية عرض الطلبات.',
+            'working_hours' => 'ساعات العمل التي تظهر لزوار المتجر.',
+            'po_box' => 'رقم صندوق البريد الخاص بالعلامة التجارية.',
+            'country' => 'الدولة التي تعمل فيها العلامة التجارية.',
+            'cr_number' => 'رقم السجل التجاري الخاص بالعلامة التجارية.',
         ][$key] ?? $fallback;
     }
 

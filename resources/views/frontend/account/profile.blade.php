@@ -95,7 +95,7 @@
 
         <div class="space-y-4">
           @forelse ($recentOrders as $order)
-            <a href="{{ route('storefront.orders.show', $order) }}" class="block border p-5 transition hover:-translate-y-1" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
+            <a href="{{ route('storefront.orders.show', ['order' => $order->order_number]) }}" class="block border p-5 transition hover:-translate-y-1" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
               <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p class="text-sm font-bold" style="letter-spacing:0.08em;color:var(--gray-light)">{{ $order->order_number }}</p>

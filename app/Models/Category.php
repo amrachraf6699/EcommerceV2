@@ -24,11 +24,13 @@ class Category extends Model
         'image',
         'size_guide',
         'is_active',
+        'is_featured',
         'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_featured' => 'boolean',
     ];
 
     public function products(): BelongsToMany

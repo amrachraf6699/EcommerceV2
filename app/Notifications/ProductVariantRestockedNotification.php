@@ -18,6 +18,7 @@ class ProductVariantRestockedNotification extends Notification implements Should
         public ProductVariant $variant,
         public string $reminderLocale,
     ) {
+        $this->onQueue('mail')->afterCommit();
     }
 
     public function via(object $notifiable): array

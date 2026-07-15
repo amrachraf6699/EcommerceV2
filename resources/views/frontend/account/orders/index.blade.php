@@ -16,7 +16,7 @@
 
       <div class="space-y-5">
         @forelse ($orders as $order)
-          <a href="{{ route('storefront.orders.show', $order) }}" class="block border p-6 transition hover:-translate-y-1" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
+          <a href="{{ route('storefront.orders.show', ['order' => $order->order_number]) }}" class="block border p-6 transition hover:-translate-y-1" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
             <div class="grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-center">
               <div>
                 <p class="text-xs font-bold mb-2" style="letter-spacing:0.14em;color:var(--gray-light)">{{ __('storefront.account.order_number') }}</p>

@@ -49,7 +49,12 @@
                                     @endif
                                     <div>
                                         <p class="font-bold text-white">{{ $category->name }}</p>
-                                        <p class="mt-1 text-xs text-slate-400">{{ $category->is_active ? 'مفعل' : 'غير مفعل' }}</p>
+                                        <p class="mt-1 text-xs text-slate-400">
+                                            {{ $category->is_active ? 'مفعل' : 'غير مفعل' }}
+                                            @if ($category->is_featured)
+                                                <span class="text-amber-300">/ مميز</span>
+                                            @endif
+                                        </p>
                                     </div>
                                 </div>
                             </td>

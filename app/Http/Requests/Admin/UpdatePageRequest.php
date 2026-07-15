@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\NormalizesTranslatableInput;
 use App\Models\Page;
+use App\Rules\SafeSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -35,7 +36,7 @@ class UpdatePageRequest extends FormRequest
             'title' => ['required', 'array:ar,en'],
             'title.ar' => ['required', 'string', 'max:255'],
             'title.en' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('pages', 'slug')->ignore($page?->id)],
+            'slug' => ['required', 'string', 'max:255', new SafeSlug(), Rule::unique('pages', 'slug')->ignore($page?->id)],
             'content' => ['nullable', 'array:ar,en'],
             'content.ar' => ['nullable', 'string'],
             'content.en' => ['nullable', 'string'],

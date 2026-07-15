@@ -5,16 +5,18 @@ namespace App\Notifications;
 use App\Models\WelcomeCoupon;
 use App\Notifications\Concerns\BuildsBrandedMailMessage;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class WelcomeCouponIssuedNotification extends Notification
+class WelcomeCouponIssuedNotification extends Notification implements ShouldQueue
 {
     use BuildsBrandedMailMessage;
     use Queueable;
 
     public function __construct(public WelcomeCoupon $coupon)
     {
+        $this->onQueue('mail')->afterCommit();
     }
 
     public function via(object $notifiable): array
