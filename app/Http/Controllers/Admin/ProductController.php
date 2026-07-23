@@ -103,6 +103,7 @@ class ProductController extends Controller
                 ...Arr::only($validated, [
                     'name',
                     'slug',
+                    'label',
                     'short_description',
                     'description',
                     'notes',

@@ -41,6 +41,7 @@ class AdminCatalogOrdersCartsTest extends TestCase
         $this->actingAs($this->superAdmin)->post(route('admin.products.store'), [
             'name' => 'Glow Serum',
             'slug' => 'glow-serum',
+            'label' => 'Best seller',
             'short_description' => 'Short',
             'description' => 'Long',
             'meta_title' => 'Glow SEO',
@@ -74,6 +75,7 @@ class AdminCatalogOrdersCartsTest extends TestCase
         ])->assertRedirect();
 
         $product = Product::firstOrFail();
+        $this->assertSame('Best seller', $product->label);
         $this->assertTrue($product->categories->contains($category));
         $this->assertCount(2, $product->variants);
         $this->assertCount(2, $product->images);
@@ -89,9 +91,12 @@ class AdminCatalogOrdersCartsTest extends TestCase
         $this->actingAs($this->superAdmin)->put(route('admin.products.update', $product), [
             'name' => 'Glow Serum Updated',
             'slug' => 'glow-serum-updated',
+            'label' => 'Updated label',
             'categories' => [$category->id],
             'is_active' => '1',
         ])->assertRedirect();
+
+        $this->assertSame('Updated label', $product->fresh()->label);
 
         $this->actingAs($this->superAdmin)->get(route('admin.products.index', ['category' => $category->id]))
             ->assertOk()

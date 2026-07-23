@@ -40,7 +40,9 @@ class FrontendCatalogPresenter
         $product->setAttribute('display_compare_price', $variant?->compare_at_price);
         $product->setAttribute('display_stock_quantity', (int) $activeVariants->sum('stock_quantity'));
         $product->setAttribute('display_is_sold_out', $isSoldOut);
-        $product->setAttribute('display_label', $product->categories->pluck('name')->first() ?: (string) setting('brand.name', config('app.name')));
+        $product->setAttribute('display_label', filled($product->label)
+            ? $product->label
+            : ($product->categories->pluck('name')->first() ?: (string) setting('brand.name', config('app.name'))));
         $product->setAttribute(
             'display_badge',
             $isSoldOut

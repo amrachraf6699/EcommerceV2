@@ -187,6 +187,7 @@ class ChatbotController extends Controller
             'id' => $product->id,
             'name' => $product->name,
             'slug' => $product->slug,
+            'label' => $product->display_label,
             'image_url' => $product->primary_image_url,
             'price_label' => $product->display_price !== null
                 ? storefront_format_money((float) $product->display_price, 'BHD')

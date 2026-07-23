@@ -53,6 +53,11 @@
                 <span class="text-sm font-bold text-white">الرابط</span>
                 <input class="admin-input" type="text" name="slug" value="{{ old('slug', $product?->slug) }}" required>
             </label>
+
+            <label class="space-y-2">
+                <span class="text-sm font-bold text-white">التصنيف الظاهر للمنتج</span>
+                <input class="admin-input" type="text" name="label" value="{{ old('label', $product?->label) }}" maxlength="255" placeholder="مثال: مجموعة الصيف">
+            </label>
         </div>
 
         <label class="space-y-2">

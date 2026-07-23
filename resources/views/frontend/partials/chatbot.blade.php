@@ -278,6 +278,13 @@
       title.className = 'chatbot-card__title';
       title.textContent = product.name;
 
+      if (product.label) {
+        const label = document.createElement('span');
+        label.className = 'chatbot-choice-button__meta';
+        label.textContent = product.label;
+        body.appendChild(label);
+      }
+
       const meta = document.createElement('span');
       meta.className = 'chatbot-choice-button__meta';
       meta.textContent = product.badge

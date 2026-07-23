@@ -44,6 +44,7 @@ class UpdateProductRequest extends FormRequest
             'name.ar' => ['required', 'string', 'max:255'],
             'name.en' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', new SafeSlug(), Rule::unique('products', 'slug')->ignore($product?->id)],
+            'label' => ['nullable', 'string', 'max:255'],
             'short_description' => ['nullable', 'array:ar,en'],
             'short_description.ar' => ['nullable', 'string'],
             'short_description.en' => ['nullable', 'string'],
