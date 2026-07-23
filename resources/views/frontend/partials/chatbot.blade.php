@@ -69,7 +69,7 @@
   .chatbot-choice-button--card { min-height:118px; padding:0; overflow:hidden; }
   .chatbot-choice-button--card .chatbot-choice-button__meta { margin-top:4px; }
   .chatbot-card { display:flex; flex-direction:column; min-height:118px; }
-  .chatbot-card__media { aspect-ratio:1 / 1; width:100%; max-height:72px; background:rgb(var(--white-rgb) / .05); border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:center; overflow:hidden; color:var(--gray-light); font-size:10px; }
+  .chatbot-card__media { position:relative; aspect-ratio:1 / 1; width:100%; max-height:72px; background:rgb(var(--white-rgb) / .05); border-bottom:1px solid var(--line-soft); display:flex; align-items:center; justify-content:center; overflow:hidden; color:var(--gray-light); font-size:10px; }
   .chatbot-card__media img { width:100%; height:100%; object-fit:cover; }
   .chatbot-card__body { padding:8px 8px 10px; }
   .chatbot-card__title { display:block; font-size:11px; font-weight:800; line-height:1.4; }
@@ -223,6 +223,13 @@
         media.textContent = 'IMG';
       }
 
+      if (product.label) {
+        const label = document.createElement('span');
+        label.className = 'badge';
+        label.textContent = product.label;
+        media.appendChild(label);
+      }
+
       const body = document.createElement('div');
       body.className = 'chatbot-card__body';
 
@@ -277,13 +284,6 @@
       const title = document.createElement('span');
       title.className = 'chatbot-card__title';
       title.textContent = product.name;
-
-      if (product.label) {
-        const label = document.createElement('span');
-        label.className = 'chatbot-choice-button__meta';
-        label.textContent = product.label;
-        body.appendChild(label);
-      }
 
       const meta = document.createElement('span');
       meta.className = 'chatbot-choice-button__meta';

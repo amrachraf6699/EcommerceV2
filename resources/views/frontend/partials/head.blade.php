@@ -204,6 +204,8 @@
   .btn-outline:hover::before { transform:translateY(0); }
   .btn-outline span { position:relative; z-index:1; }
   .badge { position:absolute; top:12px; right:12px; background:var(--white); color:var(--black); font-size:11px; font-weight:800; padding:4px 10px; letter-spacing:.1em; z-index:2; }
+  .badge-stack { position:absolute; top:12px; right:12px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; z-index:2; }
+  .badge-stack .badge { position:static; }
   .badge--sold-out { background:#ff4d4d; color:#fff; }
   .divider { width:60px; height:2px; background:var(--white); margin-bottom:16px; }
   .product-card,.related-card,.mini-card { border:1px solid var(--line-soft); transition:all .4s cubic-bezier(.4,0,.2,1); position:relative; overflow:hidden; background:var(--gray-dark); }
@@ -368,6 +370,7 @@
   html[dir="ltr"] .whatsapp-float { left:auto; right:24px; }
   html[dir="ltr"] .cat-tag { right:auto; left:20px; }
   html[dir="ltr"] .badge { right:auto; left:12px; }
+  html[dir="ltr"] .badge-stack { right:auto; left:12px; align-items:flex-start; }
   html[dir="ltr"] .search-input,
   html[dir="ltr"] .input-field { direction:ltr; }
   html[dir="ltr"] .product-overlay,

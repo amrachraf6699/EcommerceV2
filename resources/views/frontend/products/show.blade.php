@@ -75,8 +75,15 @@
           <div id="mainImg" class="w-full h-full flex items-center justify-center text-neutral-500">{{ __('storefront.common.no_image') }}</div>
         @endif
 
-        @if ($isSoldOut)
-          <span class="badge badge--sold-out">{{ __('storefront.badges.sold_out') }}</span>
+        @if ($product->label || $isSoldOut)
+          <div class="badge-stack">
+            @if ($product->label)
+              <span class="badge">{{ $product->label }}</span>
+            @endif
+            @if ($isSoldOut)
+              <span class="badge badge--sold-out">{{ __('storefront.badges.sold_out') }}</span>
+            @endif
+          </div>
         @endif
 
         @if ($galleryImages->count() > 1)
@@ -99,7 +106,6 @@
 
     <div id="infoCol">
       <div class="reveal">
-        <p class="text-xs font-black mb-3" style="color:var(--gray-light);letter-spacing:0.25em">{{ $product->display_label }}</p>
         <h1 class="text-4xl md:text-5xl font-black mb-4" style="letter-spacing:-0.03em">{{ $product->name }}</h1>
         <p class="leading-8 text-base mb-6" style="color:var(--gray-light)">{{ $product->short_description }}</p>
         @if ($product->notes)

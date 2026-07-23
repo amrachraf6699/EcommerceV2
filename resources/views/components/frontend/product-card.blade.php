@@ -24,13 +24,19 @@
                     <div class="w-full h-full flex items-center justify-center text-xs text-neutral-500">{{ __('storefront.common.no_image') }}</div>
                 @endif
 
-                @if ($product->display_badge)
-                    <span class="badge {{ $isSoldOut ? 'badge--sold-out' : '' }}">{{ $product->display_badge }}</span>
+                @if ($product->label || $product->display_badge)
+                    <div class="badge-stack">
+                        @if ($product->label)
+                            <span class="badge">{{ $product->label }}</span>
+                        @endif
+                        @if ($product->display_badge)
+                            <span class="badge {{ $isSoldOut ? 'badge--sold-out' : '' }}">{{ $product->display_badge }}</span>
+                        @endif
+                    </div>
                 @endif
             </div>
 
             <div style="padding-top:10px">
-                <p style="font-size:9px;font-weight:800;color:var(--gray-light);letter-spacing:.12em;margin-bottom:4px">{{ \Illuminate\Support\Str::limit($product->display_label, 14) }}</p>
                 <h3 style="font-weight:800;font-size:12px;line-height:1.5;margin-bottom:6px">{{ \Illuminate\Support\Str::limit($product->name, 22) }}</h3>
                 @if ($groundType !== '')
                     <p class="product-ground-type product-ground-type--compact">{{ $groundType }}</p>
@@ -58,8 +64,15 @@
                 <div class="w-full h-full flex items-center justify-center text-sm text-neutral-500">{{ __('storefront.common.no_image') }}</div>
             @endif
 
-            @if ($product->display_badge)
-                <span class="badge {{ $isSoldOut ? 'badge--sold-out' : '' }}">{{ $product->display_badge }}</span>
+            @if ($product->label || $product->display_badge)
+                <div class="badge-stack">
+                    @if ($product->label)
+                        <span class="badge">{{ $product->label }}</span>
+                    @endif
+                    @if ($product->display_badge)
+                        <span class="badge {{ $isSoldOut ? 'badge--sold-out' : '' }}">{{ $product->display_badge }}</span>
+                    @endif
+                </div>
             @endif
 
             @if ($showOverlay)
@@ -70,7 +83,6 @@
         </div>
 
         <div style="padding:16px;{{ $list ? 'flex:1;' : '' }}">
-            <p style="font-size:11px;font-weight:700;color:var(--gray-light);letter-spacing:0.12em;margin-bottom:4px">{{ $product->display_label }}</p>
             <h3 style="font-weight:700;font-size:15px;margin-bottom:8px">{{ \Illuminate\Support\Str::limit($product->name, 20) }}</h3>
             @if ($product->short_description)
                 <p class="text-sm leading-7 mb-3" style="color:var(--gray-light)">{{ \Illuminate\Support\Str::limit($product->short_description, 80) }}</p>
