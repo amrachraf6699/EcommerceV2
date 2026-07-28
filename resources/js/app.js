@@ -2,13 +2,74 @@ import './bootstrap';
 import 'flatpickr/dist/flatpickr.min.css';
 import 'tom-select/dist/css/tom-select.default.css';
 import 'filepond/dist/filepond.min.css';
+import '@melloware/coloris/dist/coloris.css';
 
 import ApexCharts from 'apexcharts';
 import flatpickr from 'flatpickr';
 import * as FilePond from 'filepond';
 import TomSelect from 'tom-select';
+import Coloris from '@melloware/coloris';
 
 let tinyMceLoader;
+let colorisInitialized = false;
+
+const normalizeHexColor = (value) => {
+    const match = String(value || '').trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i);
+
+    if (! match) {
+        return null;
+    }
+
+    let hex = match[1].toUpperCase();
+
+    if (hex.length === 3) {
+        hex = Array.from(hex, (part) => part + part).join('');
+    }
+
+    return `#${hex}`;
+};
+
+const initColorPickers = () => {
+    const inputs = document.querySelectorAll('[data-color-picker]');
+
+    if (! inputs.length) {
+        return;
+    }
+
+    if (! colorisInitialized) {
+        Coloris.init();
+        colorisInitialized = true;
+    }
+
+    Coloris({
+        el: '[data-color-picker]',
+        theme: 'large',
+        themeMode: 'dark',
+        format: 'hex',
+        alpha: false,
+        onChange: (color, input) => {
+            if (input instanceof HTMLInputElement) {
+                input.value = normalizeHexColor(color) || color;
+            }
+        },
+    });
+
+    inputs.forEach((input) => {
+        if (input.dataset.colorPickerEnhanced === 'true') {
+            return;
+        }
+
+        input.addEventListener('blur', () => {
+            const normalized = normalizeHexColor(input.value);
+
+            if (normalized) {
+                input.value = normalized;
+            }
+        });
+
+        input.dataset.colorPickerEnhanced = 'true';
+    });
+};
 
 const initTomSelect = () => {
     document.querySelectorAll('[data-tom-select]').forEach((element) => {
@@ -415,6 +476,7 @@ const refreshProductEditorFragments = (payload) => {
     initLoadingForms();
     initConfirmedForms();
     initAjaxForms();
+    initColorPickers();
 };
 
 const initAjaxForms = () => {
@@ -542,6 +604,7 @@ const initProductVariantRows = () => {
             wrapper.innerHTML = template.innerHTML.replaceAll('__INDEX__', String(nextIndex));
             list.appendChild(wrapper.firstElementChild);
             nextIndex += 1;
+            initColorPickers();
             updateRows();
         });
 
@@ -944,6 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebarToggle();
     initAdminTabs();
     initAjaxForms();
+    initColorPickers();
     initProductVariantRows();
     initDashboardRangeFilter();
     initDashboardCharts();

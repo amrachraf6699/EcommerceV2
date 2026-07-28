@@ -298,6 +298,7 @@
   .color-btn { width:36px; height:36px; border:2px solid transparent; transition:all .2s; position:relative; }
   .color-btn.active { border-color:var(--white); }
   .color-btn::after { content:''; position:absolute; inset:3px; background:inherit; }
+  .frontend-color-swatch { display:inline-block; width:14px; height:14px; flex:none; border:1px solid rgb(var(--white-rgb) / .45); border-radius:999px; background:var(--variant-color); box-shadow:inset 0 0 0 1px rgb(var(--black-rgb) / .12); vertical-align:middle; }
   .tab-btn { padding:14px 0; font-weight:700; font-size:14px; color:var(--gray-light); border-bottom:2px solid transparent; transition:all .2s; background:none; border-top:none; border-right:none; border-left:none; }
   .tab-content { display:none; }
   .tab-content.active { display:block; }

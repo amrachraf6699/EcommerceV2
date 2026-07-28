@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\ProductVariantGroundType;
 use App\Http\Requests\Admin\Concerns\NormalizesTranslatableInput;
+use App\Models\ProductVariant;
 use App\Rules\SafeSlug;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -32,6 +33,24 @@ class StoreProductRequest extends FormRequest
         if (! $this->filled('slug') && filled($this->input('name.ar'))) {
             $this->merge(['slug' => Str::slug((string) $this->input('name.ar'))]);
         }
+
+        $variants = collect($this->input('variants', []))
+            ->map(function ($variant): mixed {
+                if (! is_array($variant)) {
+                    return $variant;
+                }
+
+                $normalizedColor = ProductVariant::normalizeHexColor($variant['color'] ?? null);
+
+                if ($normalizedColor !== null) {
+                    $variant['color'] = $normalizedColor;
+                }
+
+                return $variant;
+            })
+            ->all();
+
+        $this->merge(['variants' => $variants]);
     }
 
     public function rules(): array
@@ -63,7 +82,7 @@ class StoreProductRequest extends FormRequest
             'categories.*' => ['integer', 'exists:categories,id'],
             'variants' => ['nullable', 'array'],
             'variants.*.size' => ['nullable', 'required_with:variants.*.color,variants.*.ground_type,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'string', 'max:255'],
-            'variants.*.color' => ['nullable', 'required_with:variants.*.size,variants.*.ground_type,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'string', 'max:255'],
+            'variants.*.color' => ['nullable', 'required_with:variants.*.size,variants.*.ground_type,variants.*.price,variants.*.stock_quantity,variants.*.compare_at_price', 'regex:/^#[A-F0-9]{6}$/'],
             'variants.*.ground_type' => ['nullable', Rule::enum(ProductVariantGroundType::class)],
             'variants.*.price' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.ground_type,variants.*.stock_quantity', 'numeric', 'min:0'],
             'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0'],

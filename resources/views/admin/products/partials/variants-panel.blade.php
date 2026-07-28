@@ -51,7 +51,7 @@
                             <input class="admin-input min-w-[140px]" type="text" name="size" placeholder="المقاس" form="variant-create-form" required>
                         </td>
                         <td class="px-4 py-3">
-                            <input class="admin-input min-w-[140px]" type="text" name="color" placeholder="اللون" form="variant-create-form" required>
+                            <input class="admin-input min-w-[140px]" type="text" name="color" placeholder="#RRGGBB" form="variant-create-form" data-color-picker required>
                         </td>
                         <td class="px-4 py-3">
                             <select class="admin-select min-w-[140px]" name="ground_type" form="variant-create-form">
@@ -87,7 +87,7 @@
                                 <input class="admin-input min-w-[140px]" type="text" name="size" value="{{ $variant->size }}" form="variant-update-{{ $variant->id }}" required>
                             </td>
                             <td class="px-4 py-3">
-                                <input class="admin-input min-w-[140px]" type="text" name="color" value="{{ $variant->color }}" form="variant-update-{{ $variant->id }}" required>
+                                <input class="admin-input min-w-[140px]" type="text" name="color" value="{{ $variant->color }}" placeholder="#RRGGBB" form="variant-update-{{ $variant->id }}" @if($variant->color_hex) data-color-picker @endif required>
                             </td>
                             <td class="px-4 py-3">
                                 <select class="admin-select min-w-[140px]" name="ground_type" form="variant-update-{{ $variant->id }}">

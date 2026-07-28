@@ -3,11 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Crypt;
 use Tests\TestCase;
 
@@ -78,6 +78,8 @@ class StorefrontChatbotTest extends TestCase
 
         $this->featuredVariant = ProductVariant::query()->create([
             'product_id' => $this->featuredProduct->id,
+            'size' => '42',
+            'color' => '#1A2B3C',
             'name' => '42',
             'sku' => 'RUNNER-42',
             'price' => 100,
@@ -164,7 +166,8 @@ class StorefrontChatbotTest extends TestCase
             ->assertOk()
             ->assertJsonPath('state', 'variants')
             ->assertJsonCount(1, 'variants')
-            ->assertJsonPath('variants.0.id', $this->featuredVariant->id);
+            ->assertJsonPath('variants.0.id', $this->featuredVariant->id)
+            ->assertJsonPath('variants.0.color_hex', '#1A2B3C');
     }
 
     public function test_chatbot_add_to_cart_endpoint_reuses_cart_logic_and_returns_follow_up_actions(): void

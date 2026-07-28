@@ -33,6 +33,28 @@ class ProductVariant extends Model
         'is_active' => 'boolean',
     ];
 
+    public static function normalizeHexColor(?string $color): ?string
+    {
+        $color = trim((string) $color);
+
+        if (preg_match('/^#?([a-fA-F0-9]{3}|[a-fA-F0-9]{6})$/', $color, $matches) !== 1) {
+            return null;
+        }
+
+        $hex = strtoupper($matches[1]);
+
+        if (strlen($hex) === 3) {
+            $hex = implode('', array_map(static fn (string $part): string => $part . $part, str_split($hex)));
+        }
+
+        return '#' . $hex;
+    }
+
+    public function getColorHexAttribute(): ?string
+    {
+        return self::normalizeHexColor($this->color);
+    }
+
     public function getDisplayNameAttribute(): string
     {
         $parts = collect([$this->size, $this->color, $this->ground_type?->label()])

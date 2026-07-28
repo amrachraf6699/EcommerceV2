@@ -151,7 +151,10 @@
               data-ground-type="{{ $variant->ground_type?->label() }}"
               onclick="selectSize(this)"
             >
-              {{ $variant->display_name }}
+              <span class="product-variant-choice">
+                <x-frontend.color-swatch :color="$variant->color" />
+                <span>{{ $variant->display_name }}</span>
+              </span>
             </button>
           @endforeach
         </div>
@@ -301,6 +304,13 @@
     cursor: grab;
     background: var(--gray-dark);
     user-select: none;
+  }
+
+  .product-variant-choice {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
   }
 
   .product-gallery-main.is-dragging {

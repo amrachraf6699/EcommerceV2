@@ -150,7 +150,7 @@
               @foreach ($colorOptions as $colorOption)
                 <label class="catalog-size-chip">
                   <input type="checkbox" name="colors[]" value="{{ $colorOption }}" @checked(in_array($colorOption, $selectedColors, true))>
-                  <span>{{ $colorOption }}</span>
+                  <span class="catalog-color-option"><x-frontend.color-swatch :color="$colorOption" /><span>{{ $colorOption }}</span></span>
                 </label>
               @endforeach
             </div>
@@ -319,7 +319,7 @@
             @foreach ($colorOptions as $colorOption)
               <label class="catalog-size-chip">
                 <input type="checkbox" name="colors[]" value="{{ $colorOption }}" @checked(in_array($colorOption, $selectedColors, true))>
-                <span>{{ $colorOption }}</span>
+                <span class="catalog-color-option"><x-frontend.color-swatch :color="$colorOption" /><span>{{ $colorOption }}</span></span>
               </label>
             @endforeach
           </div>
@@ -364,8 +364,9 @@
   .catalog-sizes{display:flex;flex-wrap:wrap;gap:10px;}
   .catalog-size-chip{position:relative;display:inline-flex;cursor:pointer;}
   .catalog-size-chip input{position:absolute;inset:0;opacity:0;pointer-events:none;}
-  .catalog-size-chip span{display:inline-flex;align-items:center;justify-content:center;min-width:54px;padding:11px 14px;border:1px solid var(--line-soft);background:rgb(var(--white-rgb) / .03);font-weight:900;transition:all .2s ease;}
+  .catalog-size-chip > span{display:inline-flex;align-items:center;justify-content:center;min-width:54px;padding:11px 14px;border:1px solid var(--line-soft);background:rgb(var(--white-rgb) / .03);font-weight:900;transition:all .2s ease;}
   .catalog-size-chip input:checked + span{background:var(--white);color:var(--black);border-color:var(--white);}
+  .catalog-color-option{gap:8px;}
   .catalog-filter-actions{display:flex;flex-direction:column;gap:12px;}
   .catalog-reset{text-align:center;color:var(--gray-light);font-size:.92rem;text-decoration:underline;text-underline-offset:4px;}
   .catalog-content{min-width:0;}

@@ -66,6 +66,8 @@
   .chatbot-choice-button:hover { border-color:rgb(var(--white-rgb) / .34); background:linear-gradient(180deg, rgb(var(--white-rgb) / .14), rgb(var(--white-rgb) / .06)); transform:translateY(-1px); box-shadow:0 14px 24px rgb(var(--shadow-rgb) / .24); }
   .chatbot-choice-button:focus-visible { outline:2px solid var(--white); outline-offset:2px; }
   .chatbot-choice-button__meta { display:block; margin-top:6px; font-size:12px; color:var(--gray-light); }
+  .chatbot-variant-choice__name { display:flex; align-items:center; gap:8px; }
+  .chatbot-variant-choice__swatch { display:inline-block; width:14px; height:14px; flex:none; border:1px solid rgb(var(--white-rgb) / .45); border-radius:999px; background:var(--variant-color); box-shadow:inset 0 0 0 1px rgb(var(--black-rgb) / .12); }
   .chatbot-choice-button--card { min-height:118px; padding:0; overflow:hidden; }
   .chatbot-choice-button--card .chatbot-choice-button__meta { margin-top:4px; }
   .chatbot-card { display:flex; flex-direction:column; min-height:118px; }
@@ -223,13 +225,6 @@
         media.textContent = 'IMG';
       }
 
-      if (product.label) {
-        const label = document.createElement('span');
-        label.className = 'badge';
-        label.textContent = product.label;
-        media.appendChild(label);
-      }
-
       const body = document.createElement('div');
       body.className = 'chatbot-card__body';
 
@@ -311,11 +306,24 @@
     variants.forEach((variant) => {
       const meta = `${variant.price_label} • ${translations.stockLabel.replace('__COUNT__', String(variant.stock_quantity))}`;
 
-      list.appendChild(buildChoiceButton(
-        variant.name,
-        meta,
-        () => chooseVariant(variant),
-      ));
+      const button = buildChoiceButton('', meta, () => chooseVariant(variant));
+      const name = document.createElement('span');
+      name.className = 'chatbot-variant-choice__name';
+
+      if (variant.color_hex) {
+        const swatch = document.createElement('span');
+        swatch.className = 'chatbot-variant-choice__swatch';
+        swatch.style.setProperty('--variant-color', variant.color_hex);
+        swatch.setAttribute('role', 'img');
+        swatch.setAttribute('aria-label', variant.color_hex);
+        name.appendChild(swatch);
+      }
+
+      const label = document.createElement('span');
+      label.textContent = variant.name;
+      name.appendChild(label);
+      button.replaceChild(name, button.firstElementChild);
+      list.appendChild(button);
     });
 
     setComposer(list);

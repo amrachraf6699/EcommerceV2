@@ -69,7 +69,7 @@
                                     <input class="admin-input min-w-[140px]" type="text" name="variants[{{ $index }}][size]" value="{{ $variant['size'] ?? '' }}" placeholder="المقاس">
                                 </td>
                                 <td class="px-4 py-3">
-                                    <input class="admin-input min-w-[140px]" type="text" name="variants[{{ $index }}][color]" value="{{ $variant['color'] ?? '' }}" placeholder="اللون">
+                                    <input class="admin-input min-w-[140px]" type="text" name="variants[{{ $index }}][color]" value="{{ $variant['color'] ?? '' }}" placeholder="#RRGGBB" data-color-picker>
                                 </td>
                                 <td class="px-4 py-3">
                                     <select class="admin-select min-w-[140px]" name="variants[{{ $index }}][ground_type]">
@@ -112,7 +112,7 @@
                         <input class="admin-input min-w-[140px]" type="text" name="variants[__INDEX__][size]" placeholder="المقاس">
                     </td>
                     <td class="px-4 py-3">
-                        <input class="admin-input min-w-[140px]" type="text" name="variants[__INDEX__][color]" placeholder="اللون">
+                        <input class="admin-input min-w-[140px]" type="text" name="variants[__INDEX__][color]" placeholder="#RRGGBB" data-color-picker>
                     </td>
                     <td class="px-4 py-3">
                         <select class="admin-select min-w-[140px]" name="variants[__INDEX__][ground_type]">
