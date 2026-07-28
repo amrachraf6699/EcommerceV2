@@ -230,21 +230,22 @@ class StorefrontCheckoutTest extends TestCase
 
         $order = Order::query()->firstOrFail();
 
-        $this->assertSame('pending', $order->status);
-        $this->assertSame('unpaid', $order->payment_status);
+        $this->assertSame('pending', $order->status->value);
+        $this->assertSame('unpaid', $order->payment_status->value);
         $this->assertSame('tap', $order->payment_provider);
         $this->assertSame('chg_123', $order->payment_transaction_id);
         $this->assertSame('200.00', $order->subtotal);
-        $this->assertSame('4.00', $order->shipping_total);
-        $this->assertSame('20.40', $order->tax_total);
-        $this->assertSame('224.40', $order->grand_total);
+        $this->assertSame('8.00', $order->shipping_total);
+        $this->assertSame('2.00', $order->shipping_quantity_multiplier);
+        $this->assertSame('20.80', $order->tax_total);
+        $this->assertSame('228.80', $order->grand_total);
         $this->assertDatabaseCount('order_items', 1);
 
         Http::assertSent(function ($request) {
             $data = $request->data();
 
             return $request->url() === 'https://tap.test/v2/charges'
-                && (float) ($data['amount'] ?? 0) === 224.4;
+                && (float) ($data['amount'] ?? 0) === 228.8;
         });
     }
 
@@ -289,16 +290,16 @@ class StorefrontCheckoutTest extends TestCase
 
         $this->assertSame('200.00', $order->subtotal);
         $this->assertSame('40.00', $order->discount_total);
-        $this->assertSame('4.00', $order->shipping_total);
-        $this->assertSame('16.40', $order->tax_total);
-        $this->assertSame('180.40', $order->grand_total);
+        $this->assertSame('8.00', $order->shipping_total);
+        $this->assertSame('16.80', $order->tax_total);
+        $this->assertSame('184.80', $order->grand_total);
         $this->assertSame($order->id, $coupon->order_id);
         $this->assertNull($coupon->used_at);
 
         Http::assertSent(function ($request) {
             $data = $request->data();
 
-            return (float) ($data['amount'] ?? 0) === 180.4;
+            return (float) ($data['amount'] ?? 0) === 184.8;
         });
     }
 
@@ -315,10 +316,10 @@ class StorefrontCheckoutTest extends TestCase
         $response = app(CheckoutController::class)->summary($request);
         $payload = $response->getData(true);
 
-        $this->assertSame('europe_america', $payload['summary']['shipping_zone']);
-        $this->assertEquals(30.0, $payload['summary']['shipping_total']);
-        $this->assertEquals(23.0, $payload['summary']['tax_total']);
-        $this->assertEquals(253.0, $payload['summary']['grand_total']);
+        $this->assertSame('others', $payload['summary']['shipping_zone']);
+        $this->assertEquals(0.0, $payload['summary']['shipping_total']);
+        $this->assertEquals(20.0, $payload['summary']['tax_total']);
+        $this->assertEquals(220.0, $payload['summary']['grand_total']);
     }
 
     public function test_checkout_summary_endpoint_returns_coupon_discount_when_email_matches(): void
@@ -345,11 +346,11 @@ class StorefrontCheckoutTest extends TestCase
         $this->assertTrue($payload['summary']['coupon_applied']);
         $this->assertSame('WELCOME-SUMMARY', $payload['summary']['coupon_code']);
         $this->assertEquals(25.0, $payload['summary']['discount_total']);
-        $this->assertEquals(17.9, $payload['summary']['tax_total']);
-        $this->assertEquals(196.9, $payload['summary']['grand_total']);
+        $this->assertEquals(18.3, $payload['summary']['tax_total']);
+        $this->assertEquals(201.3, $payload['summary']['grand_total']);
     }
 
-    public function test_checkout_treats_north_africa_country_like_gulf(): void
+    public function test_checkout_uses_other_countries_shipping_rate_for_non_gulf_country(): void
     {
         $this->seedCart();
 
@@ -377,9 +378,9 @@ class StorefrontCheckoutTest extends TestCase
 
         $order = Order::query()->firstOrFail();
 
-        $this->assertSame('4.00', $order->shipping_total);
-        $this->assertSame('10.40', $order->tax_total);
-        $this->assertSame('114.40', $order->grand_total);
+        $this->assertSame('0.00', $order->shipping_total);
+        $this->assertSame('10.00', $order->tax_total);
+        $this->assertSame('110.00', $order->grand_total);
     }
 
     public function test_tap_success_marks_order_paid_clears_cart_and_logs_customer_in(): void
@@ -441,8 +442,8 @@ class StorefrontCheckoutTest extends TestCase
 
         $order = $order->fresh();
 
-        $this->assertSame('paid', $order->payment_status);
-        $this->assertSame('processing', $order->status);
+        $this->assertSame('paid', $order->payment_status->value);
+        $this->assertSame('processing', $order->status->value);
         $this->assertNotNull($order->placed_at);
         $this->assertDatabaseMissing('carts', ['session_id' => $this->sessionId]);
         $this->assertSame(3, (int) $this->variant->fresh()->stock_quantity);
@@ -501,7 +502,7 @@ class StorefrontCheckoutTest extends TestCase
         ]))->assertOk()
             ->assertSee(__('storefront.checkout_failed_title', [], 'en'));
 
-        $this->assertSame('failed', $order->fresh()->payment_status);
+        $this->assertSame('failed', $order->fresh()->payment_status->value);
         $this->assertDatabaseHas('carts', ['session_id' => $this->sessionId]);
     }
 
@@ -551,7 +552,7 @@ class StorefrontCheckoutTest extends TestCase
             ->assertOk();
 
         $this->assertSame(4, (int) $this->variant->fresh()->stock_quantity);
-        $this->assertSame('paid', $order->fresh()->payment_status);
+        $this->assertSame('paid', $order->fresh()->payment_status->value);
     }
 
     public function test_paid_checkout_marks_welcome_coupon_used(): void

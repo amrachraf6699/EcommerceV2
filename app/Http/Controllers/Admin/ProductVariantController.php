@@ -23,6 +23,7 @@ class ProductVariantController extends Controller
 
             $variant = $product->variants()->create([
                 ...$request->validated(),
+                'has_box' => $request->boolean('has_box'),
                 'is_default' => $request->boolean('is_default'),
                 'is_active' => $request->boolean('is_active', true),
             ]);
@@ -53,6 +54,7 @@ class ProductVariantController extends Controller
 
             $variant->update([
                 ...$request->validated(),
+                'has_box' => $request->boolean('has_box'),
                 'is_default' => $request->boolean('is_default'),
                 'is_active' => $request->boolean('is_active'),
             ]);

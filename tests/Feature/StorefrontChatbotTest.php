@@ -84,6 +84,7 @@ class StorefrontChatbotTest extends TestCase
             'sku' => 'RUNNER-42',
             'price' => 100,
             'stock_quantity' => 4,
+            'has_box' => true,
             'is_default' => true,
             'is_active' => true,
         ]);
@@ -167,7 +168,8 @@ class StorefrontChatbotTest extends TestCase
             ->assertJsonPath('state', 'variants')
             ->assertJsonCount(1, 'variants')
             ->assertJsonPath('variants.0.id', $this->featuredVariant->id)
-            ->assertJsonPath('variants.0.color_hex', '#1A2B3C');
+            ->assertJsonPath('variants.0.color_hex', '#1A2B3C')
+            ->assertJsonPath('variants.0.has_box', true);
     }
 
     public function test_chatbot_add_to_cart_endpoint_reuses_cart_logic_and_returns_follow_up_actions(): void

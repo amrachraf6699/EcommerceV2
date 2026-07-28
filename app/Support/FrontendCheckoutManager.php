@@ -87,7 +87,6 @@ class FrontendCheckoutManager
             'postal_code' => old('postal_code', $draftOrder?->shipping_postal_code ?: $address?->postal_code),
             'customer_note' => old('customer_note', $draftOrder?->customer_note),
             'coupon_code' => old('coupon_code', $draftOrder?->coupon_code),
-            'shipping_box_type' => old('shipping_box_type', $this->shippingBoxTypeValue($draftOrder?->shipping_with_box)),
         ];
     }
 
@@ -98,7 +97,6 @@ class FrontendCheckoutManager
      *     shipping_rate_source:?string,
      *     shipping_unit_cost:float,
      *     shipping_quantity_multiplier:float,
-     *     shipping_with_box:bool,
      *     shipping_total:float,
      *     tax_total:float,
      *     subtotal:float,
@@ -114,7 +112,6 @@ class FrontendCheckoutManager
         ?string $country = null,
         ?string $email = null,
         ?string $couponCode = null,
-        ?string $shippingBoxType = null
     ): array
     {
         $sessionId = $this->ensureSession($request);
@@ -128,7 +125,6 @@ class FrontendCheckoutManager
             'customer' => $customer,
             'email' => $email ?: $customer?->email,
             'coupon_code' => $couponCode,
-            'shipping_box_type' => $shippingBoxType ?: $this->shippingBoxTypeValue(null),
         ]);
     }
 
@@ -253,7 +249,6 @@ class FrontendCheckoutManager
                 'customer' => $customer,
                 'email' => (string) ($customer->email ?: $validated['email']),
                 'coupon_code' => (string) ($validated['coupon_code'] ?? ''),
-                'shipping_box_type' => (string) $validated['shipping_box_type'],
             ]);
 
             if ($pricing['error']) {
@@ -307,7 +302,6 @@ class FrontendCheckoutManager
                 'shipping_address_line_1' => $validated['address_line_1'],
                 'shipping_address_line_2' => $validated['address_line_2'] ?? null,
                 'shipping_postal_code' => $validated['postal_code'] ?? null,
-                'shipping_with_box' => $pricing['shipping_with_box'],
                 'customer_note' => $validated['customer_note'] ?? null,
                 'subtotal' => $pricing['subtotal'],
                 'discount_total' => $pricing['discount_total'],
@@ -579,7 +573,6 @@ class FrontendCheckoutManager
             'customer' => $customer,
             'email' => Arr::get($input, 'email', $customer->email),
             'coupon_code' => Arr::get($input, 'coupon_code'),
-            'shipping_box_type' => Arr::get($input, 'shipping_box_type', $this->shippingBoxTypeValue(null)),
         ]);
     }
 
@@ -697,8 +690,4 @@ class FrontendCheckoutManager
             ->first();
     }
 
-    private function shippingBoxTypeValue(?bool $shippingWithBox): string
-    {
-        return $shippingWithBox ? 'with_box' : 'without_box';
-    }
 }

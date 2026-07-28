@@ -24,7 +24,6 @@ class CheckoutController extends Controller
             'country' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'coupon_code' => ['nullable', 'string', 'max:255'],
-            'shipping_box_type' => ['nullable', 'string', 'in:with_box,without_box'],
         ]);
 
         return response()->json([

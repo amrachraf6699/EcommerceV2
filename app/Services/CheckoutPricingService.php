@@ -24,8 +24,7 @@ class CheckoutPricingService
      *     detected_country_code?:mixed,
      *     customer?:mixed,
      *     email?:mixed,
-     *     coupon_code?:mixed,
-     *     shipping_box_type?:mixed
+     *     coupon_code?:mixed
      * }  $context
      * @return array{
      *     country:?string,
@@ -33,7 +32,6 @@ class CheckoutPricingService
      *     shipping_rate_source:?string,
      *     shipping_unit_cost:float,
      *     shipping_quantity_multiplier:float,
-     *     shipping_with_box:bool,
      *     coupon_code:?string,
      *     coupon_discount_total:float,
      *     discount_total:float,
@@ -57,7 +55,6 @@ class CheckoutPricingService
 
         $subtotal = $this->round((float) ($cart?->subtotal ?? 0));
         $itemCount = max(0, (int) ($cart?->item_count ?? 0));
-        $shippingWithBox = $this->shippingWithBox(Arr::get($context, 'shipping_box_type'));
         $shippingZone = $this->countryCatalog->resolveShippingZone($country);
         $appliedCoupon = $this->resolveCoupon(
             Arr::get($context, 'customer'),
@@ -76,7 +73,6 @@ class CheckoutPricingService
                 'shipping_rate_source' => null,
                 'shipping_unit_cost' => 0.0,
                 'shipping_quantity_multiplier' => 0.0,
-                'shipping_with_box' => $shippingWithBox,
                 'coupon_code' => $appliedCoupon['coupon']->code ?? null,
                 'coupon_discount_total' => $couponDiscountTotal,
                 'discount_total' => $couponDiscountTotal,
@@ -108,9 +104,7 @@ class CheckoutPricingService
 
         if ($shippingRateSource !== null && $itemCount > 0) {
             $shippingUnitCost = $this->round((float) $this->setting($shippingRateSource, '0'));
-            $shippingQuantityMultiplier = $shippingWithBox
-                ? $this->round(1.7 * $itemCount)
-                : (float) $itemCount;
+            $shippingQuantityMultiplier = (float) $itemCount;
             $shippingTotal = $this->round($shippingUnitCost * $shippingQuantityMultiplier);
         }
 
@@ -128,7 +122,6 @@ class CheckoutPricingService
             'shipping_rate_source' => $shippingRateSource,
             'shipping_unit_cost' => $shippingUnitCost,
             'shipping_quantity_multiplier' => $shippingQuantityMultiplier,
-            'shipping_with_box' => $shippingWithBox,
             'coupon_code' => $appliedCoupon['coupon']->code ?? null,
             'coupon_discount_total' => $couponDiscountTotal,
             'discount_total' => $couponDiscountTotal,
@@ -247,11 +240,6 @@ class CheckoutPricingService
     private function round(float $amount): float
     {
         return round($amount, 2);
-    }
-
-    private function shippingWithBox(mixed $shippingBoxType): bool
-    {
-        return Str::lower(trim((string) $shippingBoxType)) === 'with_box';
     }
 
     private function setting(string $key, mixed $default = null): mixed

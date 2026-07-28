@@ -140,6 +140,7 @@ class ProductController extends Controller
                     'price' => $variantData['price'],
                     'compare_at_price' => $variantData['compare_at_price'] ?? null,
                     'stock_quantity' => $variantData['stock_quantity'],
+                    'has_box' => (bool) ($variantData['has_box'] ?? false),
                     'is_default' => $isDefault,
                     'is_active' => (bool) ($variantData['is_active'] ?? true),
                 ]);

@@ -168,10 +168,17 @@
               data-color-key="{{ md5((string) $variant->color) }}"
               data-stock-quantity="{{ (int) $variant->stock_quantity }}"
               data-is-active="{{ $variant->is_active ? '1' : '0' }}"
+              data-has-box="{{ $variant->has_box ? '1' : '0' }}"
               data-ground-type="{{ $variant->ground_type?->label() }}"
               onclick="selectSize(this)"
             >{{ $variant->size }}</button>
           @endforeach
+          </div>
+          <div class="mt-4 hidden" id="boxNotice" style="border:1px solid var(--line-mid);background:rgb(var(--white-rgb) / .04);color:var(--gray-light);padding:12px 16px">
+            <div class="flex items-start gap-2 text-xs">
+              <i class="bx bx-party" aria-hidden="true" style="font-size:16px;line-height:1.4;flex:none"></i>
+              <p class="leading-6">يأتي هذا المنتج مع العلبة الأصلية</p>
+            </div>
           </div>
         </div>
       </div>
@@ -602,6 +609,7 @@ function selectSize(button) {
   selectedVariantId = button.dataset.variantId || null;
   updateGroundType(button);
   updateStockWarning(button);
+  updateBoxNotice(button);
   updateReminderState(button);
   syncQuantityAndActions(button);
 }
@@ -629,6 +637,7 @@ function resetVariantSelection() {
   document.querySelectorAll('.size-btn').forEach((item) => item.classList.remove('active'));
   document.getElementById('selectedGroundType')?.classList.add('hidden');
   document.getElementById('stockWarning')?.classList.add('hidden');
+  document.getElementById('boxNotice')?.classList.add('hidden');
   document.getElementById('reminderActions')?.classList.add('hidden');
   document.getElementById('qtyDecreaseButton').disabled = true;
   document.getElementById('qtyIncreaseButton').disabled = true;
@@ -667,6 +676,10 @@ function updateStockWarning(button) {
   stockWarningText.textContent = stockQuantity > 0
     ? productTranslations.remainingStock.replace('__COUNT__', stockQuantity)
     : productTranslations.outOfStock;
+}
+
+function updateBoxNotice(button) {
+  document.getElementById('boxNotice')?.classList.toggle('hidden', button?.dataset?.hasBox !== '1');
 }
 
 function updateReminderState(button) {

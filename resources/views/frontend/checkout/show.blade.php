@@ -143,44 +143,6 @@
 
             <div class="space-y-3 border-t pt-6" style="border-color:var(--line-soft)">
               <div>
-                <div class="flex items-center justify-between gap-3 mb-3">
-                  <label class="text-xs font-bold block checkout-label">{{ __('storefront.checkout_shipping_box_label') }}</label>
-                </div>
-                <div class="checkout-shipping-loading" id="checkoutShippingBoxLoading" hidden aria-hidden="true">
-                  <span class="checkout-coupon-status__spinner"></span>
-                </div>
-                <div class="grid gap-3 grid-cols-2" id="checkoutShippingBoxGroup">
-                  <label class="checkout-shipping-option" data-box-option>
-                    <input
-                      type="radio"
-                      name="shipping_box_type"
-                      value="with_box"
-                      form="checkoutForm"
-                      class="checkout-shipping-option__input"
-                      @checked(($checkoutForm['shipping_box_type'] ?? 'without_box') === 'with_box')
-                    >
-                    <span class="checkout-shipping-option__content">
-                      <span class="checkout-shipping-option__title">{{ __('storefront.checkout_shipping_with_box') }}</span>
-                    </span>
-                  </label>
-                  <label class="checkout-shipping-option" data-box-option>
-                    <input
-                      type="radio"
-                      name="shipping_box_type"
-                      value="without_box"
-                      form="checkoutForm"
-                      class="checkout-shipping-option__input"
-                      @checked(($checkoutForm['shipping_box_type'] ?? 'without_box') === 'without_box')
-                    >
-                    <span class="checkout-shipping-option__content">
-                      <span class="checkout-shipping-option__title">{{ __('storefront.checkout_shipping_without_box') }}</span>
-                    </span>
-                  </label>
-                </div>
-                @error('shipping_box_type')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
-              </div>
-
-              <div>
                 <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_coupon_code') }}</label>
                 <div class="grid gap-3 grid-cols-[minmax(0,1fr)_auto]">
                   <input
@@ -315,10 +277,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   const countrySelect = document.querySelector('select[name="country"]');
   const emailInput = document.querySelector('input[name="email"]');
-  const shippingBoxInputs = document.querySelectorAll('input[name="shipping_box_type"]');
-  const shippingBoxOptions = document.querySelectorAll('[data-box-option]');
-  const shippingBoxGroup = document.getElementById('checkoutShippingBoxGroup');
-  const shippingBoxLoading = document.getElementById('checkoutShippingBoxLoading');
   const couponInput = document.getElementById('checkoutCouponCodeInput');
   const applyCouponButton = document.getElementById('checkoutApplyCouponButton');
   const applyCouponButtonText = document.getElementById('checkoutApplyCouponButtonText');
@@ -331,17 +289,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const detectedCountryNameMap = @json($detectedCountryNameMap);
   const couponHintText = @json(__('storefront.checkout_coupon_hint'));
   let activeRequest = null;
-
-  function selectedShippingBoxType() {
-    return document.querySelector('input[name="shipping_box_type"]:checked')?.value || 'without_box';
-  }
-
-  function syncShippingBoxSelection() {
-    shippingBoxOptions.forEach((option) => {
-      const input = option.querySelector('input[name="shipping_box_type"]');
-      option.classList.toggle('is-selected', Boolean(input?.checked));
-    });
-  }
 
   function setPrice(rootId, amount, currency) {
     const root = document.getElementById(rootId);
@@ -381,16 +328,6 @@ document.addEventListener('DOMContentLoaded', function () {
     applyCouponButton.setAttribute('aria-busy', isLoading ? 'true' : 'false');
   }
 
-  function setShippingBoxLoadingState(isLoading) {
-    if (shippingBoxGroup) {
-      shippingBoxGroup.style.display = isLoading ? 'none' : '';
-    }
-
-    if (shippingBoxLoading) {
-      shippingBoxLoading.style.display = isLoading ? 'flex' : 'none';
-    }
-  }
-
   async function refreshCheckoutSummary(options = {}) {
     if (!countrySelect) {
       return;
@@ -408,16 +345,11 @@ document.addEventListener('DOMContentLoaded', function () {
       setCouponLoadingState(true);
     }
 
-    if (source === 'shipping_box') {
-      setShippingBoxLoadingState(true);
-    }
-
     try {
       const query = new URLSearchParams({
         country: countrySelect.value || '',
         email: emailInput?.value || '',
         coupon_code: couponInput?.value || '',
-        shipping_box_type: selectedShippingBoxType(),
       });
 
       const response = await fetch(`${summaryEndpoint}?${query.toString()}`, {
@@ -483,9 +415,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setCouponLoadingState(false);
       }
 
-      if (source === 'shipping_box') {
-        setShippingBoxLoadingState(false);
-      }
     }
   }
 
@@ -514,10 +443,6 @@ document.addEventListener('DOMContentLoaded', function () {
   emailInput?.addEventListener('blur', function () {
     refreshCheckoutSummary({ source: 'general' });
   });
-  shippingBoxInputs.forEach((input) => input.addEventListener('change', function () {
-    syncShippingBoxSelection();
-    refreshCheckoutSummary({ source: 'shipping_box' });
-  }));
   couponInput?.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -528,7 +453,6 @@ document.addEventListener('DOMContentLoaded', function () {
     refreshCheckoutSummary({ source: 'coupon' });
   });
   applyDetectedCountryFallback();
-  syncShippingBoxSelection();
   refreshCheckoutSummary();
 });
 </script>
@@ -574,75 +498,6 @@ document.addEventListener('DOMContentLoaded', function () {
     border-radius: 999px;
     display: inline-block;
     animation: checkoutCouponSpin .8s linear infinite;
-  }
-
-  .checkout-shipping-option {
-    position: relative;
-    border: 1px solid var(--line-soft);
-    background: rgb(var(--white-rgb) / .03);
-    cursor: pointer;
-    transition: border-color .2s ease, background-color .2s ease, transform .2s ease, box-shadow .2s ease;
-    min-height: 96px;
-    display: block;
-  }
-
-  .checkout-shipping-option:hover {
-    border-color: rgb(var(--white-rgb) / .28);
-    background: rgb(var(--white-rgb) / .05);
-  }
-
-  .checkout-shipping-option.is-selected {
-    border-color: rgb(var(--white-rgb) / .9);
-    background: linear-gradient(180deg, rgb(var(--white-rgb) / .12), rgb(var(--white-rgb) / .05));
-    box-shadow: 0 0 0 1px rgb(var(--white-rgb) / .18);
-    transform: translateY(-1px);
-  }
-
-  .checkout-shipping-option__input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .checkout-shipping-option__content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    position: relative;
-    min-height: 94px;
-  }
-
-  .checkout-shipping-option__body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .checkout-shipping-option__title {
-    font-weight: 800;
-    display: block;
-  }
-
-  .checkout-shipping-option__copy {
-    color: var(--gray-light);
-    font-size: 12px;
-    line-height: 1.6;
-    display: block;
-  }
-
-  .checkout-shipping-loading {
-    min-height: 94px;
-    border: 1px solid var(--line-soft);
-    background: rgb(var(--white-rgb) / .03);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .checkout-shipping-loading[hidden] {
-    display: none;
   }
 
   .checkout-coupon-feedback {

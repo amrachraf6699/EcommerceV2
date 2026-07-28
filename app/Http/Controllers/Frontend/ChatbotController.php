@@ -121,6 +121,7 @@ class ChatbotController extends Controller
                 'size' => $variant->size,
                 'color' => $variant->color,
                 'color_hex' => $variant->color_hex,
+                'has_box' => (bool) $variant->has_box,
                 'price_label' => storefront_format_money((float) $variant->price, 'BHD'),
                 'stock_quantity' => (int) $variant->stock_quantity,
             ])

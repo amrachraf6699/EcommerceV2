@@ -12,8 +12,6 @@ return [
     'checkout_whatsapp_quote_copy' => 'إذا كان الإجمالي مرتفعاً، تواصل معنا عبر واتساب ويمكننا مساعدتك',
     'checkout_whatsapp_quote_message' => 'مرحباً، أنا في صفحة إتمام الشراء وأحتاج مساعدة بخصوص تكلفة الطلب. هل يمكن مساعدتي بكود خصم؟',
     'checkout_shipping_box_label' => 'خيار الشحن',
-    'checkout_shipping_with_box' => 'مع الصندوق',
-    'checkout_shipping_without_box' => 'بدون صندوق',
     'badges' => [
         'featured' => 'مميز',
         'new' => 'جديد',
@@ -228,7 +226,6 @@ return [
         'order_summary' => 'ملخص الطلب',
         'subtotal' => 'المجموع الفرعي',
         'discount_total' => 'الخصم',
-        'shipping_box_type' => 'خيار الشحن',
         'shipping_total' => 'الشحن',
         'tax_total' => 'الضريبة',
         'grand_total' => 'الإجمالي',

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
@@ -27,6 +28,7 @@ class StorefrontCartTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(VerifyCsrfToken::class);
 
         $this->product = Product::query()->create([
             'name' => 'Runner Pro',
@@ -217,5 +219,16 @@ class StorefrontCartTest extends TestCase
             ->assertSee('id="qtyIncreaseButton" type="button" onclick="changeQty(1)" disabled', false)
             ->assertSee('id="productAddToCartButton" type="button" onclick="addToCart()" disabled', false)
             ->assertSee('id="stickyAddToCartButton" style="width:auto;padding:12px 24px;font-size:14px" type="button" onclick="addToCart()" disabled', false);
+    }
+
+    public function test_product_page_exposes_box_notice_for_boxed_variant_selection(): void
+    {
+        $this->variant->update(['has_box' => true]);
+
+        $this->get(route('storefront.products.show', ['locale' => 'en', 'product' => $this->product->slug]))
+            ->assertOk()
+            ->assertSee('id="boxNotice"', false)
+            ->assertSee('data-has-box="1"', false)
+            ->assertSee('يأتي هذا المنتج مع العلبة الأصلية', false);
     }
 }

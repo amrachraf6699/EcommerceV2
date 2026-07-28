@@ -8,10 +8,6 @@
     $valueOrFallback = static fn ($value) => filled($value) ? $value : 'غير متوفر';
     $boolLabel = static fn (?bool $value) => $value === null ? 'غير متوفر' : ($value ? 'نعم' : 'لا');
     $dateLabel = static fn ($value) => $value ? $value->format('Y-m-d H:i') : 'غير متوفر';
-    $shippingBoxLabel = $order->shipping_with_box === null
-        ? 'غير متوفر'
-        : __($order->shipping_with_box ? 'storefront.checkout_shipping_with_box' : 'storefront.checkout_shipping_without_box');
-
     $customerName = trim($order->customer_first_name . ' ' . $order->customer_last_name) ?: 'غير متوفر';
 
     $summaryCards = [
@@ -45,7 +41,6 @@
         'العنوان 1' => $valueOrFallback($order->shipping_address_line_1),
         'العنوان 2' => $valueOrFallback($order->shipping_address_line_2),
         'الرمز البريدي' => $valueOrFallback($order->shipping_postal_code),
-        'خيار الشحن' => $shippingBoxLabel,
         'منطقة الشحن' => $valueOrFallback($order->shipping_zone),
     ];
 

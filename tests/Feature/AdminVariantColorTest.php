@@ -43,6 +43,7 @@ class AdminVariantColorTest extends TestCase
         $variant = ProductVariant::query()->sole();
 
         $this->assertSame('#AABBCC', $variant->color);
+        $this->assertFalse($variant->has_box);
 
         $this->actingAs($this->admin)
             ->putJson(route('admin.products.variants.update', [$product, $variant]), [
@@ -50,11 +51,15 @@ class AdminVariantColorTest extends TestCase
                 'color' => '12ab34',
                 'price' => 100,
                 'stock_quantity' => 5,
+                'has_box' => true,
                 'is_active' => true,
             ])
             ->assertOk();
 
-        $this->assertSame('#12AB34', $variant->fresh()->color);
+        $variant->refresh();
+
+        $this->assertSame('#12AB34', $variant->color);
+        $this->assertTrue($variant->has_box);
     }
 
     public function test_admin_variant_colors_reject_non_hex_values(): void

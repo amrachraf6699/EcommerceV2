@@ -75,4 +75,28 @@ class MobileApiCartTest extends TestCase
             ->assertJsonPath('cart.item_count', 0)
             ->assertJsonPath('cart.subtotal', 0);
     }
+
+    public function test_product_variant_payload_exposes_box_status(): void
+    {
+        $product = Product::query()->create([
+            'name' => 'Runner Pro',
+            'slug' => 'runner-pro',
+            'is_active' => true,
+        ]);
+
+        ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'size' => '42',
+            'color' => '#123456',
+            'price' => 100,
+            'stock_quantity' => 5,
+            'has_box' => true,
+            'is_default' => true,
+            'is_active' => true,
+        ]);
+
+        $this->getJson('/api/v1/products/runner-pro/variants')
+            ->assertOk()
+            ->assertJsonPath('variants.0.has_box', true);
+    }
 }

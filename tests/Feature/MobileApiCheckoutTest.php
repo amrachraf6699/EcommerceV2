@@ -120,7 +120,6 @@ class MobileApiCheckoutTest extends TestCase
                 'postal_code' => '100',
                 'customer_note' => 'Leave at the desk',
                 'coupon_code' => '',
-                'shipping_box_type' => 'without_box',
                 'payment_mode' => 'native_sdk',
             ])->assertCreated()
             ->assertJsonPath('payment.payment_provider', 'tap')

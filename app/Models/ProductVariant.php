@@ -21,6 +21,7 @@ class ProductVariant extends Model
         'price',
         'compare_at_price',
         'stock_quantity',
+        'has_box',
         'is_default',
         'is_active',
     ];
@@ -31,6 +32,7 @@ class ProductVariant extends Model
         'ground_type' => ProductVariantGroundType::class,
         'is_default' => 'boolean',
         'is_active' => 'boolean',
+        'has_box' => 'boolean',
     ];
 
     public static function normalizeHexColor(?string $color): ?string

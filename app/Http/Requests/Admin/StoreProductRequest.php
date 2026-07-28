@@ -87,6 +87,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.price' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.ground_type,variants.*.stock_quantity', 'numeric', 'min:0'],
             'variants.*.compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock_quantity' => ['nullable', 'required_with:variants.*.size,variants.*.color,variants.*.ground_type,variants.*.price', 'integer', 'min:0'],
+            'variants.*.has_box' => ['nullable', 'boolean'],
             'variants.*.is_default' => ['nullable', 'boolean'],
             'variants.*.is_active' => ['nullable', 'boolean'],
             'images' => ['nullable', 'array'],

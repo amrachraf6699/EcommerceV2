@@ -40,6 +40,7 @@
                         <th class="px-4 py-3 text-right">السعر</th>
                         <th class="px-4 py-3 text-right">السعر قبل الخصم</th>
                         <th class="px-4 py-3 text-right">المخزون</th>
+                        <th class="px-4 py-3 text-center">مع العلبة</th>
                         <th class="px-4 py-3 text-center">افتراضية</th>
                         <th class="px-4 py-3 text-center">مفعلة</th>
                         <th class="px-4 py-3 text-left">إجراءات</th>
@@ -69,6 +70,9 @@
                         </td>
                         <td class="px-4 py-3">
                             <input class="admin-input min-w-[120px]" type="number" name="stock_quantity" placeholder="المخزون" form="variant-create-form" required>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <input class="admin-checkbox" type="checkbox" name="has_box" value="1" form="variant-create-form" aria-label="يأتي مع العلبة الأصلية">
                         </td>
                         <td class="px-4 py-3 text-center">
                             <input class="admin-checkbox" type="checkbox" name="is_default" value="1" form="variant-create-form">
@@ -105,6 +109,9 @@
                             </td>
                             <td class="px-4 py-3">
                                 <input class="admin-input min-w-[120px]" type="number" name="stock_quantity" value="{{ $variant->stock_quantity }}" form="variant-update-{{ $variant->id }}" required>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <input class="admin-checkbox" type="checkbox" name="has_box" value="1" @checked($variant->has_box) form="variant-update-{{ $variant->id }}" aria-label="يأتي مع العلبة الأصلية">
                             </td>
                             <td class="px-4 py-3 text-center">
                                 <input class="admin-checkbox" type="checkbox" name="is_default" value="1" @checked($variant->is_default) form="variant-update-{{ $variant->id }}">

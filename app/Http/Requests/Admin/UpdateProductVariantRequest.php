@@ -32,6 +32,7 @@ class UpdateProductVariantRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0'],
             'compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'stock_quantity' => ['required', 'integer', 'min:0'],
+            'has_box' => ['nullable', 'boolean'],
             'is_default' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
         ];

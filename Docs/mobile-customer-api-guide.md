@@ -119,14 +119,9 @@ Required payload:
   "postal_code": "100",
   "customer_note": "Leave at the desk",
   "coupon_code": "",
-  "shipping_box_type": "without_box",
   "payment_mode": "native_sdk"
 }
 ```
-
-`shipping_box_type` must be one of:
-- `with_box`
-- `without_box`
 
 `payment_mode` currently supports:
 - `native_sdk`

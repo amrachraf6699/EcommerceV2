@@ -34,7 +34,7 @@
             @php
                 $groundTypes = \App\Enums\ProductVariantGroundType::options();
                 $oldVariants = old('variants', [
-                    ['size' => '', 'color' => '', 'ground_type' => '', 'price' => '', 'compare_at_price' => '', 'stock_quantity' => '', 'is_default' => '1', 'is_active' => '1'],
+                    ['size' => '', 'color' => '', 'ground_type' => '', 'price' => '', 'compare_at_price' => '', 'stock_quantity' => '', 'has_box' => false, 'is_default' => '1', 'is_active' => '1'],
                 ]);
             @endphp
 
@@ -54,6 +54,7 @@
                             <th class="px-4 py-3 text-right">السعر</th>
                             <th class="px-4 py-3 text-right">السعر قبل الخصم</th>
                             <th class="px-4 py-3 text-right">المخزون</th>
+                            <th class="px-4 py-3 text-center">مع العلبة</th>
                             <th class="px-4 py-3 text-center">افتراضية</th>
                             <th class="px-4 py-3 text-center">مفعلة</th>
                             <th class="px-4 py-3 text-left">إجراءات</th>
@@ -87,6 +88,9 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <input class="admin-input min-w-[120px]" type="number" name="variants[{{ $index }}][stock_quantity]" value="{{ $variant['stock_quantity'] ?? '' }}" placeholder="المخزون">
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <input class="admin-checkbox" type="checkbox" name="variants[{{ $index }}][has_box]" value="1" @checked(! empty($variant['has_box'])) aria-label="يأتي مع العلبة الأصلية">
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <input class="admin-checkbox" type="checkbox" name="variants[{{ $index }}][is_default]" value="1" @checked(! empty($variant['is_default']))>
@@ -130,6 +134,9 @@
                     </td>
                     <td class="px-4 py-3">
                         <input class="admin-input min-w-[120px]" type="number" name="variants[__INDEX__][stock_quantity]" placeholder="المخزون">
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <input class="admin-checkbox" type="checkbox" name="variants[__INDEX__][has_box]" value="1" aria-label="يأتي مع العلبة الأصلية">
                     </td>
                     <td class="px-4 py-3 text-center">
                         <input class="admin-checkbox" type="checkbox" name="variants[__INDEX__][is_default]" value="1">
