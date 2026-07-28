@@ -9,7 +9,7 @@
   $initialVariantStock = $initialVariant ? (int) $initialVariant->stock_quantity : 0;
   $initialVariantId = $initialVariant?->id;
   $initialVariantGroundType = trim((string) ($initialVariant?->ground_type?->label() ?? ''));
-  $availableVariants = $product->variants->filter(fn ($variant) => $variant->is_active && (int) $variant->stock_quantity > 0)->values();
+  $availableVariants = $product->variants->values();
   $colorOptions = $availableVariants->unique(fn ($variant) => (string) $variant->color)->values();
   $initialVariantIsPurchasable = (bool) ($initialVariant?->is_active && $initialVariantStock > 0);
   $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
