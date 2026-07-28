@@ -66,8 +66,10 @@
   .chatbot-choice-button:hover { border-color:rgb(var(--white-rgb) / .34); background:linear-gradient(180deg, rgb(var(--white-rgb) / .14), rgb(var(--white-rgb) / .06)); transform:translateY(-1px); box-shadow:0 14px 24px rgb(var(--shadow-rgb) / .24); }
   .chatbot-choice-button:focus-visible { outline:2px solid var(--white); outline-offset:2px; }
   .chatbot-choice-button__meta { display:block; margin-top:6px; font-size:12px; color:var(--gray-light); }
-  .chatbot-variant-choice__name { display:flex; align-items:center; gap:8px; }
-  .chatbot-variant-choice__swatch { display:inline-block; width:14px; height:14px; flex:none; border:1px solid rgb(var(--white-rgb) / .45); border-radius:999px; background:var(--variant-color); box-shadow:inset 0 0 0 1px rgb(var(--black-rgb) / .12); }
+  .chatbot-color-choices { display:flex; flex-wrap:wrap; gap:10px; }
+  .chatbot-color-choice { width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; padding:0; border:2px solid transparent; border-radius:999px; background:transparent; cursor:pointer; }
+  .chatbot-color-choice:hover, .chatbot-color-choice:focus-visible { border-color:var(--white); }
+  .chatbot-color-choice__swatch { display:inline-block; width:30px; height:30px; border:1px solid rgb(var(--white-rgb) / .45); border-radius:999px; background:var(--variant-color); box-shadow:inset 0 0 0 1px rgb(var(--black-rgb) / .12); }
   .chatbot-choice-button--card { min-height:118px; padding:0; overflow:hidden; }
   .chatbot-choice-button--card .chatbot-choice-button__meta { margin-top:4px; }
   .chatbot-card { display:flex; flex-direction:column; min-height:118px; }
@@ -132,6 +134,7 @@
     intro: @json(__('storefront.chatbot.intro')),
     loading: @json(__('storefront.chatbot.loading')),
     quantityPrompt: @json(__('storefront.chatbot.prompts.quantity')),
+    sizesPrompt: @json(__('storefront.chatbot.prompts.sizes')),
     quantityLabel: @json(__('storefront.chatbot.quantity_label')),
     productsCountLabel: @json(__('storefront.chatbot.products_count_label')),
     stockLabel: @json(__('storefront.chatbot.stock_label')),
@@ -151,6 +154,7 @@
     open: false,
     selectedCategory: null,
     selectedProduct: null,
+    selectedColor: null,
     selectedVariant: null,
     selectedQuantity: 1,
   };
@@ -300,30 +304,54 @@
   }
 
   function renderVariants(variants) {
-    const list = document.createElement('div');
-    list.className = 'chatbot-choice-list';
+    const colors = new Map();
 
     variants.forEach((variant) => {
-      const meta = `${variant.price_label} • ${translations.stockLabel.replace('__COUNT__', String(variant.stock_quantity))}`;
+      const key = variant.color_hex || variant.color || 'default';
 
-      const button = buildChoiceButton('', meta, () => chooseVariant(variant));
-      const name = document.createElement('span');
-      name.className = 'chatbot-variant-choice__name';
+      if (!colors.has(key)) {
+        colors.set(key, variant);
+      }
+    });
+
+    const list = document.createElement('div');
+    list.className = 'chatbot-color-choices';
+
+    colors.forEach((variant, key) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'chatbot-color-choice';
+      button.setAttribute('aria-label', 'Color option');
 
       if (variant.color_hex) {
         const swatch = document.createElement('span');
-        swatch.className = 'chatbot-variant-choice__swatch';
+        swatch.className = 'chatbot-color-choice__swatch';
         swatch.style.setProperty('--variant-color', variant.color_hex);
-        swatch.setAttribute('role', 'img');
-        swatch.setAttribute('aria-label', variant.color_hex);
-        name.appendChild(swatch);
+        swatch.setAttribute('aria-hidden', 'true');
+        button.appendChild(swatch);
+      } else {
+        button.textContent = variant.color || '';
       }
 
-      const label = document.createElement('span');
-      label.textContent = variant.name;
-      name.appendChild(label);
-      button.replaceChild(name, button.firstElementChild);
+      button.addEventListener('click', () => chooseColor(key, variants));
       list.appendChild(button);
+    });
+
+    setComposer(list);
+  }
+
+  function chooseColor(colorKey, variants) {
+    state.selectedColor = colorKey;
+    state.selectedVariant = null;
+    state.selectedQuantity = 1;
+    pushMessage('bot', translations.sizesPrompt);
+
+    const list = document.createElement('div');
+    list.className = 'chatbot-choice-list';
+
+    variants.filter((variant) => (variant.color_hex || variant.color || 'default') === colorKey).forEach((variant) => {
+      const meta = `${variant.price_label} • ${translations.stockLabel.replace('__COUNT__', String(variant.stock_quantity))}`;
+      list.appendChild(buildChoiceButton(variant.size || '', meta, () => chooseVariant(variant)));
     });
 
     setComposer(list);
@@ -474,6 +502,7 @@
   function resetFlow() {
     state.selectedCategory = null;
     state.selectedProduct = null;
+    state.selectedColor = null;
     state.selectedVariant = null;
     state.selectedQuantity = 1;
   }
@@ -499,6 +528,7 @@
   async function chooseCategory(category) {
     state.selectedCategory = category;
     state.selectedProduct = null;
+    state.selectedColor = null;
     state.selectedVariant = null;
     state.selectedQuantity = 1;
     pushMessage('user', category.name);
@@ -522,6 +552,7 @@
 
   async function chooseProduct(product) {
     state.selectedProduct = product;
+    state.selectedColor = null;
     state.selectedVariant = null;
     state.selectedQuantity = 1;
     pushMessage('user', product.name);
@@ -546,8 +577,8 @@
   function chooseVariant(variant) {
     state.selectedVariant = variant;
     state.selectedQuantity = 1;
-    pushMessage('user', variant.name);
-    pushMessage('bot', `${translations.quantityPrompt} ${variant.name}`);
+    pushMessage('user', variant.size || '');
+    pushMessage('bot', `${translations.quantityPrompt} ${variant.size || ''}`);
     renderQuantityStep();
   }
 

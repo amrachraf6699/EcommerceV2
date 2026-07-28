@@ -150,7 +150,13 @@
               @foreach ($colorOptions as $colorOption)
                 <label class="catalog-size-chip">
                   <input type="checkbox" name="colors[]" value="{{ $colorOption }}" @checked(in_array($colorOption, $selectedColors, true))>
-                  <span class="catalog-color-option"><x-frontend.color-swatch :color="$colorOption" /><span>{{ $colorOption }}</span></span>
+                  <span class="catalog-color-option">
+                    @if (\App\Models\ProductVariant::normalizeHexColor($colorOption))
+                      <x-frontend.color-swatch :color="$colorOption" class="catalog-color-option__swatch" />
+                    @else
+                      <span>{{ $colorOption }}</span>
+                    @endif
+                  </span>
                 </label>
               @endforeach
             </div>
@@ -222,7 +228,7 @@
               <span class="catalog-pill catalog-pill--muted"><i class='bx bx-ruler'></i>{{ $selectedSize }}</span>
             @endforeach
             @foreach ($selectedColors as $selectedColor)
-              <span class="catalog-pill catalog-pill--muted"><i class='bx bx-palette'></i>{{ $selectedColor }}</span>
+              <span class="catalog-pill catalog-pill--muted"><i class='bx bx-palette'></i>@if (\App\Models\ProductVariant::normalizeHexColor($selectedColor))<x-frontend.color-swatch :color="$selectedColor" />@else{{ $selectedColor }}@endif</span>
             @endforeach
           </div>
         @endif
@@ -319,7 +325,13 @@
             @foreach ($colorOptions as $colorOption)
               <label class="catalog-size-chip">
                 <input type="checkbox" name="colors[]" value="{{ $colorOption }}" @checked(in_array($colorOption, $selectedColors, true))>
-                <span class="catalog-color-option"><x-frontend.color-swatch :color="$colorOption" /><span>{{ $colorOption }}</span></span>
+                <span class="catalog-color-option">
+                  @if (\App\Models\ProductVariant::normalizeHexColor($colorOption))
+                    <x-frontend.color-swatch :color="$colorOption" class="catalog-color-option__swatch" />
+                  @else
+                    <span>{{ $colorOption }}</span>
+                  @endif
+                </span>
               </label>
             @endforeach
           </div>
@@ -366,7 +378,8 @@
   .catalog-size-chip input{position:absolute;inset:0;opacity:0;pointer-events:none;}
   .catalog-size-chip > span{display:inline-flex;align-items:center;justify-content:center;min-width:54px;padding:11px 14px;border:1px solid var(--line-soft);background:rgb(var(--white-rgb) / .03);font-weight:900;transition:all .2s ease;}
   .catalog-size-chip input:checked + span{background:var(--white);color:var(--black);border-color:var(--white);}
-  .catalog-color-option{gap:8px;}
+  .catalog-color-option{gap:8px;min-width:42px;}
+  .catalog-color-option__swatch{width:22px;height:22px;}
   .catalog-filter-actions{display:flex;flex-direction:column;gap:12px;}
   .catalog-reset{text-align:center;color:var(--gray-light);font-size:.92rem;text-decoration:underline;text-underline-offset:4px;}
   .catalog-content{min-width:0;}

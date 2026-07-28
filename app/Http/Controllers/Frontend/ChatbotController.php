@@ -118,6 +118,7 @@ class ChatbotController extends Controller
             ->map(fn ($variant): array => [
                 'id' => $variant->id,
                 'name' => $variant->display_name,
+                'size' => $variant->size,
                 'color' => $variant->color,
                 'color_hex' => $variant->color_hex,
                 'price_label' => storefront_format_money((float) $variant->price, 'BHD'),

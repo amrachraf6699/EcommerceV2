@@ -9,6 +9,8 @@
   $initialVariantStock = $initialVariant ? (int) $initialVariant->stock_quantity : 0;
   $initialVariantId = $initialVariant?->id;
   $initialVariantGroundType = trim((string) ($initialVariant?->ground_type?->label() ?? ''));
+  $colorOptions = $product->variants->unique(fn ($variant) => (string) $variant->color)->values();
+  $initialColorKey = md5((string) $initialVariant?->color);
   $initialVariantIsPurchasable = (bool) ($initialVariant?->is_active && $initialVariantStock > 0);
   $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
   $seoTitle = trim((string) ($product->meta_title ?: $product->name));
@@ -140,22 +142,34 @@
           <p class="text-sm font-bold">{{ app()->getLocale() === 'ar' ? 'الخيار' : 'Variant' }}</p>
           <button type="button" class="text-sm" style="color:var(--gray-light)" onclick="openSizeGuide()">{{ __('storefront.common.size_guide') }}</button>
         </div>
+        <div class="product-color-options mb-5" role="group" aria-label="{{ app()->getLocale() === 'ar' ? 'اختيار اللون' : 'Select color' }}">
+          @foreach ($colorOptions as $colorOption)
+            <button
+              class="product-color-btn {{ md5((string) $colorOption->color) === $initialColorKey ? 'active' : '' }}"
+              type="button"
+              data-color-key="{{ md5((string) $colorOption->color) }}"
+              aria-label="{{ app()->getLocale() === 'ar' ? 'اختيار اللون' : 'Select color' }}"
+              onclick="selectColor(this)"
+            >
+              <x-frontend.color-swatch :color="$colorOption->color" class="product-color-btn__swatch" />
+              @unless ($colorOption->color_hex)
+                <span>{{ $colorOption->color }}</span>
+              @endunless
+            </button>
+          @endforeach
+        </div>
         <div class="grid grid-cols-4 gap-2">
           @foreach ($product->variants as $variant)
             <button
-              class="size-btn {{ $initialVariantId === $variant->id ? 'active' : '' }} {{ $variant->is_active ? '' : 'unavailable' }}"
+              class="size-btn {{ $initialVariantId === $variant->id ? 'active' : '' }} {{ $variant->is_active ? '' : 'unavailable' }} {{ md5((string) $variant->color) === $initialColorKey ? '' : 'hidden' }}"
               type="button"
               data-variant-id="{{ $variant->id }}"
+              data-color-key="{{ md5((string) $variant->color) }}"
               data-stock-quantity="{{ (int) $variant->stock_quantity }}"
               data-is-active="{{ $variant->is_active ? '1' : '0' }}"
               data-ground-type="{{ $variant->ground_type?->label() }}"
               onclick="selectSize(this)"
-            >
-              <span class="product-variant-choice">
-                <x-frontend.color-swatch :color="$variant->color" />
-                <span>{{ $variant->display_name }}</span>
-              </span>
-            </button>
+            >{{ $variant->size }}</button>
           @endforeach
         </div>
       </div>
@@ -306,11 +320,28 @@
     user-select: none;
   }
 
-  .product-variant-choice {
+  .product-color-options {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  .product-color-btn {
+    width:42px;
+    height:42px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:7px;
+    border:2px solid transparent;
+    border-radius:999px;
+    background:transparent;
+    cursor:pointer;
+  }
+
+  .product-color-btn.active { border-color:var(--white); }
+  .product-color-btn__swatch { width:28px; height:28px; }
+  .product-color-btn:not(:has(.product-color-btn__swatch)) { width:auto; min-width:42px; padding:0 10px; border-radius:0; border-color:var(--line-mid); color:var(--gray-light); }
   }
 
   .product-gallery-main.is-dragging {
@@ -569,6 +600,22 @@ function selectSize(button) {
   updateStockWarning(button);
   updateReminderState(button);
   syncQuantityAndActions(button);
+}
+
+function selectColor(button) {
+  const colorKey = button.dataset.colorKey || '';
+  const sizeButtons = Array.from(document.querySelectorAll('.size-btn'));
+
+  document.querySelectorAll('.product-color-btn').forEach((item) => item.classList.toggle('active', item === button));
+  sizeButtons.forEach((item) => item.classList.toggle('hidden', item.dataset.colorKey !== colorKey));
+
+  const selectedButton = sizeButtons.find((item) => item.dataset.colorKey === colorKey && item.classList.contains('active'))
+    || sizeButtons.find((item) => item.dataset.colorKey === colorKey && item.dataset.isActive === '1')
+    || sizeButtons.find((item) => item.dataset.colorKey === colorKey);
+
+  if (selectedButton) {
+    selectSize(selectedButton);
+  }
 }
 
 function updateGroundType(button) {
