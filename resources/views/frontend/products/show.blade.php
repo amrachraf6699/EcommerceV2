@@ -9,8 +9,8 @@
   $initialVariantStock = $initialVariant ? (int) $initialVariant->stock_quantity : 0;
   $initialVariantId = $initialVariant?->id;
   $initialVariantGroundType = trim((string) ($initialVariant?->ground_type?->label() ?? ''));
-  $colorOptions = $product->variants->unique(fn ($variant) => (string) $variant->color)->values();
-  $initialColorKey = md5((string) $initialVariant?->color);
+  $availableVariants = $product->variants->filter(fn ($variant) => $variant->is_active && (int) $variant->stock_quantity > 0)->values();
+  $colorOptions = $availableVariants->unique(fn ($variant) => (string) $variant->color)->values();
   $initialVariantIsPurchasable = (bool) ($initialVariant?->is_active && $initialVariantStock > 0);
   $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
   $seoTitle = trim((string) ($product->meta_title ?: $product->name));
@@ -130,7 +130,7 @@
             unavailable-class="text-[30px]"
             row-class="flex items-center gap-3 flex-wrap"
           />
-          <p class="product-ground-type product-ground-type--detail {{ $initialVariantGroundType !== '' ? '' : 'hidden' }}" id="selectedGroundType">
+          <p class="product-ground-type product-ground-type--detail hidden" id="selectedGroundType">
             <span>{{ __('storefront.common.ground_type') }}</span>
             <strong>{{ $initialVariantGroundType }}</strong>
           </p>
@@ -145,7 +145,7 @@
         <div class="product-color-options mb-5" role="group" aria-label="{{ app()->getLocale() === 'ar' ? 'اختيار اللون' : 'Select color' }}">
           @foreach ($colorOptions as $colorOption)
             <button
-              class="product-color-btn {{ md5((string) $colorOption->color) === $initialColorKey ? 'active' : '' }}"
+              class="product-color-btn"
               type="button"
               data-color-key="{{ md5((string) $colorOption->color) }}"
               aria-label="{{ app()->getLocale() === 'ar' ? 'اختيار اللون' : 'Select color' }}"
@@ -158,10 +158,11 @@
             </button>
           @endforeach
         </div>
-        <div class="grid grid-cols-4 gap-2">
-          @foreach ($product->variants as $variant)
+        <div class="product-size-selection hidden" id="productSizeSelection">
+          <div class="grid grid-cols-4 gap-2">
+          @foreach ($availableVariants as $variant)
             <button
-              class="size-btn {{ $initialVariantId === $variant->id ? 'active' : '' }} {{ $variant->is_active ? '' : 'unavailable' }} {{ md5((string) $variant->color) === $initialColorKey ? '' : 'hidden' }}"
+              class="size-btn hidden"
               type="button"
               data-variant-id="{{ $variant->id }}"
               data-color-key="{{ md5((string) $variant->color) }}"
@@ -171,6 +172,7 @@
               onclick="selectSize(this)"
             >{{ $variant->size }}</button>
           @endforeach
+          </div>
         </div>
       </div>
 
@@ -179,16 +181,16 @@
         <div class="flex items-center gap-3">
           <button class="btn-icon" id="qtyDecreaseButton" type="button" onclick="changeQty(-1)">-</button>
           <div class="btn-icon" id="qtyDisplay" style="color:var(--white)">1</div>
-          <button class="btn-icon" id="qtyIncreaseButton" type="button" onclick="changeQty(1)" @disabled(! $initialVariantIsPurchasable)>+</button>
+          <button class="btn-icon" id="qtyIncreaseButton" type="button" onclick="changeQty(1)" disabled>+</button>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 reveal">
-        <button class="btn-primary w-full" id="productAddToCartButton" type="button" onclick="addToCart()" @disabled(! $initialVariantIsPurchasable)><span>{{ __('storefront.common.add_to_cart') }}</span></button>
+        <button class="btn-primary w-full" id="productAddToCartButton" type="button" onclick="addToCart()" disabled><span>{{ __('storefront.common.add_to_cart') }}</span></button>
         <button class="btn-outline w-full" type="button" onclick="shareProduct()"><span>{{ __('storefront.common.share_product') }}</span></button>
       </div>
 
-      <div class="mt-4 reveal {{ $initialVariantStock < 10 ? '' : 'hidden' }}" id="stockWarning" style="border:1px solid var(--line-mid);background:rgb(var(--white-rgb) / .04);color:var(--gray-light);padding:12px 16px">
+      <div class="mt-4 reveal hidden" id="stockWarning" style="border:1px solid var(--line-mid);background:rgb(var(--white-rgb) / .04);color:var(--gray-light);padding:12px 16px">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex items-start gap-2 text-xs">
             <i class='bx bx-error-circle' style="font-size:16px;line-height:1.4;flex:none"></i>
@@ -242,7 +244,7 @@
       unavailable-class="text-[18px]"
     />
   </div>
-  <button class="btn-primary" id="stickyAddToCartButton" style="width:auto;padding:12px 24px;font-size:14px" type="button" onclick="addToCart()" @disabled(! $initialVariantIsPurchasable)><span>{{ __('storefront.common.add_to_cart') }}</span></button>
+  <button class="btn-primary" id="stickyAddToCartButton" style="width:auto;padding:12px 24px;font-size:14px" type="button" onclick="addToCart()" disabled><span>{{ __('storefront.common.add_to_cart') }}</span></button>
 </div>
 
 <div class="zoom-overlay product-zoom-overlay" id="zoomOverlay" onclick="closeZoom()">
@@ -342,7 +344,9 @@
   .product-color-btn.active { border-color:var(--white); }
   .product-color-btn__swatch { width:28px; height:28px; }
   .product-color-btn:not(:has(.product-color-btn__swatch)) { width:auto; min-width:42px; padding:0 10px; border-radius:0; border-color:var(--line-mid); color:var(--gray-light); }
-  }
+  .product-size-selection { opacity:0; transform:translateY(-8px); }
+  .product-size-selection.is-visible { animation:product-size-selection-reveal .22s ease-out forwards; }
+  @keyframes product-size-selection-reveal { to { opacity:1; transform:translateY(0); } }
 
   .product-gallery-main.is-dragging {
     cursor: grabbing;
@@ -494,7 +498,7 @@ let currentImg = document.getElementById('mainImg')?.getAttribute('src') || '';
 let currentImageIndex = galleryImages.findIndex((image) => image.src === currentImg);
 if (currentImageIndex < 0) currentImageIndex = 0;
 let qty = 1;
-let selectedVariantId = @json($initialVariantId);
+let selectedVariantId = null;
 const isCustomerAuthenticated = @json((bool) $customerReminderEmail);
 
 function syncGalleryThumb(index) {
@@ -605,17 +609,32 @@ function selectSize(button) {
 function selectColor(button) {
   const colorKey = button.dataset.colorKey || '';
   const sizeButtons = Array.from(document.querySelectorAll('.size-btn'));
+  const sizeSelection = document.getElementById('productSizeSelection');
 
   document.querySelectorAll('.product-color-btn').forEach((item) => item.classList.toggle('active', item === button));
   sizeButtons.forEach((item) => item.classList.toggle('hidden', item.dataset.colorKey !== colorKey));
 
-  const selectedButton = sizeButtons.find((item) => item.dataset.colorKey === colorKey && item.classList.contains('active'))
-    || sizeButtons.find((item) => item.dataset.colorKey === colorKey && item.dataset.isActive === '1')
-    || sizeButtons.find((item) => item.dataset.colorKey === colorKey);
+  resetVariantSelection();
 
-  if (selectedButton) {
-    selectSize(selectedButton);
+  if (sizeSelection) {
+    sizeSelection.classList.remove('hidden', 'is-visible');
+    void sizeSelection.offsetWidth;
+    sizeSelection.classList.add('is-visible');
   }
+}
+
+function resetVariantSelection() {
+  selectedVariantId = null;
+  qty = 1;
+  document.querySelectorAll('.size-btn').forEach((item) => item.classList.remove('active'));
+  document.getElementById('selectedGroundType')?.classList.add('hidden');
+  document.getElementById('stockWarning')?.classList.add('hidden');
+  document.getElementById('reminderActions')?.classList.add('hidden');
+  document.getElementById('qtyDecreaseButton').disabled = true;
+  document.getElementById('qtyIncreaseButton').disabled = true;
+  document.getElementById('productAddToCartButton').disabled = true;
+  document.getElementById('stickyAddToCartButton').disabled = true;
+  updateQtyDisplay();
 }
 
 function updateGroundType(button) {
@@ -1084,9 +1103,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-const activeVariantButton = document.querySelector('.size-btn.active');
-updateStockWarning(activeVariantButton);
-updateReminderState(activeVariantButton);
-syncQuantityAndActions(activeVariantButton);
+resetVariantSelection();
 </script>
 @endpush
