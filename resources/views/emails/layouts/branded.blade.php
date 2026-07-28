@@ -13,7 +13,7 @@
                     <tr>
                         <td style="vertical-align:middle;">
                             @if (! empty($brandLogoUrl))
-                                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" style="display:block;max-height:52px;max-width:160px;">
+                                <img src="{{ $brandLogoUrl }}" alt="{{ $brandName }}" style="display:block;max-height:52px;max-width:160px;filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);">
                             @endif
                         </td>
                         <td style="vertical-align:middle;text-align:end;">
