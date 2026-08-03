@@ -109,6 +109,15 @@ class AfsPaymentService
         return (bool) preg_match('/^(000\.200|800\.400\.5)/', (string) data_get($payment, 'result.code'));
     }
 
+    /** @param array<string, mixed> $payment */
+    public function failureMessage(array $payment): string
+    {
+        return match ((string) data_get($payment, 'result.code')) {
+            '100.380.401' => __('storefront.checkout_payment_authentication_failed'),
+            default => __('storefront.checkout_payment_declined'),
+        };
+    }
+
     public function isValidPaymentResourcePath(string $checkoutId, string $resourcePath): bool
     {
         return $this->isExpectedResourcePath($checkoutId, $resourcePath);

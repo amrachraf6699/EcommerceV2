@@ -23,6 +23,12 @@
       </div>
     @endif
 
+    @if ($paymentFailureMessage ?? null)
+      <div class="checkout-notice checkout-notice--error mb-8" role="alert">
+        {{ $paymentFailureMessage }}
+      </div>
+    @endif
+
     <div class="grid gap-5 md:grid-cols-2 mb-8">
       <div class="border p-5" style="border-color:var(--line-soft);background:rgb(var(--white-rgb) / .03)">
         <p class="text-xs font-bold mb-2 checkout-eyebrow">{{ __('storefront.account.order_number') }}</p>

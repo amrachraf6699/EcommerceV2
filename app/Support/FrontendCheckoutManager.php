@@ -374,9 +374,9 @@ class FrontendCheckoutManager
      */
     public function syncOrderFromAfsPayment(Order $order, array $payment, ?Request $request = null): Order
     {
-        $this->assertAfsPaymentMatchesOrder($order, $payment);
         $isSuccessful = $this->afsPaymentService->isSuccessful($payment);
         $isPending = $this->afsPaymentService->isPending($payment);
+        $this->assertAfsPaymentMatchesOrder($order, $payment, $isSuccessful);
 
         return DB::transaction(function () use ($payment, $order, $request, $isSuccessful, $isPending): Order {
             /** @var Order $lockedOrder */
@@ -567,16 +567,21 @@ class FrontendCheckoutManager
     }
 
     /** @param array<string, mixed> $payment */
-    private function assertAfsPaymentMatchesOrder(Order $order, array $payment): void
+    private function assertAfsPaymentMatchesOrder(Order $order, array $payment, bool $requireAmountAndCurrency): void
     {
-        $amount = number_format((float) data_get($payment, 'amount', -1), 2, '.', '');
+        $rawAmount = data_get($payment, 'amount');
+        $hasAmount = $rawAmount !== null && $rawAmount !== '';
+        $amount = $hasAmount ? number_format((float) $rawAmount, 2, '.', '') : null;
         $expectedAmount = number_format((float) $order->grand_total, 2, '.', '');
-        $currency = strtoupper((string) data_get($payment, 'currency'));
+        $rawCurrency = data_get($payment, 'currency');
+        $hasCurrency = $rawCurrency !== null && $rawCurrency !== '';
+        $currency = $hasCurrency ? strtoupper((string) $rawCurrency) : null;
         $merchantTransactionId = (string) data_get($payment, 'merchantTransactionId');
 
-        if ($amount !== $expectedAmount
-            || $currency !== strtoupper((string) $order->currency)
-            || $merchantTransactionId !== $order->order_number) {
+        if ($merchantTransactionId !== $order->order_number
+            || ($requireAmountAndCurrency && (! $hasAmount || ! $hasCurrency))
+            || ($hasAmount && $amount !== $expectedAmount)
+            || ($hasCurrency && $currency !== strtoupper((string) $order->currency))) {
             throw ValidationException::withMessages([
                 'payment' => __('storefront.checkout_payment_not_found'),
             ]);

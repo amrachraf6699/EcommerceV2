@@ -95,7 +95,7 @@ class OrderNotificationsTest extends TestCase
         $order = Order::query()->firstOrFail();
 
         Http::fake([
-            'https://afs.test/v1/checkouts/checkout_notify/payment' => Http::response([
+            'https://afs.test/v1/checkouts/checkout_notify/payment*' => Http::response([
                 'id' => 'payment_notify',
                 'amount' => (string) $order->grand_total,
                 'currency' => $order->currency,

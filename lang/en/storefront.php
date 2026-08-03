@@ -181,6 +181,8 @@ return [
     'checkout_shipping_unavailable_country' => 'Shipping is not available for the selected country.',
     'checkout_payment_not_found' => 'We could not verify this payment against the order.',
     'checkout_payment_verification_failed' => 'Something went wrong while verifying your payment. Please try again later. We have not confirmed or processed a charge for this order.',
+    'checkout_payment_authentication_failed' => 'Your card authentication was not approved. Please try again or use another card.',
+    'checkout_payment_declined' => 'Your payment was not approved. Please try again or use another card.',
     'checkout_maintenance' => 'Checkout is temporarily unavailable while we update payment settings. Please try again shortly.',
     'checkout_summary_refresh_failed' => 'Unable to refresh shipping and VAT totals right now.',
     'checkout_success_title' => 'Payment completed',

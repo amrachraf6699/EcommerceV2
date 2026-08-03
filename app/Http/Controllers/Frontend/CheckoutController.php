@@ -101,6 +101,7 @@ class CheckoutController extends Controller
     {
         $order = $this->checkoutManager->findOrderForResult($request);
         abort_unless($order, 404);
+        $paymentFailureMessage = null;
 
         if ($request->filled('resourcePath') && $order->payment_provider === 'afs') {
             try {
@@ -114,6 +115,10 @@ class CheckoutController extends Controller
                     (string) $request->string('resourcePath'),
                 );
                 $order = $this->checkoutManager->syncOrderFromAfsPayment($order, $payment, $request);
+
+                if (! $this->afsPaymentService->isSuccessful($payment) && ! $this->afsPaymentService->isPending($payment)) {
+                    $paymentFailureMessage = $this->afsPaymentService->failureMessage($payment);
+                }
             } catch (RequestException|RuntimeException|ValidationException $exception) {
                 Log::channel('payment')->warning('AFS payment verification failed for storefront result.', [
                     'order_number' => $order->order_number,
@@ -130,6 +135,7 @@ class CheckoutController extends Controller
 
         return view('frontend.checkout.result', [
             'order' => $order,
+            'paymentFailureMessage' => $paymentFailureMessage,
         ]);
     }
 }

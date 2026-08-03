@@ -99,7 +99,7 @@ class StorefrontCheckoutTest extends TestCase
             'id' => 'payment_123', 'amount' => (string) $order->grand_total, 'currency' => 'BHD',
             'merchantTransactionId' => $order->order_number, 'result' => ['code' => '000.100.110'],
         ];
-        Http::fake(['https://afs.test/v1/checkouts/checkout_123/payment' => Http::response($payment)]);
+        Http::fake(['https://afs.test/v1/checkouts/checkout_123/payment*' => Http::response($payment)]);
 
         $result = route('storefront.checkout.result', ['locale' => 'en', 'order' => $order->order_number, 'resourcePath' => '/v1/checkouts/checkout_123/payment']);
         $this->checkoutGet($result)->assertOk()->assertSee(__('storefront.checkout_success_title', [], 'en'));
@@ -130,15 +130,16 @@ class StorefrontCheckoutTest extends TestCase
         Http::fake(['https://afs.test/v1/checkouts' => Http::response(['id' => 'checkout_failed'])]);
         $checkout = app(FrontendCheckoutManager::class)->beginAfsCheckout($this->managerRequest(), $this->payload());
         $order = $checkout['order'];
-        Http::fake(['https://afs.test/v1/checkouts/checkout_failed/payment' => Http::response([
-            'id' => 'payment_failed', 'amount' => (string) $order->grand_total, 'currency' => 'BHD',
-            'merchantTransactionId' => $order->order_number, 'result' => ['code' => '800.100.100'],
+        Http::fake(['https://afs.test/v1/checkouts/checkout_failed/payment*' => Http::response([
+            'id' => 'payment_failed', 'merchantTransactionId' => $order->order_number, 'result' => ['code' => '100.380.401'],
         ])]);
 
         $this->checkoutGet(route('storefront.checkout.result', [
             'locale' => 'en', 'order' => $order->order_number,
             'resourcePath' => '/v1/checkouts/checkout_failed/payment',
-        ]))->assertOk()->assertSee(__('storefront.checkout_failed_title', [], 'en'));
+        ]))->assertOk()
+            ->assertSee(__('storefront.checkout_failed_title', [], 'en'))
+            ->assertSee(__('storefront.checkout_payment_authentication_failed', [], 'en'));
 
         $this->assertSame('failed', $order->fresh()->payment_status->value);
         $this->assertDatabaseHas('carts', ['session_id' => $this->sessionId]);
