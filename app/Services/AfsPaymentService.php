@@ -79,9 +79,18 @@ class AfsPaymentService
             throw new RuntimeException('Invalid AFS payment status resource path.');
         }
 
-        return $this->client()->get($resourcePath, [
+        $response = $this->client()->get($resourcePath, [
             'entityId' => $this->activeConfiguration()['entity_id'],
-        ])->throw()->json();
+        ]);
+
+        Log::info('AFS payment status response.', [
+            'checkout_id' => $checkoutId,
+            'resource_path' => $resourcePath,
+            'http_status' => $response->status(),
+            'response' => $response->json() ?? $response->body(),
+        ]);
+
+        return $response->throw()->json();
     }
 
     public function widgetUrl(string $checkoutId): string
@@ -110,10 +119,11 @@ class AfsPaymentService
     {
         $environment = $this->environment();
         $baseUrl = $this->setting('afs_'.$environment.'_base_url');
+        $accessToken = preg_replace('/^Bearer\s+/i', '', $this->setting('afs_'.$environment.'_access_token'));
 
         return [
             'entity_id' => $this->setting('afs_'.$environment.'_entity_id'),
-            'access_token' => $this->setting('afs_'.$environment.'_access_token'),
+            'access_token' => trim((string) $accessToken),
             'base_url' => $baseUrl !== ''
                 ? $baseUrl
                 : rtrim((string) config('services.afs.'.$environment.'_base_url'), '/'),
