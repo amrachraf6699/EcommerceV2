@@ -9,10 +9,13 @@ use App\Support\StorefrontCountryCatalog;
 use App\Support\FrontendCheckoutManager;
 use App\Services\AfsPaymentService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class CheckoutController extends Controller
 {
@@ -100,16 +103,29 @@ class CheckoutController extends Controller
         abort_unless($order, 404);
 
         if ($request->filled('resourcePath') && $order->payment_provider === 'afs') {
-            abort_unless($this->afsPaymentService->isValidPaymentResourcePath(
-                (string) $order->payment_reference,
-                (string) $request->string('resourcePath'),
-            ), 404);
+            try {
+                abort_unless($this->afsPaymentService->isValidPaymentResourcePath(
+                    (string) $order->payment_reference,
+                    (string) $request->string('resourcePath'),
+                ), 404);
 
-            $payment = $this->afsPaymentService->fetchPaymentStatus(
-                (string) $order->payment_reference,
-                (string) $request->string('resourcePath'),
-            );
-            $order = $this->checkoutManager->syncOrderFromAfsPayment($order, $payment, $request);
+                $payment = $this->afsPaymentService->fetchPaymentStatus(
+                    (string) $order->payment_reference,
+                    (string) $request->string('resourcePath'),
+                );
+                $order = $this->checkoutManager->syncOrderFromAfsPayment($order, $payment, $request);
+            } catch (RequestException|RuntimeException|ValidationException $exception) {
+                Log::warning('AFS payment verification failed for storefront result.', [
+                    'order_number' => $order->order_number,
+                    'exception' => $exception::class,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return redirect()->route('storefront.checkout.result', [
+                    'locale' => app()->getLocale(),
+                    'order' => $order->order_number,
+                ])->with('payment_error', __('storefront.checkout_payment_verification_failed'));
+            }
         }
 
         return view('frontend.checkout.result', [

@@ -351,6 +351,7 @@ return [
     'checkout_empty_cart' => 'السلة فارغة. أضف منتجات قبل المتابعة إلى إتمام الشراء.',
     'checkout_shipping_unavailable_country' => 'الشحن غير متاح للدولة المحددة.',
     'checkout_payment_not_found' => 'تعذر ربط عملية الدفع هذه بأي طلب.',
+    'checkout_payment_verification_failed' => 'حدث خطأ أثناء التحقق من عملية الدفع. يرجى المحاولة مرة أخرى لاحقاً. لم نؤكد أو نعالج أي مبلغ لهذا الطلب.',
     'checkout_maintenance' => 'إتمام الشراء غير متاح مؤقتاً حتى ننتهي من تحديث إعدادات الدفع. يرجى المحاولة لاحقاً.',
     'checkout_summary_refresh_failed' => 'تعذر تحديث إجماليات الشحن والضريبة حالياً.',
     'checkout_success_title' => 'تم الدفع بنجاح',
