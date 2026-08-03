@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\StoreCheckoutRequest;
 use App\Http\Resources\Api\V1\OrderResource;
-use App\Services\TapPaymentService;
 use App\Support\FrontendCheckoutManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +13,6 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private readonly FrontendCheckoutManager $checkoutManager,
-        private readonly TapPaymentService $tapPaymentService,
     ) {
     }
 
@@ -34,29 +32,18 @@ class CheckoutController extends Controller
     public function store(StoreCheckoutRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $paymentMode = $request->string('payment_mode', 'native_sdk')->toString();
-        $checkout = $this->checkoutManager->beginTapCheckoutForCustomer($request->user(), $validated, $paymentMode);
+        $checkout = $this->checkoutManager->beginAfsCheckoutForCustomer($request->user(), $validated);
 
         return response()->json([
             'message' => 'Checkout initialized successfully.',
             'order' => new OrderResource($checkout['order']),
             'payment' => [
-                'payment_provider' => 'tap',
-                'payment_mode' => $paymentMode,
-                'tap_public_key' => $checkout['tap_public_key'],
-                'tap_charge_id' => data_get($checkout['hosted_charge'], 'id'),
-                'hosted_redirect_url' => $checkout['hosted_redirect_url'],
-                'hosted_charge' => $checkout['hosted_charge'],
-                'native_sdk' => [
-                    'provider' => 'tap',
-                    'integration_type' => 'charge',
-                    'charge_id' => data_get($checkout['hosted_charge'], 'id'),
-                    'customer' => [
-                        'first_name' => $validated['first_name'],
-                        'last_name' => $validated['last_name'],
-                        'email' => $checkout['order']->customer_email,
-                    ],
-                ],
+                'payment_provider' => 'afs',
+                'payment_mode' => 'hosted_widget',
+                'checkout_id' => $checkout['checkout_id'],
+                'hosted_payment_url' => $checkout['payment_url'],
+                'payment_widget_url' => $checkout['widget_url'],
+                'payment_brands' => $checkout['brands'],
             ],
         ], 201);
     }
@@ -68,29 +55,8 @@ class CheckoutController extends Controller
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
-        if ($order->payment_transaction_id) {
-            $order = $this->checkoutManager->syncOrderFromTapCharge(
-                $this->tapPaymentService->fetchCharge((string) $order->payment_transaction_id)
-            );
-        }
-
         return response()->json([
             'order' => new OrderResource($order->fresh('items')),
-        ]);
-    }
-
-    public function tapCallback(Request $request): JsonResponse
-    {
-        $tapId = (string) ($request->input('id') ?: $request->input('tap_id'));
-        abort_unless($tapId !== '', 404);
-
-        $order = $this->checkoutManager->syncOrderFromTapCharge(
-            $this->tapPaymentService->fetchCharge($tapId)
-        );
-
-        return response()->json([
-            'status' => 'ok',
-            'order_number' => $order->order_number,
         ]);
     }
 }

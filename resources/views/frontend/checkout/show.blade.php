@@ -23,7 +23,7 @@
       </div>
     @endif
 
-    @if (! $tapCheckoutAvailable)
+    @if (! $afsCheckoutAvailable)
       <div class="checkout-notice checkout-notice--maintenance">
         {{ __('storefront.checkout_maintenance') }}
       </div>
@@ -103,8 +103,8 @@
           </div>
 
           <div class="md:col-span-2">
-            <button type="submit" class="btn-primary w-full" @disabled(! $tapCheckoutAvailable || ! $cart || $cart->items->isEmpty() || $checkoutSummary['error'])>
-              <span>{{ __('storefront.checkout_pay_with_tap') }}</span>
+            <button type="submit" class="btn-primary w-full" @disabled(! $afsCheckoutAvailable || ! $cart || $cart->items->isEmpty() || $checkoutSummary['error'])>
+              <span>{{ __('storefront.checkout_pay_now') }}</span>
             </button>
             <div class="footer-payment-icons mt-4" aria-label="Payment methods">
               @foreach (['visa', 'mastercard', 'amex', 'apple', 'google', 'samsung-pay', 'click-to-pay', 'benefit', 'benefit-pay'] as $paymentIcon)
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (submitButton) {
-        submitButton.disabled = Boolean(error) || @json(! $tapCheckoutAvailable || ! $cart || $cart->items->isEmpty());
+        submitButton.disabled = Boolean(error) || @json(! $afsCheckoutAvailable || ! $cart || $cart->items->isEmpty());
       }
     } catch (error) {
       if (error.name === 'AbortError') {

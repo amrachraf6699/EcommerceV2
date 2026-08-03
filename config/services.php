@@ -31,11 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
-    'tap' => [
-        'secret_key' => env('TAP_SECRET_KEY'),
-        'public_key' => env('TAP_PUBLIC_KEY'),
-        'base_url' => env('TAP_BASE_URL', 'https://api.tap.company'),
-        'webhook_secret' => env('TAP_WEBHOOK_SECRET'),
+    'afs' => [
+        'sandbox_base_url' => env('AFS_SANDBOX_BASE_URL', 'https://eu-test.oppwa.com'),
+        'live_base_url' => env('AFS_LIVE_BASE_URL', 'https://eu-prod.oppwa.com'),
     ],
 
 ];

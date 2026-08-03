@@ -13,7 +13,7 @@ use App\Services\CheckoutPricingService;
 use App\Services\CouponService;
 use App\Services\CurrencyDetectionService;
 use App\Services\OrderNotificationService;
-use App\Services\TapPaymentService;
+use App\Services\AfsPaymentService;
 use App\Services\WelcomeCouponService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -26,7 +26,7 @@ use Illuminate\Validation\ValidationException;
 class FrontendCheckoutManager
 {
     public function __construct(
-        private readonly TapPaymentService $tapPaymentService,
+        private readonly AfsPaymentService $afsPaymentService,
         private readonly CheckoutPricingService $checkoutPricingService,
         private readonly CouponService $couponService,
         private readonly CurrencyDetectionService $currencyDetectionService,
@@ -130,11 +130,11 @@ class FrontendCheckoutManager
 
     /**
      * @param  array<string, mixed>  $validated
-     * @return array{order:Order,redirect_url:string}
+     * @return array{order:Order,checkout_id:string,payment_url:string,widget_url:string,widget_integrity:mixed,brands:list<string>,payment_mode:string}
      */
-    public function beginTapCheckout(Request $request, array $validated): array
+    public function beginAfsCheckout(Request $request, array $validated): array
     {
-        if (! $this->tapPaymentService->isConfigured()) {
+        if (! $this->afsPaymentService->isConfigured()) {
             throw ValidationException::withMessages([
                 'cart' => __('storefront.checkout_maintenance'),
             ]);
@@ -151,23 +151,22 @@ class FrontendCheckoutManager
 
         $customer = $this->resolveCustomer($validated);
 
-        return $this->beginTapCheckoutForCart(
+        return $this->beginAfsCheckoutForCart(
             $cart,
             $validated,
             $request,
             $customer,
             $sessionId,
-            'hosted_redirect',
         );
     }
 
     /**
      * @param  array<string, mixed>  $validated
-     * @return array{order:Order,redirect_url:string,payment_mode:string,hosted_redirect_url:string,hosted_charge:array<string,mixed>,tap_public_key:string}
+     * @return array{order:Order,checkout_id:string,payment_url:string,widget_url:string,widget_integrity:mixed,brands:list<string>,payment_mode:string}
      */
-    public function beginTapCheckoutForCustomer(Customer $customer, array $validated, string $paymentMode = 'native_sdk'): array
+    public function beginAfsCheckoutForCustomer(Customer $customer, array $validated): array
     {
-        if (! $this->tapPaymentService->isConfigured()) {
+        if (! $this->afsPaymentService->isConfigured()) {
             throw ValidationException::withMessages([
                 'cart' => __('storefront.checkout_maintenance'),
             ]);
@@ -175,21 +174,20 @@ class FrontendCheckoutManager
 
         $cart = $this->cartForCustomer($customer);
 
-        return $this->beginTapCheckoutForCart(
+        return $this->beginAfsCheckoutForCart(
             $cart,
             $validated,
             null,
             $customer,
             null,
-            $paymentMode,
         );
     }
 
     /**
      * @param  array<string, mixed>  $validated
-     * @return array{order:Order,redirect_url:string,payment_mode:string,hosted_redirect_url:string,hosted_charge:array<string,mixed>,tap_public_key:string}
+     * @return array{order:Order,checkout_id:string,payment_url:string,widget_url:string,widget_integrity:mixed,brands:list<string>,payment_mode:string}
      */
-    private function beginTapCheckoutForCart(?Cart $cart, array $validated, ?Request $request, Customer $customer, ?string $sessionId, string $paymentMode): array
+    private function beginAfsCheckoutForCart(?Cart $cart, array $validated, ?Request $request, Customer $customer, ?string $sessionId): array
     {
         if (! $cart || $cart->items->isEmpty()) {
             throw ValidationException::withMessages([
@@ -282,7 +280,7 @@ class FrontendCheckoutManager
                 'coupon_value' => $appliedCoupon['coupon']->discount_value ?? null,
                 'status' => OrderStatus::PENDING,
                 'payment_status' => OrderPaymentStatus::UNPAID,
-                'payment_provider' => 'tap',
+                'payment_provider' => 'afs',
                 'fulfillment_status' => OrderFulfillmentStatus::UNFULFILLED,
                 'currency' => $lockedCart->currency ?: 'BHD',
                 'customer_first_name' => (string) $validated['first_name'],
@@ -342,23 +340,17 @@ class FrontendCheckoutManager
             return $order->fresh('items');
         });
 
-        $charge = $this->tapPaymentService->createHostedCharge(
-            $order,
-            [
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email' => $order->customer_email,
-            ],
-            route('storefront.checkout.result', ['locale' => app()->getLocale(), 'order' => $order->order_number]),
-            route('storefront.checkout.tap.callback', ['locale' => app()->getLocale()]),
-        );
+        $checkout = $this->afsPaymentService->createCheckout($order);
+        $checkoutId = (string) data_get($checkout, 'id');
+        $paymentUrl = route('storefront.checkout.payment', [
+            'locale' => app()->getLocale(),
+            'order' => $order->order_number,
+        ]);
 
         $order->forceFill([
-            'payment_reference' => (string) (data_get($charge, 'reference.transaction')
-                ?: data_get($charge, 'reference.order')
-                ?: $order->order_number),
-            'payment_transaction_id' => data_get($charge, 'id'),
-            'payment_redirect_url' => data_get($charge, 'transaction.url'),
+            'payment_reference' => $checkoutId,
+            'payment_transaction_id' => null,
+            'payment_redirect_url' => $paymentUrl,
         ])->save();
 
         if ($request) {
@@ -368,23 +360,25 @@ class FrontendCheckoutManager
 
         return [
             'order' => $order->fresh(),
-            'redirect_url' => (string) data_get($charge, 'transaction.url'),
-            'payment_mode' => $paymentMode,
-            'hosted_redirect_url' => (string) data_get($charge, 'transaction.url'),
-            'hosted_charge' => $charge,
-            'tap_public_key' => $this->tapPaymentService->publicKey(),
+            'payment_mode' => 'hosted_widget',
+            'checkout_id' => $checkoutId,
+            'payment_url' => $paymentUrl,
+            'widget_url' => $this->afsPaymentService->widgetUrl($checkoutId),
+            'widget_integrity' => data_get($checkout, 'integrity'),
+            'brands' => $this->afsPaymentService->brands(),
         ];
     }
 
     /**
-     * @param  array<string, mixed>  $charge
+     * @param  array<string, mixed>  $payment
      */
-    public function syncOrderFromTapCharge(array $charge, ?Request $request = null): Order
+    public function syncOrderFromAfsPayment(Order $order, array $payment, ?Request $request = null): Order
     {
-        $order = $this->resolveOrderFromCharge($charge);
-        $status = strtoupper((string) data_get($charge, 'status'));
+        $this->assertAfsPaymentMatchesOrder($order, $payment);
+        $isSuccessful = $this->afsPaymentService->isSuccessful($payment);
+        $isPending = $this->afsPaymentService->isPending($payment);
 
-        return DB::transaction(function () use ($charge, $order, $request, $status): Order {
+        return DB::transaction(function () use ($payment, $order, $request, $isSuccessful, $isPending): Order {
             /** @var Order $lockedOrder */
             $lockedOrder = Order::query()
                 ->with(['items', 'coupon', 'welcomeCoupon'])
@@ -392,15 +386,11 @@ class FrontendCheckoutManager
                 ->findOrFail($order->id);
 
             $lockedOrder->forceFill([
-                'payment_provider' => 'tap',
-                'payment_reference' => (string) (data_get($charge, 'reference.transaction')
-                    ?: data_get($charge, 'reference.order')
-                    ?: $lockedOrder->payment_reference
-                    ?: $lockedOrder->order_number),
-                'payment_transaction_id' => data_get($charge, 'id') ?: $lockedOrder->payment_transaction_id,
+                'payment_provider' => 'afs',
+                'payment_transaction_id' => data_get($payment, 'id') ?: $lockedOrder->payment_transaction_id,
             ]);
 
-            if ($status === 'CAPTURED') {
+            if ($isSuccessful) {
                 if ($lockedOrder->payment_status !== OrderPaymentStatus::PAID) {
                     $this->decrementStockForOrder($lockedOrder);
 
@@ -459,9 +449,9 @@ class FrontendCheckoutManager
                 return $lockedOrder->fresh('items');
             }
 
-            if (in_array($status, ['CANCELLED', 'DECLINED', 'FAILED', 'VOID'], true)) {
+            if (! $isPending) {
                 $lockedOrder->fill([
-                    'payment_status' => $status === 'CANCELLED' ? OrderPaymentStatus::CANCELED : OrderPaymentStatus::FAILED,
+                    'payment_status' => OrderPaymentStatus::FAILED,
                     'status' => OrderStatus::PENDING,
                 ])->save();
 
@@ -576,43 +566,21 @@ class FrontendCheckoutManager
         ]);
     }
 
-    private function resolveOrderFromCharge(array $charge): Order
+    /** @param array<string, mixed> $payment */
+    private function assertAfsPaymentMatchesOrder(Order $order, array $payment): void
     {
-        $orderId = data_get($charge, 'metadata.order_id');
-        $orderNumber = (string) (data_get($charge, 'reference.order')
-            ?: data_get($charge, 'reference.transaction')
-            ?: '');
-        $tapId = (string) data_get($charge, 'id');
+        $amount = number_format((float) data_get($payment, 'amount', -1), 2, '.', '');
+        $expectedAmount = number_format((float) $order->grand_total, 2, '.', '');
+        $currency = strtoupper((string) data_get($payment, 'currency'));
+        $merchantTransactionId = (string) data_get($payment, 'merchantTransactionId');
 
-        $query = Order::query()->with('items');
-
-        if ($orderId) {
-            $order = (clone $query)->find($orderId);
-
-            if ($order) {
-                return $order;
-            }
+        if ($amount !== $expectedAmount
+            || $currency !== strtoupper((string) $order->currency)
+            || $merchantTransactionId !== $order->order_number) {
+            throw ValidationException::withMessages([
+                'payment' => __('storefront.checkout_payment_not_found'),
+            ]);
         }
-
-        if ($orderNumber !== '') {
-            $order = (clone $query)->where('order_number', $orderNumber)->first();
-
-            if ($order) {
-                return $order;
-            }
-        }
-
-        if ($tapId !== '') {
-            $order = (clone $query)->where('payment_transaction_id', $tapId)->first();
-
-            if ($order) {
-                return $order;
-            }
-        }
-
-        throw ValidationException::withMessages([
-            'payment' => __('storefront.checkout_payment_not_found'),
-        ]);
     }
 
     private function decrementStockForOrder(Order $order): void

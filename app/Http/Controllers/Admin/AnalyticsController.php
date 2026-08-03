@@ -108,7 +108,7 @@ class AnalyticsController extends Controller
             'fulfillment-statuses' => ['category' => 'sales', 'section' => 'sales', 'title' => 'حالات التجهيز', 'copy' => 'قيمة وعدد الطلبات حسب التجهيز والشحن.'],
             'order-statuses' => ['category' => 'sales', 'section' => 'sales', 'title' => 'حالات الطلبات', 'copy' => 'توزيع الطلبات حسب حالتها التشغيلية.'],
             'currency-breakdown' => ['category' => 'sales', 'section' => 'sales', 'title' => 'العملات', 'copy' => 'عدد وقيمة الطلبات حسب العملة المخزنة في الطلب.'],
-            'payment-providers' => ['category' => 'sales', 'section' => 'sales', 'title' => 'مزودات الدفع', 'copy' => 'تحليل الطلبات حسب مزود الدفع مثل Tap.'],
+            'payment-providers' => ['category' => 'sales', 'section' => 'sales', 'title' => 'مزودات الدفع', 'copy' => 'تحليل الطلبات حسب مزود الدفع مثل AFS.'],
             'hourly-sales' => ['category' => 'sales', 'section' => 'sales', 'title' => 'ساعات البيع', 'copy' => 'أفضل ساعات اليوم من حيث الطلبات والإيرادات.'],
             'weekday-sales' => ['category' => 'sales', 'section' => 'sales', 'title' => 'أيام الأسبوع', 'copy' => 'أداء المبيعات حسب أيام الأسبوع.'],
             'top-products-quantity' => ['category' => 'catalog', 'section' => 'products', 'title' => 'أعلى المنتجات كمية', 'copy' => 'المنتجات الأكثر مبيعاً حسب عدد القطع.'],

@@ -28,7 +28,6 @@ Route::prefix('v1')->group(function (): void {
     Route::get('/products/{product:slug}', [ProductController::class, 'show']);
     Route::get('/products/{product:slug}/variants', [ProductController::class, 'variants']);
     Route::post('/orders/track', TrackOrderController::class);
-    Route::post('/checkout/tap/callback', [CheckoutController::class, 'tapCallback']);
 
     Route::middleware(['auth:sanctum', 'active.customer'])->group(function (): void {
         Route::get('/auth/me', [AuthController::class, 'me']);

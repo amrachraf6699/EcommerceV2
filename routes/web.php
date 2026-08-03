@@ -63,9 +63,8 @@ Route::prefix('{locale}')
         Route::get('/checkout', [CheckoutController::class, 'show'])->name('storefront.checkout.show');
         Route::get('/checkout/summary', [CheckoutController::class, 'summary'])->name('storefront.checkout.summary');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('storefront.checkout.store');
+        Route::get('/checkout/payment/{order}', [CheckoutController::class, 'payment'])->name('storefront.checkout.payment');
         Route::get('/checkout/result', [CheckoutController::class, 'result'])->name('storefront.checkout.result');
-        Route::post('/checkout/tap/callback', [CheckoutController::class, 'tapCallback'])->name('storefront.checkout.tap.callback');
-        Route::get('/checkout/tap/cancel', [CheckoutController::class, 'tapCancel'])->name('storefront.checkout.tap.cancel');
         Route::get('/track-order', [TrackOrderController::class, 'show'])->name('storefront.track-order.show');
         Route::post('/track-order', [TrackOrderController::class, 'store'])->name('storefront.track-order.store');
         Route::post('/welcome-coupon', [WelcomeCouponController::class, 'store'])->name('storefront.welcome-coupon.store');

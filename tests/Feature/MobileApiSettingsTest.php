@@ -65,8 +65,8 @@ class MobileApiSettingsTest extends TestCase
 
         Setting::query()->create([
             'group' => 'payment',
-            'key' => 'tap_secret_key',
-            'label' => 'Tap Secret',
+            'key' => 'afs_sandbox_access_token',
+            'label' => 'AFS Sandbox Token',
             'value' => 'secret',
             'input_type' => 'password',
             'sort_order' => 1,

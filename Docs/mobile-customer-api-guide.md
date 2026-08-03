@@ -9,7 +9,7 @@ It covers:
 - customer profile and address management
 - customer-owned carts
 - checkout summary and checkout initialization
-- Tap payment status sync
+- AFS COPYandPAY payment status reporting
 - orders list, order details, and public order tracking
 
 The mobile cart is **user-bound only**. Guest carts are not used in the mobile API.
@@ -59,7 +59,6 @@ Protected endpoints include:
 - `GET /products/{slug}`
 - `GET /products/{slug}/variants`
 - `POST /orders/track`
-- `POST /checkout/tap/callback`
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/forgot-password`
@@ -118,74 +117,52 @@ Required payload:
   "address_line_2": "Building 2",
   "postal_code": "100",
   "customer_note": "Leave at the desk",
-  "coupon_code": "",
-  "payment_mode": "native_sdk"
+  "coupon_code": ""
 }
 ```
 
-`payment_mode` currently supports:
-- `native_sdk`
-- `hosted_redirect`
-
-## Tap Payment Integration
-This backend is implemented as **SDK-first with hosted redirect fallback**.
+## AFS COPYandPAY Integration
+This backend creates an AFS checkout and returns a hosted widget URL for an in-app browser or web view.
 
 `POST /checkout` returns:
 - the created order
-- `payment_provider: tap`
-- the chosen `payment_mode`
-- `tap_public_key`
-- `tap_charge_id`
-- `hosted_redirect_url`
-- the raw hosted charge payload under `hosted_charge`
+- `payment_provider: afs`
+- `payment_mode: hosted_widget`
+- `checkout_id`
+- `hosted_payment_url`
+- `payment_widget_url`
+- `payment_brands`
 
 ### Recommended mobile strategy
 Use this order:
 
-1. Call `POST /checkout` with `payment_mode = native_sdk`
-2. Build the Tap mobile payment flow from the returned payment payload
-3. After the SDK finishes, call:
+1. Call `POST /checkout`.
+2. Open `payment.hosted_payment_url` in an in-app browser or web view.
+3. Let the hosted page return to the storefront result page, which verifies the AFS `resourcePath` server-side.
+4. After the browser returns, call:
 
 ```text
 GET /checkout/orders/{order_number}/payment-status
 ```
 
-4. Treat the order as complete only when:
+5. Treat the order as complete only when:
    - `payment_status = paid`
    - `status = processing`
 
-### Hosted fallback
-If the SDK flow is unavailable on the client, open:
-
-```text
-payment.hosted_redirect_url
-```
-
-That keeps checkout functional without changing backend order logic.
-
-## Flutter Notes For Tap
-The backend already returns the order and payment payload needed for app-side orchestration.
+## Flutter Notes For AFS
+The API always uses the AFS widget flow; no native SDK payload is returned.
 
 Recommended app behavior:
 - initialize payment only after `/checkout` succeeds
 - keep `order_number` locally until payment is resolved
-- if Tap SDK returns success or pending, always verify with `/checkout/orders/{order_number}/payment-status`
-- if SDK integration is blocked, open `hosted_redirect_url` in an in-app browser or external browser and still verify status through the same endpoint
+- open `hosted_payment_url` in an in-app browser or external browser
+- query `/checkout/orders/{order_number}/payment-status` after the browser flow ends
 
-Because Tap SDK/package shapes can change by platform/package version, the app should treat the backend response as the source of truth for:
+The app should treat the backend response as the source of truth for:
 - `order_number`
-- `tap_charge_id`
-- fallback redirect URL
+- `checkout_id`
+- hosted payment URL
 - final payment status
-
-## Tap SDK vs External Link
-For this backend:
-- **SDK first** is supported at the contract level
-- **external/hosted link** is also supported and already proven by the existing Tap hosted charge flow
-
-Practical recommendation:
-- use Tap SDK in the Flutter app when the selected package/version cleanly supports your required payment UX
-- keep hosted redirect enabled as a fallback path for reliability
 
 ## Postman
 The companion collection is here:

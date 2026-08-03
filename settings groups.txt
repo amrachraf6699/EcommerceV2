@@ -35,9 +35,14 @@ track_order_enabled (boolean)
 chatbot_enabled (boolean)
 
 -payment:
-tap_secret_key
-tap_public_key
-tap_webhook_secret
+afs_environment (select:sandbox|live)
+afs_sandbox_entity_id
+afs_sandbox_access_token
+afs_sandbox_base_url
+afs_live_entity_id
+afs_live_access_token
+afs_live_base_url
+afs_brands
 
 -shipping:
 shipping_gulf_cost

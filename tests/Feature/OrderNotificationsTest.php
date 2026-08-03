@@ -45,8 +45,6 @@ class OrderNotificationsTest extends TestCase
         $this->withoutMiddleware(VerifyCsrfToken::class);
         $this->seed(AdminAuthorizationSeeder::class);
 
-        config()->set('services.tap.base_url', 'https://tap.test');
-
         $this->seedPaymentAndShippingSettings();
         $this->seedNotificationSettings();
 
@@ -86,20 +84,10 @@ class OrderNotificationsTest extends TestCase
         $this->seedCart(2);
 
         Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_notify',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-NOTIFY',
-                    'order' => 'ORD-REF-NOTIFY',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_notify',
-                ],
-            ], 200),
+            'https://afs.test/v1/checkouts' => Http::response(['id' => 'checkout_notify']),
         ]);
 
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
+        app(FrontendCheckoutManager::class)->beginAfsCheckout(
             $this->managerRequest(),
             $this->checkoutPayload(),
         );
@@ -107,21 +95,18 @@ class OrderNotificationsTest extends TestCase
         $order = Order::query()->firstOrFail();
 
         Http::fake([
-            'https://tap.test/v2/charges/chg_notify' => Http::response([
-                'id' => 'chg_notify',
-                'status' => 'CAPTURED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-NOTIFY',
-                    'order' => $order->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => (string) $order->id,
-                ],
-            ], 200),
+            'https://afs.test/v1/checkouts/checkout_notify/payment' => Http::response([
+                'id' => 'payment_notify',
+                'amount' => (string) $order->grand_total,
+                'currency' => $order->currency,
+                'merchantTransactionId' => $order->order_number,
+                'result' => ['code' => '000.100.110'],
+            ]),
         ]);
 
-        app(FrontendCheckoutManager::class)->syncOrderFromTapCharge(
-            app(\App\Services\TapPaymentService::class)->fetchCharge('chg_notify'),
+        app(FrontendCheckoutManager::class)->syncOrderFromAfsPayment(
+            $order,
+            app(\App\Services\AfsPaymentService::class)->fetchPaymentStatus('checkout_notify', '/v1/checkouts/checkout_notify/payment'),
             $this->managerRequest()
         );
 
@@ -328,8 +313,11 @@ class OrderNotificationsTest extends TestCase
     private function seedPaymentAndShippingSettings(): void
     {
         $settings = [
-            ['group' => 'payment', 'key' => 'tap_secret_key', 'value' => 'tap-secret', 'input_type' => 'password'],
-            ['group' => 'payment', 'key' => 'tap_public_key', 'value' => 'tap-public', 'input_type' => 'password'],
+            ['group' => 'payment', 'key' => 'afs_environment', 'value' => 'sandbox', 'input_type' => 'select'],
+            ['group' => 'payment', 'key' => 'afs_sandbox_entity_id', 'value' => 'sandbox-entity', 'input_type' => 'text'],
+            ['group' => 'payment', 'key' => 'afs_sandbox_access_token', 'value' => 'sandbox-token', 'input_type' => 'password'],
+            ['group' => 'payment', 'key' => 'afs_sandbox_base_url', 'value' => 'https://afs.test', 'input_type' => 'text'],
+            ['group' => 'payment', 'key' => 'afs_brands', 'value' => 'VISA MASTER', 'input_type' => 'text'],
             ['group' => 'shipping', 'key' => 'shipping_gulf_cost', 'value' => '4', 'input_type' => 'number'],
             ['group' => 'shipping', 'key' => 'shipping_europe_america_1_2_cost', 'value' => '15', 'input_type' => 'number'],
             ['group' => 'shipping', 'key' => 'shipping_europe_america_3_plus_cost', 'value' => '10', 'input_type' => 'number'],
@@ -338,7 +326,7 @@ class OrderNotificationsTest extends TestCase
         ];
 
         foreach ($settings as $index => $setting) {
-            Setting::query()->create([
+            Setting::query()->updateOrCreate(['key' => $setting['key']], [
                 'group' => $setting['group'],
                 'key' => $setting['key'],
                 'label' => $setting['key'],
@@ -361,7 +349,7 @@ class OrderNotificationsTest extends TestCase
         ];
 
         foreach ($keys as $index => $key) {
-            Setting::query()->create([
+            Setting::query()->updateOrCreate(['key' => $key], [
                 'group' => 'notifications',
                 'key' => $key,
                 'label' => $key,

@@ -304,10 +304,35 @@ class SettingsSeeder extends Seeder
         [$normalizedKey] = $this->normalizeSettingDefinition($key);
 
         return match ($normalizedKey) {
-            'tap_secret_key', 'tap_public_key', 'tap_webhook_secret' => $this->makeSettingRecord(
+            'afs_sandbox_access_token', 'afs_live_access_token' => $this->makeSettingRecord(
                 'payment',
                 $normalizedKey,
                 'password'
+            ),
+            'afs_environment' => $this->makeSettingRecord(
+                'payment',
+                $normalizedKey,
+                'select',
+                'Choose which AFS environment accepts payments.',
+                ['sandbox', 'live'],
+            ),
+            'afs_sandbox_base_url' => $this->makeSettingRecord(
+                'payment',
+                $normalizedKey,
+                'text',
+                'AFS Sandbox base URL.',
+            ),
+            'afs_live_base_url' => $this->makeSettingRecord(
+                'payment',
+                $normalizedKey,
+                'text',
+                'AFS Live base URL.',
+            ),
+            'afs_brands' => $this->makeSettingRecord(
+                'payment',
+                $normalizedKey,
+                'text',
+                'Whitespace-separated AFS brand codes enabled for this merchant.',
             ),
             default => $this->makeSettingRecord('payment', $normalizedKey),
         };

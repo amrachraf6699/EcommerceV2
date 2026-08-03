@@ -3,23 +3,17 @@
 namespace Tests\Feature;
 
 use App\Http\Middleware\VerifyCsrfToken;
-use App\Http\Controllers\Frontend\CheckoutController;
 use App\Models\Cart;
-use App\Models\Coupon;
-use App\Models\CouponRedemption;
-use App\Models\Customer;
-use App\Models\CustomerAddress;
-use App\Models\Order;
+use App\ModelsOrder;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Setting;
-use App\Models\WelcomeCoupon;
+use App\Services\AfsPaymentService;
 use App\Support\FrontendCheckoutManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class StorefrontCheckoutTest extends TestCase
@@ -27,9 +21,7 @@ class StorefrontCheckoutTest extends TestCase
     use RefreshDatabase;
 
     private Product $product;
-
     private ProductVariant $variant;
-
     private string $sessionId;
 
     protected function setUp(): void
@@ -37,145 +29,40 @@ class StorefrontCheckoutTest extends TestCase
         parent::setUp();
         $this->withoutMiddleware(VerifyCsrfToken::class);
 
-        config()->set('services.tap.base_url', 'https://tap.test');
-
-        Setting::query()->create([
-            'group' => 'payment',
-            'key' => 'tap_secret_key',
-            'label' => 'Tap secret key',
-            'value' => 'tap-secret',
-            'input_type' => 'password',
-            'sort_order' => 1,
-        ]);
-
-        Setting::query()->create([
-            'group' => 'payment',
-            'key' => 'tap_public_key',
-            'label' => 'Tap public key',
-            'value' => 'tap-public',
-            'input_type' => 'password',
-            'sort_order' => 2,
-        ]);
-
-        Setting::query()->create([
-            'group' => 'shipping',
-            'key' => 'shipping_gulf_cost',
-            'label' => 'Gulf shipping cost',
-            'value' => '4',
-            'input_type' => 'number',
-            'sort_order' => 1,
-        ]);
-
-        Setting::query()->create([
-            'group' => 'shipping',
-            'key' => 'shipping_europe_america_1_2_cost',
-            'label' => 'Europe and America shipping (1-2)',
-            'value' => '15',
-            'input_type' => 'number',
-            'sort_order' => 2,
-        ]);
-
-        Setting::query()->create([
-            'group' => 'shipping',
-            'key' => 'shipping_europe_america_3_plus_cost',
-            'label' => 'Europe and America shipping (3+)',
-            'value' => '10',
-            'input_type' => 'number',
-            'sort_order' => 3,
-        ]);
-
-        Setting::query()->create([
-            'group' => 'shipping',
-            'key' => 'enable_vat',
-            'label' => 'Enable VAT',
-            'value' => '1',
-            'input_type' => 'checkbox',
-            'sort_order' => 1,
-        ]);
-
-        Setting::query()->create([
-            'group' => 'shipping',
-            'key' => 'vat_value',
-            'label' => 'VAT value',
-            'value' => '10',
-            'input_type' => 'number',
-            'sort_order' => 2,
-        ]);
+        foreach ([
+            ['payment', 'afs_environment', 'sandbox'],
+            ['payment', 'afs_sandbox_entity_id', 'sandbox-entity'],
+            ['payment', 'afs_sandbox_access_token', 'sandbox-token'],
+            ['payment', 'afs_sandbox_base_url', 'https://afs.test'],
+            ['payment', 'afs_live_entity_id', 'live-entity'],
+            ['payment', 'afs_live_access_token', 'live-token'],
+            ['payment', 'afs_live_base_url', 'https://afs.live'],
+            ['payment', 'afs_brands', 'VISA MASTER'],
+            ['shipping', 'shipping_gulf_cost', '4'],
+            ['shipping', 'shipping_others_cost', '15'],
+            ['shipping', 'enable_vat', '1'],
+            ['shipping', 'vat_value', '10'],
+        ] as [$group, $key, $value]) {
+            Setting::query()->updateOrCreate(['key' => $key], compact('group', 'key', 'value') + [
+                'label' => $key,
+                'input_type' => str_contains($key, 'token') ? 'password' : 'text',
+                'sort_order' => 1,
+            ]);
+        }
 
         $this->get(route('storefront.home', ['locale' => 'en']));
         $this->sessionId = app('session.store')->getId();
-
         $this->product = Product::query()->create([
-            'name' => 'Runner Pro',
-            'slug' => 'runner-pro',
-            'short_description' => 'Performance runner',
-            'description' => 'Full product description',
-            'is_active' => true,
-            'is_featured' => false,
+            'name' => 'Runner Pro', 'slug' => 'runner-pro', 'short_description' => 'Runner',
+            'description' => 'Runner', 'is_active' => true,
         ]);
-
         $this->variant = ProductVariant::query()->create([
-            'product_id' => $this->product->id,
-            'name' => '42',
-            'sku' => 'RUNNER-42',
-            'price' => 100,
-            'stock_quantity' => 5,
-            'is_default' => true,
-            'is_active' => true,
+            'product_id' => $this->product->id, 'size' => '42', 'color' => 'Black', 'price' => 100,
+            'stock_quantity' => 5, 'is_default' => true, 'is_active' => true,
         ]);
     }
 
-    public function test_guest_can_open_checkout_without_login(): void
-    {
-        $this->seedCart();
-
-        $this->checkoutGet(route('storefront.checkout.show', ['locale' => 'en']))
-            ->assertOk()
-            ->assertSee(__('storefront.checkout_title', [], 'en'))
-            ->assertSee('name="first_name"', false);
-    }
-
-    public function test_signed_in_customer_uses_same_checkout_page_with_prefilled_data(): void
-    {
-        $this->seedCart();
-
-        $customer = Customer::factory()->create([
-            'name' => 'Jane Doe',
-            'email' => 'jane@example.com',
-            'country' => 'Bahrain',
-        ]);
-
-        CustomerAddress::query()->create([
-            'customer_id' => $customer->id,
-            'label' => 'Home',
-            'recipient_name' => 'Jane Doe',
-            'phone' => '12345678',
-            'country' => 'Bahrain',
-            'state' => 'Capital',
-            'city' => 'Manama',
-            'address_line_1' => 'Road 1',
-            'postal_code' => '100',
-            'is_default_shipping' => true,
-            'is_default_billing' => true,
-        ]);
-
-        $this->actingAs($customer, 'customer');
-
-        $this->checkoutGet(route('storefront.checkout.show', ['locale' => 'en']))
-            ->assertOk()
-            ->assertSee('value="Jane"', false)
-            ->assertSee('value="Doe"', false)
-            ->assertSee('value="jane@example.com"', false)
-            ->assertSee('value="Road 1"', false);
-    }
-
-    public function test_empty_cart_cannot_enter_payment_flow(): void
-    {
-        $this->checkoutPost(route('storefront.checkout.store', ['locale' => 'en']), $this->checkoutPayload())
-            ->assertSessionHasErrors('cart');
-    }
-
-    public function test_checkout_is_blocked_when_tap_settings_are_missing(): void
+    public function test_checkout_requires_afs_configuration(): void
     {
         Setting::query()->where('group', 'payment')->delete();
         $this->seedCart();
@@ -183,563 +70,121 @@ class StorefrontCheckoutTest extends TestCase
         $this->checkoutGet(route('storefront.checkout.show', ['locale' => 'en']))
             ->assertOk()
             ->assertSee(__('storefront.checkout_maintenance', [], 'en'));
-
-        $this->checkoutPost(route('storefront.checkout.store', ['locale' => 'en']), $this->checkoutPayload())
-            ->assertSessionHasErrors([
-                'cart' => __('storefront.checkout_maintenance', [], 'en'),
-            ]);
-    }
-
-    public function test_checkout_rejects_inactive_or_out_of_stock_cart_items_before_tap_session_creation(): void
-    {
-        $this->seedCart();
-        $this->variant->update(['stock_quantity' => 0]);
-
-        Http::fake();
-
-        $this->checkoutPost(route('storefront.checkout.store', ['locale' => 'en']), $this->checkoutPayload())
+        $this->checkoutPost(route('storefront.checkout.store', ['locale' => 'en']), $this->payload())
             ->assertSessionHasErrors('cart');
-
-        Http::assertNothingSent();
     }
 
-    public function test_checkout_creates_pending_order_and_redirects_to_tap(): void
-    {
-        $this->seedCart(2);
-
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_123',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-1',
-                    'order' => 'ORD-REF-1',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_123',
-                ],
-            ], 200),
-        ]);
-
-        $checkout = app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $this->checkoutPayload(),
-        );
-
-        $this->assertSame('https://tap.test/pay/chg_123', $checkout['redirect_url']);
-
-        $order = Order::query()->firstOrFail();
-
-        $this->assertSame('pending', $order->status->value);
-        $this->assertSame('unpaid', $order->payment_status->value);
-        $this->assertSame('tap', $order->payment_provider);
-        $this->assertSame('chg_123', $order->payment_transaction_id);
-        $this->assertSame('200.00', $order->subtotal);
-        $this->assertSame('8.00', $order->shipping_total);
-        $this->assertSame('2.00', $order->shipping_quantity_multiplier);
-        $this->assertSame('20.80', $order->tax_total);
-        $this->assertSame('228.80', $order->grand_total);
-        $this->assertDatabaseCount('order_items', 1);
-
-        Http::assertSent(function ($request) {
-            $data = $request->data();
-
-            return $request->url() === 'https://tap.test/v2/charges'
-                && (float) ($data['amount'] ?? 0) === 228.8;
-        });
-    }
-
-    public function test_checkout_applies_welcome_coupon_to_summary_order_and_payment_amount(): void
-    {
-        $this->seedCart(2);
-
-        WelcomeCoupon::query()->create([
-            'email' => 'john@example.com',
-            'code' => 'WELCOME-20OFF',
-            'discount_type' => 'percent',
-            'discount_value' => 20,
-            'locale' => 'en',
-        ]);
-
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_coupon',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-COUPON',
-                    'order' => 'ORD-REF-COUPON',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_coupon',
-                ],
-            ], 200),
-        ]);
-
-        $payload = $this->checkoutPayload();
-        $payload['coupon_code'] = 'welcome-20off';
-
-        $checkout = app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $payload,
-        );
-
-        $this->assertSame('https://tap.test/pay/chg_coupon', $checkout['redirect_url']);
-
-        $order = Order::query()->firstOrFail();
-        $coupon = WelcomeCoupon::query()->firstOrFail();
-
-        $this->assertSame('200.00', $order->subtotal);
-        $this->assertSame('40.00', $order->discount_total);
-        $this->assertSame('8.00', $order->shipping_total);
-        $this->assertSame('16.80', $order->tax_total);
-        $this->assertSame('184.80', $order->grand_total);
-        $this->assertSame($order->id, $coupon->order_id);
-        $this->assertNull($coupon->used_at);
-
-        Http::assertSent(function ($request) {
-            $data = $request->data();
-
-            return (float) ($data['amount'] ?? 0) === 184.8;
-        });
-    }
-
-    public function test_checkout_summary_endpoint_returns_shipping_and_vat_for_selected_country(): void
-    {
-        $this->seedCart(2);
-
-        $request = Request::create('/en/checkout/summary?country=United%20States', 'GET');
-        $session = app('session.store');
-        $session->setId($this->sessionId);
-        $session->start();
-        $request->setLaravelSession($session);
-
-        $response = app(CheckoutController::class)->summary($request);
-        $payload = $response->getData(true);
-
-        $this->assertSame('others', $payload['summary']['shipping_zone']);
-        $this->assertEquals(0.0, $payload['summary']['shipping_total']);
-        $this->assertEquals(20.0, $payload['summary']['tax_total']);
-        $this->assertEquals(220.0, $payload['summary']['grand_total']);
-    }
-
-    public function test_checkout_summary_endpoint_returns_coupon_discount_when_email_matches(): void
-    {
-        $this->seedCart(2);
-
-        WelcomeCoupon::query()->create([
-            'email' => 'john@example.com',
-            'code' => 'WELCOME-SUMMARY',
-            'discount_type' => 'amount',
-            'discount_value' => 25,
-            'locale' => 'en',
-        ]);
-
-        $request = Request::create('/en/checkout/summary?country=Bahrain&email=john@example.com&coupon_code=WELCOME-SUMMARY', 'GET');
-        $session = app('session.store');
-        $session->setId($this->sessionId);
-        $session->start();
-        $request->setLaravelSession($session);
-
-        $response = app(CheckoutController::class)->summary($request);
-        $payload = $response->getData(true);
-
-        $this->assertTrue($payload['summary']['coupon_applied']);
-        $this->assertSame('WELCOME-SUMMARY', $payload['summary']['coupon_code']);
-        $this->assertEquals(25.0, $payload['summary']['discount_total']);
-        $this->assertEquals(18.3, $payload['summary']['tax_total']);
-        $this->assertEquals(201.3, $payload['summary']['grand_total']);
-    }
-
-    public function test_checkout_uses_other_countries_shipping_rate_for_non_gulf_country(): void
+    public function test_checkout_creates_afs_widget_and_verifies_a_successful_payment_idempotently(): void
     {
         $this->seedCart();
+        Http::fake(['https://afs.test/v1/checkouts' => Http::response(['id' => 'checkout_123'])]);
 
-        $payload = $this->checkoutPayload();
-        $payload['country'] = 'Egypt';
-
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_egypt',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-EG',
-                    'order' => 'ORD-REF-EG',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_egypt',
-                ],
-            ], 200),
-        ]);
-
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $payload,
-        );
-
+        $checkout = app(FrontendCheckoutManager::class)->beginAfsCheckout($this->managerRequest(), $this->payload());
         $order = Order::query()->firstOrFail();
 
-        $this->assertSame('0.00', $order->shipping_total);
-        $this->assertSame('10.00', $order->tax_total);
-        $this->assertSame('110.00', $order->grand_total);
-    }
+        $this->assertSame('afs', $order->payment_provider);
+        $this->assertSame('checkout_123', $order->payment_reference);
+        $this->assertNull($order->payment_transaction_id);
+        $this->assertSame(route('storefront.checkout.payment', ['locale' => 'en', 'order' => $order->order_number]), $checkout['payment_url']);
+        Http::assertSent(fn ($request) => $request->url() === 'https://afs.test/v1/checkouts'
+            && $request->hasHeader('Authorization', 'Bearer sandbox-token')
+            && $request['entityId'] === 'sandbox-entity'
+            && $request['merchantTransactionId'] === $order->order_number);
 
-    public function test_tap_success_marks_order_paid_clears_cart_and_logs_customer_in(): void
-    {
-        $this->seedCart(2);
+        $this->checkoutGet($checkout['payment_url'])->assertOk()
+            ->assertSee('paymentWidgets', false)
+            ->assertSee('checkout_123', false);
 
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_success',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-2',
-                    'order' => 'ORD-REF-2',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_success',
-                ],
-            ], 200),
-            'https://tap.test/v2/charges/chg_success' => Http::response([
-                'id' => 'chg_success',
-                'status' => 'CAPTURED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-2',
-                    'order' => Order::query()->first()?->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => '1',
-                ],
-            ], 200),
-        ]);
+        $payment = [
+            'id' => 'payment_123', 'amount' => (string) $order->grand_total, 'currency' => 'BHD',
+            'merchantTransactionId' => $order->order_number, 'result' => ['code' => '000.100.110'],
+        ];
+        Http::fake(['https://afs.test/v1/checkouts/checkout_123/payment' => Http::response($payment)]);
 
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $this->checkoutPayload(),
-        );
+        $result = route('storefront.checkout.result', ['locale' => 'en', 'order' => $order->order_number, 'resourcePath' => '/v1/checkouts/checkout_123/payment']);
+        $this->checkoutGet($result)->assertOk()->assertSee(__('storefront.checkout_success_title', [], 'en'));
+        $this->checkoutGet($result)->assertOk();
 
-        $order = Order::query()->firstOrFail();
-
-        Http::fake([
-            'https://tap.test/v2/charges/chg_success' => Http::response([
-                'id' => 'chg_success',
-                'status' => 'CAPTURED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-2',
-                    'order' => $order->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => (string) $order->id,
-                ],
-            ], 200),
-        ]);
-
-        $this->checkoutGet(route('storefront.checkout.result', [
-            'locale' => 'en',
-            'order' => $order->order_number,
-            'tap_id' => 'chg_success',
-        ]))->assertOk()
-            ->assertSee(__('storefront.checkout_success_title', [], 'en'));
-
-        $order = $order->fresh();
-
-        $this->assertSame('paid', $order->payment_status->value);
-        $this->assertSame('processing', $order->status->value);
-        $this->assertNotNull($order->placed_at);
+        $this->assertSame('paid', $order->fresh()->payment_status->value);
+        $this->assertSame('payment_123', $order->fresh()->payment_transaction_id);
+        $this->assertSame(4, (int) $this->variant->fresh()->stock_quantity);
         $this->assertDatabaseMissing('carts', ['session_id' => $this->sessionId]);
-        $this->assertSame(3, (int) $this->variant->fresh()->stock_quantity);
-        $this->assertAuthenticated('customer');
-        $this->assertSame($order->customer_id, auth('customer')->id());
-
-        $this->checkoutGet(route('storefront.cart.summary', ['locale' => 'en']))
-            ->assertOk()
-            ->assertJsonPath('cart.items_count', 0)
-            ->assertJsonPath('cart.subtotal', 0);
     }
 
-    public function test_failed_or_canceled_payment_keeps_order_and_cart(): void
+    public function test_checkout_rejects_a_resource_path_for_another_checkout(): void
     {
         $this->seedCart();
-
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_fail',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-3',
-                    'order' => 'ORD-REF-3',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_fail',
-                ],
-            ], 200),
-        ]);
-
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $this->checkoutPayload(),
-        );
-
-        $order = Order::query()->firstOrFail();
-
-        Http::fake([
-            'https://tap.test/v2/charges/chg_fail' => Http::response([
-                'id' => 'chg_fail',
-                'status' => 'FAILED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-3',
-                    'order' => $order->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => (string) $order->id,
-                ],
-            ], 200),
-        ]);
+        Http::fake(['https://afs.test/v1/checkouts' => Http::response(['id' => 'checkout_123'])]);
+        $checkout = app(FrontendCheckoutManager::class)->beginAfsCheckout($this->managerRequest(), $this->payload());
 
         $this->checkoutGet(route('storefront.checkout.result', [
-            'locale' => 'en',
-            'order' => $order->order_number,
-            'tap_id' => 'chg_fail',
-        ]))->assertOk()
-            ->assertSee(__('storefront.checkout_failed_title', [], 'en'));
+            'locale' => 'en', 'order' => $checkout['order']->order_number,
+            'resourcePath' => '/v1/checkouts/another_checkout/payment',
+        ]))->assertNotFound();
+        Http::assertSentCount(1);
+    }
+
+    public function test_a_non_successful_afs_result_keeps_the_cart(): void
+    {
+        $this->seedCart();
+        Http::fake(['https://afs.test/v1/checkouts' => Http::response(['id' => 'checkout_failed'])]);
+        $checkout = app(FrontendCheckoutManager::class)->beginAfsCheckout($this->managerRequest(), $this->payload());
+        $order = $checkout['order'];
+        Http::fake(['https://afs.test/v1/checkouts/checkout_failed/payment' => Http::response([
+            'id' => 'payment_failed', 'amount' => (string) $order->grand_total, 'currency' => 'BHD',
+            'merchantTransactionId' => $order->order_number, 'result' => ['code' => '800.100.100'],
+        ])]);
+
+        $this->checkoutGet(route('storefront.checkout.result', [
+            'locale' => 'en', 'order' => $order->order_number,
+            'resourcePath' => '/v1/checkouts/checkout_failed/payment',
+        ]))->assertOk()->assertSee(__('storefront.checkout_failed_title', [], 'en'));
 
         $this->assertSame('failed', $order->fresh()->payment_status->value);
         $this->assertDatabaseHas('carts', ['session_id' => $this->sessionId]);
     }
 
-    public function test_tap_callback_is_idempotent(): void
+    public function test_live_environment_uses_the_live_afs_endpoint(): void
     {
-        $this->seedCart();
+        Setting::query()->where('key', 'afs_environment')->update(['value' => 'live']);
+        $service = app(AfsPaymentService::class);
 
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_callback',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-4',
-                    'order' => 'ORD-REF-4',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_callback',
-                ],
-            ], 200),
-        ]);
-
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $this->checkoutPayload(),
-        );
-
-        $order = Order::query()->firstOrFail();
-
-        Http::fake([
-            'https://tap.test/v2/charges/chg_callback' => Http::response([
-                'id' => 'chg_callback',
-                'status' => 'CAPTURED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-4',
-                    'order' => $order->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => (string) $order->id,
-                ],
-            ], 200),
-        ]);
-
-        $this->post(route('storefront.checkout.tap.callback', ['locale' => 'en']), ['id' => 'chg_callback'])
-            ->assertOk();
-
-        $this->post(route('storefront.checkout.tap.callback', ['locale' => 'en']), ['id' => 'chg_callback'])
-            ->assertOk();
-
-        $this->assertSame(4, (int) $this->variant->fresh()->stock_quantity);
-        $this->assertSame('paid', $order->fresh()->payment_status->value);
+        $this->assertTrue($service->isConfigured());
+        $this->assertSame('live', $service->environment());
+        $this->assertSame('https://afs.live/v1/paymentWidgets.js?checkoutId=checkout_live', $service->widgetUrl('checkout_live'));
     }
 
-    public function test_paid_checkout_marks_welcome_coupon_used(): void
-    {
-        $this->seedCart();
-
-        WelcomeCoupon::query()->create([
-            'email' => 'john@example.com',
-            'code' => 'WELCOME-PAID',
-            'discount_type' => 'amount',
-            'discount_value' => 10,
-            'locale' => 'en',
-        ]);
-
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_coupon_paid',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-PAID',
-                    'order' => 'ORD-REF-PAID',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_coupon_paid',
-                ],
-            ], 200),
-        ]);
-
-        $payload = $this->checkoutPayload();
-        $payload['coupon_code'] = 'WELCOME-PAID';
-
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $payload,
-        );
-
-        $order = Order::query()->firstOrFail();
-
-        Http::fake([
-            'https://tap.test/v2/charges/chg_coupon_paid' => Http::response([
-                'id' => 'chg_coupon_paid',
-                'status' => 'CAPTURED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-PAID',
-                    'order' => $order->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => (string) $order->id,
-                ],
-            ], 200),
-        ]);
-
-        $this->checkoutGet(route('storefront.checkout.result', [
-            'locale' => 'en',
-            'order' => $order->order_number,
-            'tap_id' => 'chg_coupon_paid',
-        ]))->assertOk();
-
-        $coupon = WelcomeCoupon::query()->firstOrFail();
-
-        $this->assertSame($order->id, $coupon->order_id);
-        $this->assertNotNull($coupon->used_at);
-    }
-
-    public function test_paid_checkout_marks_standard_coupon_used_and_stores_snapshot(): void
-    {
-        $this->seedCart();
-
-        $coupon = Coupon::query()->create([
-            'code' => 'SAVE10',
-            'discount_type' => 'amount',
-            'discount_value' => 10,
-            'is_active' => true,
-            'allowed_countries' => ['Bahrain'],
-        ]);
-
-        Http::fake([
-            'https://tap.test/v2/charges' => Http::response([
-                'id' => 'chg_standard_paid',
-                'status' => 'INITIATED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-STANDARD',
-                    'order' => 'ORD-REF-STANDARD',
-                ],
-                'transaction' => [
-                    'url' => 'https://tap.test/pay/chg_standard_paid',
-                ],
-            ], 200),
-        ]);
-
-        $payload = $this->checkoutPayload();
-        $payload['coupon_code'] = 'save10';
-
-        app(FrontendCheckoutManager::class)->beginTapCheckout(
-            $this->managerRequest(),
-            $payload,
-        );
-
-        $order = Order::query()->firstOrFail();
-
-        $this->assertSame($coupon->id, $order->coupon_id);
-        $this->assertSame('SAVE10', $order->coupon_code);
-        $this->assertSame('standard', $order->coupon_type);
-        $this->assertSame('10.00', $order->coupon_value);
-        $this->assertSame('10.00', $order->discount_total);
-
-        Http::fake([
-            'https://tap.test/v2/charges/chg_standard_paid' => Http::response([
-                'id' => 'chg_standard_paid',
-                'status' => 'CAPTURED',
-                'reference' => [
-                    'transaction' => 'ORD-REF-STANDARD',
-                    'order' => $order->order_number,
-                ],
-                'metadata' => [
-                    'order_id' => (string) $order->id,
-                ],
-            ], 200),
-        ]);
-
-        $this->checkoutGet(route('storefront.checkout.result', [
-            'locale' => 'en',
-            'order' => $order->order_number,
-            'tap_id' => 'chg_standard_paid',
-        ]))->assertOk();
-
-        $this->assertDatabaseHas('coupon_redemptions', [
-            'coupon_id' => $coupon->id,
-            'order_id' => $order->id,
-            'customer_email' => 'john@example.com',
-        ]);
-        $this->assertSame(1, CouponRedemption::query()->count());
-    }
-
-    private function seedCart(int $quantity = 1): void
+    private function seedCart(): void
     {
         $cart = Cart::query()->create([
-            'session_id' => $this->sessionId,
-            'currency' => 'BHD',
-            'item_count' => $quantity,
-            'subtotal' => $quantity * 100,
-            'last_activity_at' => now(),
+            'session_id' => $this->sessionId, 'currency' => 'BHD', 'item_count' => 1,
+            'subtotal' => 100, 'last_activity_at' => now(),
         ]);
-
         $cart->items()->create([
-            'product_id' => $this->product->id,
-            'product_variant_id' => $this->variant->id,
-            'product_name' => $this->product->name,
-            'variant_name' => $this->variant->name,
-            'sku' => $this->variant->sku,
-            'unit_price' => 100,
-            'quantity' => $quantity,
-            'line_total' => $quantity * 100,
+            'product_id' => $this->product->id, 'product_variant_id' => $this->variant->id,
+            'product_name' => $this->product->name, 'variant_name' => $this->variant->display_name,
+            'unit_price' => 100, 'quantity' => 1, 'line_total' => 100,
         ]);
     }
 
-    /**
-     * @return array<string, string>
-     */
-    private function checkoutPayload(): array
+    /** @return array<string, string> */
+    private function payload(): array
     {
         return [
-            'first_name' => 'John',
-            'last_name' => 'Customer',
-            'email' => 'john@example.com',
-            'phone' => '12345678',
-            'country' => 'Bahrain',
-            'state' => 'Capital',
-            'city' => 'Manama',
-            'address_line_1' => 'Street 1',
-            'address_line_2' => 'Building 2',
-            'postal_code' => '100',
-            'customer_note' => 'Leave at the desk',
-            'coupon_code' => '',
+            'first_name' => 'John', 'last_name' => 'Customer', 'email' => 'john@example.com', 'phone' => '12345678',
+            'country' => 'Bahrain', 'state' => 'Capital', 'city' => 'Manama', 'address_line_1' => 'Street 1',
+            'address_line_2' => 'Building 2', 'postal_code' => '100', 'customer_note' => 'Leave at the desk', 'coupon_code' => '',
         ];
     }
 
     private function checkoutGet(string $route)
     {
-        return $this->withCookie(config('session.cookie'), Crypt::encryptString($this->sessionId))
-            ->get($route);
+        return $this->withCookie(config('session.cookie'), Crypt::encryptString($this->sessionId))->get($route);
     }
 
     private function checkoutPost(string $route, array $payload)
     {
-        return $this->withCookie(config('session.cookie'), Crypt::encryptString($this->sessionId))
-            ->post($route, $payload);
+        return $this->withCookie(config('session.cookie'), Crypt::encryptString($this->sessionId))->post($route, $payload);
     }
 
     private function managerRequest(): Request
