@@ -79,7 +79,9 @@ class AfsPaymentService
             throw new RuntimeException('Invalid AFS payment status resource path.');
         }
 
-        return $this->client()->get($resourcePath)->throw()->json();
+        return $this->client()->get($resourcePath, [
+            'entityId' => $this->activeConfiguration()['entity_id'],
+        ])->throw()->json();
     }
 
     public function widgetUrl(string $checkoutId): string
