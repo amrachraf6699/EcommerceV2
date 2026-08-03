@@ -97,7 +97,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function result(Request $request): View
+    public function result(Request $request): View|RedirectResponse
     {
         $order = $this->checkoutManager->findOrderForResult($request);
         abort_unless($order, 404);
