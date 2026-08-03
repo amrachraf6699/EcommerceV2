@@ -115,7 +115,7 @@ class CheckoutController extends Controller
                 );
                 $order = $this->checkoutManager->syncOrderFromAfsPayment($order, $payment, $request);
             } catch (RequestException|RuntimeException|ValidationException $exception) {
-                Log::warning('AFS payment verification failed for storefront result.', [
+                Log::channel('payment')->warning('AFS payment verification failed for storefront result.', [
                     'order_number' => $order->order_number,
                     'exception' => $exception::class,
                     'message' => $exception->getMessage(),

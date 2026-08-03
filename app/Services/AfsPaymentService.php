@@ -47,7 +47,7 @@ class AfsPaymentService
      */
     public function createCheckout(Order $order): array
     {
-        Log::info('Creating AFS checkout for order.', ['order' => $order]);
+        Log::channel('payment')->info('Creating AFS checkout for order.', ['order' => $order]);
 
         $response = $this->client()->asForm()->post('/v1/checkouts', array_filter([
             'entityId' => $this->activeConfiguration()['entity_id'],
@@ -83,7 +83,7 @@ class AfsPaymentService
             'entityId' => $this->activeConfiguration()['entity_id'],
         ]);
 
-        Log::info('AFS payment status response.', [
+        Log::channel('payment')->info('AFS payment status response.', [
             'checkout_id' => $checkoutId,
             'resource_path' => $resourcePath,
             'http_status' => $response->status(),
