@@ -11,6 +11,7 @@
   $initialVariantGroundType = trim((string) ($initialVariant?->ground_type?->label() ?? ''));
   $availableVariants = $product->variants->values();
   $colorOptions = $availableVariants->unique(fn ($variant) => (string) $variant->color)->values();
+  $sizeOptions = $availableVariants->unique(fn ($variant) => (string) $variant->size)->values();
   $initialVariantIsPurchasable = (bool) ($initialVariant?->is_active && $initialVariantStock > 0);
   $isSoldOut = (bool) ($product->display_is_sold_out ?? false);
   $seoTitle = trim((string) ($product->meta_title ?: $product->name));
@@ -137,9 +138,15 @@
         </div>
       </div>
 
-      <div class="reveal mb-8">
+      <div class="reveal mb-8" id="productVariantPicker">
         <div class="flex items-center justify-between mb-4">
-          <p class="text-sm font-bold">{{ app()->getLocale() === 'ar' ? 'الخيار' : 'Variant' }}</p>
+          <div class="flex items-center gap-3">
+            <p class="text-sm font-bold">{{ app()->getLocale() === 'ar' ? 'الخيار' : 'Variant' }}</p>
+            <span class="variant-options-loader hidden" id="variantOptionsLoader" role="status" aria-live="polite">
+              <span class="variant-options-loader__spinner" aria-hidden="true"></span>
+              <span class="sr-only">Loading options</span>
+            </span>
+          </div>
           <button type="button" class="text-sm" style="color:var(--gray-light)" onclick="openSizeGuide()">{{ __('storefront.common.size_guide') }}</button>
         </div>
         <div class="product-color-options mb-5" role="group" aria-label="{{ app()->getLocale() === 'ar' ? 'اختيار اللون' : 'Select color' }}">
@@ -148,6 +155,7 @@
               class="product-color-btn"
               type="button"
               data-color-key="{{ md5((string) $colorOption->color) }}"
+              data-color="{{ $colorOption->color }}"
               aria-label="{{ app()->getLocale() === 'ar' ? 'اختيار اللون' : 'Select color' }}"
               onclick="selectColor(this)"
             >
@@ -158,20 +166,15 @@
             </button>
           @endforeach
         </div>
-        <div class="product-size-selection hidden" id="productSizeSelection">
+        <div class="product-size-selection" id="productSizeSelection">
           <div class="grid grid-cols-4 gap-2">
-          @foreach ($availableVariants as $variant)
+          @foreach ($sizeOptions as $sizeOption)
             <button
-              class="size-btn hidden"
+              class="size-btn"
               type="button"
-              data-variant-id="{{ $variant->id }}"
-              data-color-key="{{ md5((string) $variant->color) }}"
-              data-stock-quantity="{{ (int) $variant->stock_quantity }}"
-              data-is-active="{{ $variant->is_active ? '1' : '0' }}"
-              data-has-box="{{ $variant->has_box ? '1' : '0' }}"
-              data-ground-type="{{ $variant->ground_type?->label() }}"
+              data-size="{{ $sizeOption->size }}"
               onclick="selectSize(this)"
-            >{{ $variant->size }}</button>
+            >{{ $sizeOption->size }}</button>
           @endforeach
           </div>
           <div class="mt-4 hidden" id="boxNotice" style="border:1px solid var(--line-mid);background:rgb(var(--white-rgb) / .04);color:var(--gray-light);padding:12px 16px">
@@ -351,9 +354,10 @@
   .product-color-btn.active { border-color:var(--white); }
   .product-color-btn__swatch { width:28px; height:28px; }
   .product-color-btn:not(:has(.product-color-btn__swatch)) { width:auto; min-width:42px; padding:0 10px; border-radius:0; border-color:var(--line-mid); color:var(--gray-light); }
-  .product-size-selection { opacity:0; transform:translateY(-8px); }
-  .product-size-selection.is-visible { animation:product-size-selection-reveal .22s ease-out forwards; }
-  @keyframes product-size-selection-reveal { to { opacity:1; transform:translateY(0); } }
+  .variant-options-loader { display:inline-flex; align-items:center; }
+  .variant-options-loader__spinner { width:16px; height:16px; border:2px solid var(--line-mid); border-top-color:var(--white); border-radius:50%; animation:variant-options-spin .7s linear infinite; }
+  #productVariantPicker.is-loading .product-color-btn, #productVariantPicker.is-loading .size-btn { cursor:wait; opacity:.55; }
+  @keyframes variant-options-spin { to { transform:rotate(360deg); } }
 
   .product-gallery-main.is-dragging {
     cursor: grabbing;
@@ -497,6 +501,7 @@ const productTranslations = {
 };
 
 const productId = @json($product->id);
+const variantOptionsUrl = @json(route('storefront.products.variant-options', ['locale' => app()->getLocale(), 'product' => $product->slug]));
 const galleryImages = @json($galleryImages->map(fn ($image) => [
   'src' => asset('storage/' . $image->path),
   'alt' => $image->alt_text ?: $product->name,
@@ -506,6 +511,9 @@ let currentImageIndex = galleryImages.findIndex((image) => image.src === current
 if (currentImageIndex < 0) currentImageIndex = 0;
 let qty = 1;
 let selectedVariantId = null;
+let selectedColor = null;
+let selectedSize = null;
+let variantOptionsRequest = null;
 const isCustomerAuthenticated = @json((bool) $customerReminderEmail);
 
 function syncGalleryThumb(index) {
@@ -603,38 +611,104 @@ function showZoomImage(index) {
   syncZoomImage();
 }
 
-function selectSize(button) {
-  document.querySelectorAll('.size-btn').forEach((item) => item.classList.remove('active'));
-  button.classList.add('active');
-  selectedVariantId = button.dataset.variantId || null;
-  updateGroundType(button);
-  updateStockWarning(button);
-  updateBoxNotice(button);
-  updateReminderState(button);
-  syncQuantityAndActions(button);
+async function selectSize(button) {
+  if (button.disabled) return;
+
+  selectedSize = button.dataset.size || null;
+  document.querySelectorAll('.size-btn').forEach((item) => item.classList.toggle('active', item === button));
+  clearSelectedVariant();
+  await refreshVariantOptions();
 }
 
-function selectColor(button) {
-  const colorKey = button.dataset.colorKey || '';
-  const sizeButtons = Array.from(document.querySelectorAll('.size-btn'));
-  const sizeSelection = document.getElementById('productSizeSelection');
+async function selectColor(button) {
+  if (button.disabled) return;
 
+  selectedColor = button.dataset.color || null;
   document.querySelectorAll('.product-color-btn').forEach((item) => item.classList.toggle('active', item === button));
-  sizeButtons.forEach((item) => item.classList.toggle('hidden', item.dataset.colorKey !== colorKey));
+  clearSelectedVariant();
+  await refreshVariantOptions();
+}
 
-  resetVariantSelection();
+function setVariantOptionsLoading(isLoading) {
+  document.getElementById('productVariantPicker')?.classList.toggle('is-loading', isLoading);
+  document.getElementById('variantOptionsLoader')?.classList.toggle('hidden', !isLoading);
+  document.querySelectorAll('.product-color-btn, .size-btn').forEach((button) => {
+    button.disabled = isLoading;
+  });
+}
 
-  if (sizeSelection) {
-    sizeSelection.classList.remove('hidden', 'is-visible');
-    void sizeSelection.offsetWidth;
-    sizeSelection.classList.add('is-visible');
+function applyMatchingOptions(options) {
+  const availableSizes = new Set(options.sizes || []);
+  const availableColorKeys = new Set(options.color_keys || []);
+
+  document.querySelectorAll('.size-btn').forEach((button) => {
+    button.classList.toggle('hidden', !availableSizes.has(button.dataset.size || ''));
+  });
+
+  document.querySelectorAll('.product-color-btn').forEach((button) => {
+    button.classList.toggle('hidden', !availableColorKeys.has(button.dataset.colorKey || ''));
+  });
+}
+
+function applySelectedVariant(variant) {
+  if (!variant) return;
+
+  const sizeButton = Array.from(document.querySelectorAll('.size-btn')).find((button) => button.dataset.size === variant.size);
+  if (!sizeButton) return;
+
+  sizeButton.dataset.variantId = variant.id;
+  sizeButton.dataset.stockQuantity = variant.stock_quantity;
+  sizeButton.dataset.isActive = variant.is_active ? '1' : '0';
+  sizeButton.dataset.hasBox = variant.has_box ? '1' : '0';
+  sizeButton.dataset.groundType = variant.ground_type || '';
+  selectedVariantId = String(variant.id);
+
+  updateGroundType(sizeButton);
+  updateStockWarning(sizeButton);
+  updateBoxNotice(sizeButton);
+  updateReminderState(sizeButton);
+  syncQuantityAndActions(sizeButton);
+}
+
+async function refreshVariantOptions() {
+  variantOptionsRequest?.abort();
+  const controller = new AbortController();
+  variantOptionsRequest = controller;
+  const query = new URLSearchParams();
+
+  if (selectedColor !== null) query.set('color', selectedColor);
+  if (selectedSize !== null) query.set('size', selectedSize);
+
+  setVariantOptionsLoading(true);
+
+  try {
+    const response = await fetch(`${variantOptionsUrl}?${query.toString()}`, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) throw new Error('Unable to load matching variant options.');
+
+    const options = await response.json();
+    if (variantOptionsRequest !== controller) return;
+
+    applyMatchingOptions(options);
+    applySelectedVariant(options.selected_variant);
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      clearSelectedVariant();
+    }
+  } finally {
+    if (variantOptionsRequest === controller) {
+      variantOptionsRequest = null;
+      setVariantOptionsLoading(false);
+    }
   }
 }
 
-function resetVariantSelection() {
+function clearSelectedVariant() {
   selectedVariantId = null;
   qty = 1;
-  document.querySelectorAll('.size-btn').forEach((item) => item.classList.remove('active'));
   document.getElementById('selectedGroundType')?.classList.add('hidden');
   document.getElementById('stockWarning')?.classList.add('hidden');
   document.getElementById('boxNotice')?.classList.add('hidden');
@@ -1116,6 +1190,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-resetVariantSelection();
+clearSelectedVariant();
 </script>
 @endpush

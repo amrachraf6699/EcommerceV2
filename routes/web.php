@@ -72,6 +72,7 @@ Route::prefix('{locale}')
         Route::get('/categories/{category:slug}/fallback-products', [CategoryController::class, 'fallbackProducts'])->name('storefront.categories.fallback-products');
         Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('storefront.categories.show');
         Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('storefront.products.show');
+        Route::get('/products/{product:slug}/variant-options', [ProductController::class, 'variantOptions'])->name('storefront.products.variant-options');
         Route::post('/products/{product:slug}/reminders', [ProductReminderController::class, 'store'])->name('storefront.products.reminders.store');
         Route::get('/p/{page:slug}', [PageController::class, 'show'])->name('storefront.pages.show');
 

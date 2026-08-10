@@ -231,4 +231,44 @@ class StorefrontCartTest extends TestCase
             ->assertSee('data-has-box="1"', false)
             ->assertSee('يأتي هذا المنتج مع العلبة الأصلية', false);
     }
+
+    public function test_product_variant_options_are_filtered_by_the_selected_color_or_size(): void
+    {
+        ProductVariant::query()->create([
+            'product_id' => $this->product->id,
+            'size' => '41',
+            'color' => '#FF0000',
+            'price' => 100,
+            'stock_quantity' => 3,
+            'is_active' => true,
+        ]);
+
+        $blueVariant = ProductVariant::query()->create([
+            'product_id' => $this->product->id,
+            'size' => '42',
+            'color' => '#0000FF',
+            'price' => 100,
+            'stock_quantity' => 2,
+            'is_active' => true,
+        ]);
+
+        $this->getJson(route('storefront.products.variant-options', [
+            'locale' => 'en',
+            'product' => $this->product->slug,
+            'color' => '#FF0000',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('sizes', ['41']);
+
+        $this->getJson(route('storefront.products.variant-options', [
+            'locale' => 'en',
+            'product' => $this->product->slug,
+            'size' => '42',
+            'color' => '#0000FF',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('color_keys', [md5('#0000FF')])
+            ->assertJsonPath('selected_variant.id', $blueVariant->id)
+            ->assertJsonPath('selected_variant.size', '42');
+    }
 }
