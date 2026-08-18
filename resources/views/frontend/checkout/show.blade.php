@@ -53,12 +53,6 @@
           </div>
 
           <div>
-            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.phone') }}</label>
-            <input type="text" name="phone" class="input-field" value="{{ $checkoutForm['phone'] }}">
-            @error('phone')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
-          </div>
-
-          <div>
             <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.country') }}</label>
             <select name="country" class="sort-select country-select" required>
               @include('frontend.partials.country-options', ['selectedCountry' => $checkoutForm['country']])
@@ -67,15 +61,24 @@
           </div>
 
           <div>
-            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.city') }}</label>
-            <input type="text" name="city" class="input-field" value="{{ $checkoutForm['city'] }}" required>
-            @error('city')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
+            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.phone') }}</label>
+            <div class="checkout-phone-input" dir="ltr">
+              <span id="checkoutPhonePrefix" class="checkout-phone-prefix" aria-hidden="true"></span>
+              <input type="tel" name="phone" class="input-field" value="{{ $checkoutForm['phone'] }}" inputmode="tel" autocomplete="tel-national" required>
+            </div>
+            @error('phone')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
           </div>
 
           <div>
             <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.state') }}</label>
             <input type="text" name="state" class="input-field" value="{{ $checkoutForm['state'] }}">
             @error('state')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
+          </div>
+
+          <div>
+            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.city') }}</label>
+            <input type="text" name="city" class="input-field" value="{{ $checkoutForm['city'] }}" required>
+            @error('city')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
           </div>
 
           <div>
@@ -94,6 +97,12 @@
             <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.address_line_2') }}</label>
             <input type="text" name="address_line_2" class="input-field" value="{{ $checkoutForm['address_line_2'] }}">
             @error('address_line_2')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
+          </div>
+
+          <div id="checkoutShortAddressField" class="md:col-span-2 {{ $checkoutForm['country'] === 'Saudi Arabia' ? '' : 'hidden' }}">
+            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_short_address') }}</label>
+            <input id="checkoutShortAddressInput" type="text" name="short_address" class="input-field" value="{{ $checkoutForm['short_address'] }}" pattern="[A-Z]{4}[0-9]{4}" maxlength="8" autocapitalize="characters" autocomplete="off" dir="ltr" @required($checkoutForm['country'] === 'Saudi Arabia')>
+            @error('short_address')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
           </div>
 
           <div class="md:col-span-2">
@@ -276,6 +285,10 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const countrySelect = document.querySelector('select[name="country"]');
+  const phoneInput = document.querySelector('input[name="phone"]');
+  const phonePrefix = document.getElementById('checkoutPhonePrefix');
+  const shortAddressField = document.getElementById('checkoutShortAddressField');
+  const shortAddressInput = document.getElementById('checkoutShortAddressInput');
   const emailInput = document.querySelector('input[name="email"]');
   const couponInput = document.getElementById('checkoutCouponCodeInput');
   const applyCouponButton = document.getElementById('checkoutApplyCouponButton');
@@ -287,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const submitButton = document.querySelector('button[type="submit"]');
   const summaryEndpoint = @json(route('storefront.checkout.summary', ['locale' => app()->getLocale()]));
   const detectedCountryNameMap = @json($detectedCountryNameMap);
+  const countryDialingCodes = @json($countryDialingCodes);
   const couponHintText = @json(__('storefront.checkout_coupon_hint'));
   let activeRequest = null;
 
@@ -437,7 +451,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function updateCountryDependentFields() {
+    const country = countrySelect?.value || '';
+    const dialingCode = countryDialingCodes[country] || '';
+    const isSaudi = country === 'Saudi Arabia';
+
+    if (phonePrefix) {
+      phonePrefix.textContent = dialingCode ? `+${dialingCode}` : '+';
+    }
+
+    if (phoneInput) {
+      phoneInput.disabled = !dialingCode;
+      phoneInput.required = Boolean(dialingCode);
+    }
+
+    if (shortAddressField) {
+      shortAddressField.classList.toggle('hidden', !isSaudi);
+    }
+
+    if (shortAddressInput) {
+      shortAddressInput.required = isSaudi;
+
+      if (!isSaudi) {
+        shortAddressInput.value = '';
+      }
+    }
+  }
+
   countrySelect?.addEventListener('change', function () {
+    updateCountryDependentFields();
     refreshCheckoutSummary({ source: 'general' });
   });
   emailInput?.addEventListener('blur', function () {
@@ -453,6 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
     refreshCheckoutSummary({ source: 'coupon' });
   });
   applyDetectedCountryFallback();
+  updateCountryDependentFields();
   refreshCheckoutSummary();
 });
 </script>
@@ -460,6 +503,26 @@ document.addEventListener('DOMContentLoaded', function () {
   .checkout-coupon-status {
     min-width: 132px;
     opacity: 1;
+  }
+
+  .checkout-phone-input {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .checkout-phone-prefix {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    border: 1px solid var(--line-mid);
+    border-inline-end: 0;
+    background: rgb(var(--white-rgb) / .06);
+    color: var(--gray-light);
+    white-space: nowrap;
+  }
+
+  .checkout-phone-input .input-field {
+    min-width: 0;
   }
 
   .checkout-coupon-status:hover {

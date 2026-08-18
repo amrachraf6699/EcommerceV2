@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\Cart;
-use App\ModelsOrder;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Setting;
@@ -153,6 +153,46 @@ class StorefrontCheckoutTest extends TestCase
         $this->assertTrue($service->isConfigured());
         $this->assertSame('live', $service->environment());
         $this->assertSame('https://afs.live/v1/paymentWidgets.js?checkoutId=checkout_live', $service->widgetUrl('checkout_live'));
+    }
+
+    public function test_checkout_requires_a_phone_and_a_valid_saudi_short_address(): void
+    {
+        $route = route('storefront.checkout.store', ['locale' => 'en']);
+
+        $this->checkoutPost($route, array_merge($this->payload(), ['phone' => '']))
+            ->assertSessionHasErrors('phone');
+
+        $this->checkoutPost($route, array_merge($this->payload(), [
+            'country' => 'Saudi Arabia',
+            'short_address' => '',
+        ]))->assertSessionHasErrors('short_address');
+
+        $this->checkoutPost($route, array_merge($this->payload(), [
+            'country' => 'Saudi Arabia',
+            'short_address' => 'abcd1234',
+        ]))->assertSessionHasErrors('short_address');
+
+        $this->checkoutPost($route, array_merge($this->payload(), [
+            'country' => 'Bahrain',
+            'short_address' => 'invalid',
+        ]))->assertSessionDoesntHaveErrors('short_address');
+    }
+
+    public function test_checkout_persists_the_country_code_and_saudi_short_address(): void
+    {
+        $this->seedCart();
+        Http::fake(['https://afs.test/v1/checkouts' => Http::response(['id' => 'checkout_saudi_1'])]);
+
+        app(FrontendCheckoutManager::class)->beginAfsCheckout($this->managerRequest(), array_merge($this->payload(), [
+            'country' => 'Saudi Arabia',
+            'phone' => '501234567',
+            'short_address' => 'ABCD1234',
+        ]));
+
+        $this->assertDatabaseHas('orders', [
+            'customer_phone' => '+966501234567',
+            'shipping_short_address' => 'ABCD1234',
+        ]);
     }
 
     private function seedCart(): void

@@ -164,6 +164,7 @@ return [
     'checkout_copy' => 'Review your cart, enter your delivery details, and continue to secure payment.',
     'checkout_first_name' => 'First name',
     'checkout_last_name' => 'Last name',
+    'checkout_short_address' => 'National short address',
     'checkout_coupon_code' => 'Coupon code',
     'checkout_coupon_placeholder' => 'Enter your coupon code',
     'checkout_coupon_apply' => 'Apply',

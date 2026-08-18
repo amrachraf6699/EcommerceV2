@@ -44,6 +44,8 @@
         'منطقة الشحن' => $valueOrFallback($order->shipping_zone),
     ];
 
+    $shippingRows['العنوان الوطني المختصر'] = $valueOrFallback($order->shipping_short_address);
+
     $paymentRows = [
         'حالة الدفع' => $order->payment_status_label,
         'مزود الدفع' => $valueOrFallback($order->payment_provider),

@@ -66,7 +66,14 @@ class MobileApiCheckoutTest extends TestCase
             ->assertJsonPath('payment.checkout_id', 'checkout_mobile_1')
             ->assertJsonPath('payment.payment_brands.0', 'VISA')
             ->assertJsonPath('payment.payment_brands.1', 'MASTER')
-            ->assertJsonPath('order.customer.email', 'john@example.com');
+            ->assertJsonPath('order.customer.email', 'john@example.com')
+            ->assertJsonPath('order.customer.phone', '+966501234567')
+            ->assertJsonPath('order.shipping_address.short_address', 'ABCD1234');
+
+        $this->assertDatabaseHas('orders', [
+            'customer_phone' => '+966501234567',
+            'shipping_short_address' => 'ABCD1234',
+        ]);
 
         Http::assertSent(fn ($request) => $request->url() === 'https://afs.test/v1/checkouts'
             && $request->hasHeader('Authorization', 'Bearer sandbox-token')
@@ -74,13 +81,24 @@ class MobileApiCheckoutTest extends TestCase
             && $request['paymentType'] === 'DB');
     }
 
+    public function test_mobile_checkout_requires_a_phone_number(): void
+    {
+        $customer = Customer::factory()->create();
+        $token = $customer->createToken('mobile')->plainTextToken;
+
+        $this->withToken($token)
+            ->postJson('/api/v1/checkout', array_merge($this->payload(), ['phone' => '']))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('phone');
+    }
+
     /** @return array<string, string> */
     private function payload(): array
     {
         return [
-            'first_name' => 'John', 'last_name' => 'Customer', 'email' => 'john@example.com', 'phone' => '12345678',
-            'country' => 'Bahrain', 'state' => 'Capital', 'city' => 'Manama', 'address_line_1' => 'Street 1',
-            'address_line_2' => 'Building 2', 'postal_code' => '100', 'customer_note' => 'Leave at the desk', 'coupon_code' => '',
+            'first_name' => 'John', 'last_name' => 'Customer', 'email' => 'john@example.com', 'phone' => '501234567',
+            'country' => 'Saudi Arabia', 'state' => 'Riyadh', 'city' => 'Riyadh', 'address_line_1' => 'Street 1',
+            'address_line_2' => 'Building 2', 'postal_code' => '100', 'short_address' => 'ABCD1234', 'customer_note' => 'Leave at the desk', 'coupon_code' => '',
         ];
     }
 }

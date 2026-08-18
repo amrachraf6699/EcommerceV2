@@ -74,17 +74,21 @@ class FrontendCheckoutManager
 
         $detectedCountryName = $this->detectedCountryName($request);
 
+        $country = old('country', $draftOrder?->shipping_country ?: $customer?->country ?: $address?->country ?: $detectedCountryName);
+        $storedPhone = $draftOrder?->customer_phone ?: $customer?->phone ?: $address?->phone;
+
         return [
             'first_name' => old('first_name', $draftOrder?->customer_first_name ?: $firstName),
             'last_name' => old('last_name', $draftOrder?->customer_last_name ?: $lastName),
             'email' => old('email', $customer?->email ?: $draftOrder?->customer_email),
-            'phone' => old('phone', $draftOrder?->customer_phone ?: $customer?->phone ?: $address?->phone),
-            'country' => old('country', $draftOrder?->shipping_country ?: $customer?->country ?: $address?->country ?: $detectedCountryName),
+            'country' => $country,
+            'phone' => old('phone', $this->countryCatalog->localPhoneForCountry($country, $storedPhone)),
             'state' => old('state', $draftOrder?->shipping_state ?: $address?->state),
             'city' => old('city', $draftOrder?->shipping_city ?: $address?->city),
             'address_line_1' => old('address_line_1', $draftOrder?->shipping_address_line_1 ?: $address?->address_line_1),
             'address_line_2' => old('address_line_2', $draftOrder?->shipping_address_line_2 ?: $address?->address_line_2),
             'postal_code' => old('postal_code', $draftOrder?->shipping_postal_code ?: $address?->postal_code),
+            'short_address' => old('short_address', $draftOrder?->shipping_short_address),
             'customer_note' => old('customer_note', $draftOrder?->customer_note),
             'coupon_code' => old('coupon_code', $draftOrder?->coupon_code),
         ];
@@ -269,6 +273,8 @@ class FrontendCheckoutManager
                 (float) $pricing['subtotal_before_discount'],
             );
 
+            $phone = $this->countryCatalog->formatPhone((string) $validated['country'], (string) $validated['phone']);
+
             $order->fill([
                 'session_id' => $sessionId,
                 'customer_id' => $customer->id,
@@ -286,7 +292,7 @@ class FrontendCheckoutManager
                 'customer_first_name' => (string) $validated['first_name'],
                 'customer_last_name' => (string) $validated['last_name'],
                 'customer_email' => (string) ($customer->email ?: $validated['email']),
-                'customer_phone' => $validated['phone'] ?? null,
+                'customer_phone' => $phone,
                 'billing_country' => $validated['country'],
                 'billing_state' => $validated['state'] ?? null,
                 'billing_city' => $validated['city'],
@@ -300,6 +306,7 @@ class FrontendCheckoutManager
                 'shipping_address_line_1' => $validated['address_line_1'],
                 'shipping_address_line_2' => $validated['address_line_2'] ?? null,
                 'shipping_postal_code' => $validated['postal_code'] ?? null,
+                'shipping_short_address' => $validated['short_address'] ?? null,
                 'customer_note' => $validated['customer_note'] ?? null,
                 'subtotal' => $pricing['subtotal'],
                 'discount_total' => $pricing['discount_total'],
@@ -520,7 +527,7 @@ class FrontendCheckoutManager
         if ($authenticatedCustomer) {
             $authenticatedCustomer->update([
                 'name' => trim($validated['first_name'].' '.$validated['last_name']),
-                'phone' => $validated['phone'] ?? $authenticatedCustomer->phone,
+                'phone' => $this->countryCatalog->formatPhone((string) $validated['country'], (string) $validated['phone']),
                 'country' => $validated['country'] ?? $authenticatedCustomer->country,
             ]);
 
@@ -539,7 +546,7 @@ class FrontendCheckoutManager
 
         $customer->fill([
             'name' => trim($validated['first_name'].' '.$validated['last_name']),
-            'phone' => $validated['phone'] ?? null,
+            'phone' => $this->countryCatalog->formatPhone((string) $validated['country'], (string) $validated['phone']),
             'country' => $validated['country'],
             'is_active' => true,
         ]);

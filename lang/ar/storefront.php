@@ -431,4 +431,5 @@ return [
             ],
         ],
     ],
+    'checkout_short_address' => 'العنوان الوطني المختصر',
 ];

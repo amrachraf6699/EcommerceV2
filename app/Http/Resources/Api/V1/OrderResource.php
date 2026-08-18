@@ -29,6 +29,7 @@ class OrderResource extends JsonResource
                 'address_line_1' => $this->shipping_address_line_1,
                 'address_line_2' => $this->shipping_address_line_2,
                 'postal_code' => $this->shipping_postal_code,
+                'short_address' => $this->shipping_short_address,
             ],
             'subtotal' => (float) $this->subtotal,
             'discount_total' => (float) $this->discount_total,

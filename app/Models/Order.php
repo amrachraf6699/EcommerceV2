@@ -48,6 +48,7 @@ class Order extends Model
         'shipping_address_line_1',
         'shipping_address_line_2',
         'shipping_postal_code',
+        'shipping_short_address',
         'customer_note',
         'subtotal',
         'discount_total',

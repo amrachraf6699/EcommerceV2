@@ -45,6 +45,7 @@ class CheckoutController extends Controller
                 $checkoutForm['coupon_code'] ?? null,
             ),
             'detectedCountryNameMap' => $this->countryCatalog->detectedCountryNameMap(),
+            'countryDialingCodes' => $this->countryCatalog->countryDialingCodes(),
             'afsCheckoutAvailable' => $this->afsPaymentService->isConfigured(),
         ]);
     }

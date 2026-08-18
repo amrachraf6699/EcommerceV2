@@ -90,6 +90,7 @@
               @if ($order->shipping_address_line_2)<p>{{ $order->shipping_address_line_2 }}</p>@endif
               <p>{{ collect([$order->shipping_city, $order->shipping_state, $order->shipping_country])->filter()->implode(', ') ?: __('storefront.account.not_available') }}</p>
               @if ($order->shipping_postal_code)<p>{{ $order->shipping_postal_code }}</p>@endif
+              @if ($order->shipping_short_address)<p>{{ __('storefront.checkout_short_address') }}: <span dir="ltr">{{ $order->shipping_short_address }}</span></p>@endif
             </div>
           </div>
 
