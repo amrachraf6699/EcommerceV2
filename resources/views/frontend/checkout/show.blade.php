@@ -58,6 +58,12 @@
               @include('frontend.partials.country-options', ['selectedCountry' => $checkoutForm['country']])
             </select>
             @error('country')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
+
+            <div id="checkoutShortAddressField" class="mt-5 {{ $checkoutForm['country'] === 'Saudi Arabia' ? '' : 'hidden' }}">
+              <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_short_address') }}</label>
+              <input id="checkoutShortAddressInput" type="text" name="short_address" class="input-field" value="{{ $checkoutForm['short_address'] }}" pattern="[A-Z]{4}[0-9]{4}" maxlength="8" autocapitalize="characters" autocomplete="off" dir="ltr" @required($checkoutForm['country'] === 'Saudi Arabia')>
+              @error('short_address')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
+            </div>
           </div>
 
           <div>
@@ -97,12 +103,6 @@
             <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.account.address_line_2') }}</label>
             <input type="text" name="address_line_2" class="input-field" value="{{ $checkoutForm['address_line_2'] }}">
             @error('address_line_2')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
-          </div>
-
-          <div id="checkoutShortAddressField" class="md:col-span-2 {{ $checkoutForm['country'] === 'Saudi Arabia' ? '' : 'hidden' }}">
-            <label class="text-xs font-bold mb-2 block checkout-label">{{ __('storefront.checkout_short_address') }}</label>
-            <input id="checkoutShortAddressInput" type="text" name="short_address" class="input-field" value="{{ $checkoutForm['short_address'] }}" pattern="[A-Z]{4}[0-9]{4}" maxlength="8" autocapitalize="characters" autocomplete="off" dir="ltr" @required($checkoutForm['country'] === 'Saudi Arabia')>
-            @error('short_address')<p class="mt-2 text-sm checkout-error">{{ $message }}</p>@enderror
           </div>
 
           <div class="md:col-span-2">
